@@ -144,12 +144,15 @@ def parseInput() :
     args = parser.parse_args()
     return parser,args;
 
-def pythonScriptControllerFunctions() :
+def pythonScriptControllerFunctions(timerOutputFilename) :
     allScriptControllerFunctions = ['onKeyPressed(self, c)','onKeyReleased(self, c)','onLoaded(self, node)','onMouseButtonLeft(self, mouseX,mouseY,isPressed)','onMouseButtonRight(self, mouseX,mouseY,isPressed)','onMouseButtonMiddle(self, mouseX,mouseY,isPressed)','onMouseWheel(self, mouseX,mouseY,wheelDelta)','onGUIEvent(self, strControlID,valueName,strValue)','onBeginAnimationStep(self, deltaTime)','onEndAnimationStep(self, deltaTime)','onScriptEvent(self, senderNode, eventName,data)','initGraph(self, node)','bwdInitGraph(self, node)','storeResetState(self)','reset(self)','cleanup(self)']
     result = '\n'
     tabs = "    "
     for curFct in allScriptControllerFunctions :
-        result += '\n'+tabs+'def ' + curFct + ':\n'+tabs+'    return 0;\n'
+        if curFct[:7] != "bwdInit" :
+            result += '\n'+tabs+'def ' + curFct + ':\n'+tabs+'    return 0;\n'
+        else :
+            result += '\n'+tabs+'def ' + curFct + ':\n'+tabs+'    #PythonAdvancedTimer.measureAnimationTime(node, "timer", 1, "ljson", "'+timerOutputFilename+'Timer", 0.04, 100)\n'+tabs+'    return 0;\n'
     return result
 
 def writePythonFile(info_str,classNamePythonFile,node,outputFilenamePython,produceSceneAndPythonFile=1,nodeIsRootNode=1) :
@@ -163,7 +166,8 @@ def writePythonFile(info_str,classNamePythonFile,node,outputFilenamePython,produ
     pythonFile_str += info_str
     pythonFile_str += "\"\"\"\n\n"
     pythonFile_str += "import sys\n"
-    pythonFile_str += "import Sofa\n\n"
+    pythonFile_str += "import Sofa\n"
+    pythonFile_str += "#from SofaPython import PythonAdvancedTimer\n\n"
     
     pythonFile_str += "class " + classNamePythonFile + " (Sofa.PythonScriptController):\n\n"
     if not produceSceneAndPythonFile :
@@ -180,7 +184,7 @@ def writePythonFile(info_str,classNamePythonFile,node,outputFilenamePython,produ
         pythonFile_str += tabs+"# "+classNamePythonFile+"\n"
         pythonFile_str += printChildren(node,tabs,numberOfUnnamedNodes,classNamePythonFile,nodeIsRootNode=1)
     pythonFile_str += "\n"+tabs+"return 0;"
-    pythonFile_str += pythonScriptControllerFunctions()
+    pythonFile_str += pythonScriptControllerFunctions(classNamePythonFile)
 
     if not produceSceneAndPythonFile :
         tabs = "    "
