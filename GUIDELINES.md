@@ -1,5 +1,4 @@
 # Code style guide
-
 ## General rules
 
 ### Base rules
