@@ -969,7 +969,10 @@ void BarycentricMapperHexahedronSetTopology<In,Out>::init ( const typename Out::
     coord.resize ( out.size() );
     for ( unsigned int i=0; i<out.size(); ++i ) coord[i] = Out::getCPos(out[i]);
 
-    _fromGeomAlgo->findNearestElementsInRestPos ( coord, elements, coefs, distances );
+	if(this->useRestPosition)
+		_fromGeomAlgo->findNearestElementsInRestPos ( coord, elements, coefs, distances );
+	else
+		_fromGeomAlgo->findNearestElements ( coord, elements, coefs, distances );
 
     for ( unsigned int i=0; i<elements.size(); ++i )
     {
@@ -1008,7 +1011,7 @@ void BarycentricMapping<TIn, TOut>::createMapperFromTopology ( BaseMeshTopology 
         if (t1 != NULL)
         {
             typedef BarycentricMapperHexahedronSetTopology<InDataTypes, OutDataTypes> HexahedronSetMapper;
-            mapper = sofa::core::objectmodel::New<HexahedronSetMapper>(t1, toTopoCont);
+			mapper = sofa::core::objectmodel::New<HexahedronSetMapper>(t1, toTopoCont, useRestPosition.getValue());
         }
         else
         {
@@ -1016,7 +1019,7 @@ void BarycentricMapping<TIn, TOut>::createMapperFromTopology ( BaseMeshTopology 
             if (t2 != NULL)
             {
                 typedef BarycentricMapperTetrahedronSetTopology<InDataTypes, OutDataTypes> TetrahedronSetMapper;
-                mapper = sofa::core::objectmodel::New<TetrahedronSetMapper>(t2, toTopoCont);
+				mapper = sofa::core::objectmodel::New<TetrahedronSetMapper>(t2, toTopoCont, useRestPosition.getValue());
             }
             else
             {
@@ -1024,7 +1027,7 @@ void BarycentricMapping<TIn, TOut>::createMapperFromTopology ( BaseMeshTopology 
                 if (t3 != NULL)
                 {
                     typedef BarycentricMapperQuadSetTopology<InDataTypes, OutDataTypes> QuadSetMapper;
-                    mapper = sofa::core::objectmodel::New<QuadSetMapper>(t3, toTopoCont);
+					mapper = sofa::core::objectmodel::New<QuadSetMapper>(t3, toTopoCont, useRestPosition.getValue());
                 }
                 else
                 {
@@ -1032,7 +1035,7 @@ void BarycentricMapping<TIn, TOut>::createMapperFromTopology ( BaseMeshTopology 
                     if (t4 != NULL)
                     {
                         typedef BarycentricMapperTriangleSetTopology<InDataTypes, OutDataTypes> TriangleSetMapper;
-                        mapper = sofa::core::objectmodel::New<TriangleSetMapper>(t4, toTopoCont);
+						mapper = sofa::core::objectmodel::New<TriangleSetMapper>(t4, toTopoCont, useRestPosition.getValue());
                     }
                     else
                     {
@@ -1040,7 +1043,7 @@ void BarycentricMapping<TIn, TOut>::createMapperFromTopology ( BaseMeshTopology 
                         if ( t5 != NULL )
                         {
                             typedef BarycentricMapperEdgeSetTopology<InDataTypes, OutDataTypes> EdgeSetMapper;
-                            mapper = sofa::core::objectmodel::New<EdgeSetMapper>(t5, toTopoCont);
+							mapper = sofa::core::objectmodel::New<EdgeSetMapper>(t5, toTopoCont, useRestPosition.getValue());
                         }
                     }
                 }
@@ -1057,7 +1060,7 @@ void BarycentricMapping<TIn, TOut>::createMapperFromTopology ( BaseMeshTopology 
         {
             typedef BarycentricMapperRegularGridTopology< InDataTypes, OutDataTypes > RegularGridMapper;
 
-            mapper = sofa::core::objectmodel::New<RegularGridMapper>(rgt, toTopoCont);
+			mapper = sofa::core::objectmodel::New<RegularGridMapper>(rgt, toTopoCont, useRestPosition.getValue());
         }
         else
         {
@@ -1067,7 +1070,7 @@ void BarycentricMapping<TIn, TOut>::createMapperFromTopology ( BaseMeshTopology 
             if (sgt != NULL && sgt->isVolume())
             {
                 typedef BarycentricMapperSparseGridTopology< InDataTypes, OutDataTypes > SparseGridMapper;
-                mapper = sofa::core::objectmodel::New<SparseGridMapper>(sgt, toTopoCont);
+				mapper = sofa::core::objectmodel::New<SparseGridMapper>(sgt, toTopoCont, useRestPosition.getValue());
             }
             else // generic MeshTopology
             {
@@ -1075,7 +1078,7 @@ void BarycentricMapping<TIn, TOut>::createMapperFromTopology ( BaseMeshTopology 
 
                 typedef BarycentricMapperMeshTopology< InDataTypes, OutDataTypes > MeshMapper;
                 BaseMeshTopology* bmt = dynamic_cast< BaseMeshTopology* >(topology);
-                mapper = sofa::core::objectmodel::New<MeshMapper>(bmt, toTopoCont);
+				mapper = sofa::core::objectmodel::New<MeshMapper>(bmt, toTopoCont, useRestPosition.getValue());
             }
         }
     }

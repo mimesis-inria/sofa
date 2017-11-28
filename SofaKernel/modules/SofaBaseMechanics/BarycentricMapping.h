@@ -252,13 +252,15 @@ public:
     virtual void resize( core::State<Out>* toModel ) = 0;
 
 protected:
-    TopologyBarycentricMapper(core::topology::BaseMeshTopology* fromTopology, topology::PointSetTopologyContainer* toTopology = NULL)
-        : fromTopology(fromTopology), toTopology(toTopology)
+	TopologyBarycentricMapper(core::topology::BaseMeshTopology* fromTopology, topology::PointSetTopologyContainer* toTopology = NULL, bool useRestPosition = false)
+		: fromTopology(fromTopology), toTopology(toTopology), useRestPosition(useRestPosition)
     {}
 
 protected:
     core::topology::BaseMeshTopology* fromTopology;
     topology::PointSetTopologyContainer* toTopology;
+	bool useRestPosition;
+
 };
 
 
@@ -302,8 +304,9 @@ protected:
     bool updateJ;
 
     BarycentricMapperMeshTopology(core::topology::BaseMeshTopology* fromTopology,
-            topology::PointSetTopologyContainer* toTopology)
-        : TopologyBarycentricMapper<In,Out>(fromTopology, toTopology),
+			topology::PointSetTopologyContainer* toTopology,
+			bool useRestPosition = false)
+		: TopologyBarycentricMapper<In,Out>(fromTopology, toTopology, useRestPosition),
           matrixJ(NULL), updateJ(true)
     {
     }
@@ -434,8 +437,9 @@ protected:
     bool updateJ;
 
     BarycentricMapperRegularGridTopology(topology::RegularGridTopology* fromTopology,
-            topology::PointSetTopologyContainer* toTopology)
-        : Inherit(fromTopology, toTopology),fromTopology(fromTopology),
+			topology::PointSetTopologyContainer* toTopology,
+			bool useRestPosition = false)
+		: Inherit(fromTopology, toTopology, useRestPosition),fromTopology(fromTopology),
           matrixJ(NULL), updateJ(true)
     {
     }
@@ -514,8 +518,9 @@ protected:
     bool updateJ;
 
     BarycentricMapperSparseGridTopology(topology::SparseGridTopology* fromTopology,
-            topology::PointSetTopologyContainer* _toTopology)
-        : TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology),
+			topology::PointSetTopologyContainer* _toTopology,
+			bool useRestPosition = false)
+		: TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology, useRestPosition),
           fromTopology(fromTopology),
           matrixJ(NULL), updateJ(true)
     {
@@ -585,8 +590,9 @@ protected:
     bool updateJ;
 
     BarycentricMapperEdgeSetTopology(topology::EdgeSetTopologyContainer* fromTopology,
-            topology::PointSetTopologyContainer* _toTopology)
-        : TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology),
+			topology::PointSetTopologyContainer* _toTopology,
+			bool useRestPosition = false)
+		: TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology, useRestPosition),
           map(initData(&map,"map", "mapper data")),
           _fromContainer(fromTopology),
           _fromGeomAlgo(NULL),
@@ -674,8 +680,9 @@ protected:
     bool updateJ;
 
     BarycentricMapperTriangleSetTopology(topology::TriangleSetTopologyContainer* fromTopology,
-            topology::PointSetTopologyContainer* _toTopology)
-        : TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology),
+			topology::PointSetTopologyContainer* _toTopology,
+			bool useRestPosition = false)
+		: TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology, useRestPosition),
           map(initData(&map,"map", "mapper data")),
           _fromContainer(fromTopology),
           _fromGeomAlgo(NULL),
@@ -769,8 +776,9 @@ protected:
     bool updateJ;
 
     BarycentricMapperQuadSetTopology(topology::QuadSetTopologyContainer* fromTopology,
-            topology::PointSetTopologyContainer* _toTopology)
-        : TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology),
+			topology::PointSetTopologyContainer* _toTopology,
+			bool useRestPosition = false)
+		: TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology, useRestPosition),
           map(initData(&map,"map", "mapper data")),
           _fromContainer(fromTopology),
           _fromGeomAlgo(NULL),
@@ -861,8 +869,10 @@ protected:
     MatrixType* matrixJ;
     bool updateJ;
 
-    BarycentricMapperTetrahedronSetTopology(topology::TetrahedronSetTopologyContainer* fromTopology, topology::PointSetTopologyContainer* _toTopology)
-        : TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology),
+	BarycentricMapperTetrahedronSetTopology(topology::TetrahedronSetTopologyContainer* fromTopology,
+											topology::PointSetTopologyContainer* _toTopology,
+											bool useRestPosition = false)
+		: TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology, useRestPosition),
           map(initData(&map,"map", "mapper data")),
           _fromContainer(fromTopology),
           _fromGeomAlgo(NULL),
@@ -924,15 +934,16 @@ protected:
     MatrixType* matrixJ;
     bool updateJ;
 
-    BarycentricMapperHexahedronSetTopology()
+	BarycentricMapperHexahedronSetTopology()
         : TopologyBarycentricMapper<In,Out>(NULL, NULL),
           map(initData(&map,"map", "mapper data")),
           _fromContainer(NULL),_fromGeomAlgo(NULL)
     {}
 
     BarycentricMapperHexahedronSetTopology(topology::HexahedronSetTopologyContainer* fromTopology,
-            topology::PointSetTopologyContainer* _toTopology)
-        : TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology),
+			topology::PointSetTopologyContainer* _toTopology,
+			bool useRestPosition = false)
+		: TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology, useRestPosition),
           map(initData(&map,"map", "mapper data")),
           _fromContainer(fromTopology),
           _fromGeomAlgo(NULL),

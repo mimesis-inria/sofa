@@ -81,8 +81,10 @@ protected:
 
     /// TEMP
 
-    BarycentricMapperTetrahedronSetTopologyRigid(topology::TetrahedronSetTopologyContainer* fromTopology, topology::PointSetTopologyContainer* _toTopology)
-        : TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology),
+	BarycentricMapperTetrahedronSetTopologyRigid(topology::TetrahedronSetTopologyContainer* fromTopology,
+												 topology::PointSetTopologyContainer* _toTopology,
+												 bool useRestPosition)
+		: TopologyBarycentricMapper<In,Out>(fromTopology, _toTopology, useRestPosition),
           map(initData(&map,"map", "mapper data")),
           mapOrient(initData(&mapOrient,"mapOrient", "mapper data for mapped frames")),
           _fromContainer(fromTopology),
@@ -123,8 +125,8 @@ public:
     SOFA_CLASS(SOFA_TEMPLATE2(BarycentricMapperTetrahedronSetTopology,In,Out),SOFA_TEMPLATE2(BarycentricMapperTetrahedronSetTopologyRigid,In,Out));
     typedef BarycentricMapperTetrahedronSetTopologyRigid<In,Out> Inherit;
 
-    BarycentricMapperTetrahedronSetTopology(topology::TetrahedronSetTopologyContainer* fromTopology, topology::PointSetTopologyContainer* _toTopology)
-        : Inherit(fromTopology, _toTopology)
+	BarycentricMapperTetrahedronSetTopology(topology::TetrahedronSetTopologyContainer* fromTopology, topology::PointSetTopologyContainer* _toTopology, bool useRestPosition = false)
+		: Inherit(fromTopology, _toTopology, useRestPosition)
     {}
 
 };

@@ -44,6 +44,10 @@ sofa_add_plugin(RigidScale RigidScale)
 sofa_add_plugin(LeapMotion LeapMotion)
 sofa_add_plugin(Geomagic Geomagic)
 sofa_add_plugin(CImgPlugin CImgPlugin ON) # ON by default
+sofa_add_plugin(imagewarp ImageWarping)
+sofa_add_plugin(BeamAdapter BeamAdapter)
+sofa_add_plugin(SofaFlow SofaFlow)
+sofa_add_plugin(bezierskelet SofaBezierSkeletonization)
 
 if((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
     sofa_add_plugin(SofaPardisoSolver SofaPardisoSolver) # SofaPardisoSolver is only available under linux with gcc
