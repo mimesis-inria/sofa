@@ -41,7 +41,6 @@ sofa_add_plugin(SofaCarving SofaCarving)
 sofa_add_plugin(RigidScale RigidScale)
 sofa_add_plugin(LeapMotion LeapMotion)
 sofa_add_plugin(Geomagic Geomagic)
-sofa_add_plugin(CImgPlugin CImgPlugin ON) # ON by default
 sofa_add_plugin(imagewarp ImageWarping)
 sofa_add_plugin(BeamAdapter BeamAdapter)
 sofa_add_plugin(SofaFlow SofaFlow)
