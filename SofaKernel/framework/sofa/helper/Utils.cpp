@@ -22,6 +22,7 @@
 #include <sofa/helper/Utils.h>
 #include <sofa/helper/system/FileSystem.h>
 #include <sofa/helper/system/Locale.h>
+#include <sofa/helper/system/FileRepository.h>
 #include <algorithm>
 
 #ifdef WIN32
@@ -233,15 +234,8 @@ const std::string& Utils::getExecutableDirectory()
 
 const std::string& Utils::getPluginDirectory()
 {
-    static std::string pluginDir;
-
-#ifdef WIN32
-    pluginDir = helper::Utils::getExecutableDirectory();
-#else
-    pluginDir = helper::Utils::getSofaPathPrefix() + "/lib";
-#endif
-
-    return pluginDir;
+    static const std::string path = system::PluginRepository.getFirstPath();
+    return path;
 }
 
 static std::string computeSofaPathPrefix()
@@ -269,6 +263,11 @@ const std::string& Utils::getSofaPathPrefix()
 {
     static const std::string prefix = computeSofaPathPrefix();
     return prefix;
+}
+
+const std::string Utils::getSofaPathTo(const std::string& pathFromBuildDir)
+{
+    return getSofaPathPrefix() + "/" + pathFromBuildDir;
 }
 
 std::map<std::string, std::string> Utils::readBasicIniFile(const std::string& path)
