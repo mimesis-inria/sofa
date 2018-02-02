@@ -64,6 +64,8 @@ if(SOFA_BUILD_COMPONENTSET_STANDARD)
         TubularMapping.h
         TubularMapping.inl
         VoidMapping.h
+	BeamMapping.h
+	BeamMapping.inl
         )
     list(APPEND SOURCE_FILES
         BarycentricMappingRigid.cpp
@@ -86,6 +88,7 @@ if(SOFA_BUILD_COMPONENTSET_STANDARD)
         SubsetMultiMapping.cpp
         TubularMapping.cpp
         VoidMapping.cpp
+	BeamMapping.cpp
         )
 
 endif()
