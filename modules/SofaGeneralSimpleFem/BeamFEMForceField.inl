@@ -658,21 +658,61 @@ void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparam
 
     const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
 
-    std::vector< defaulttype::Vector3 > points[3];
+    std::vector< defaulttype::Vector3 > points;
 
     if (_partial_list_segment)
     {
-        for (unsigned int j=0; j<_list_segment.getValue().size(); j++)
-            drawElement(_list_segment.getValue()[j], points, x);
+//        for (unsigned int j=0; j<_list_segment.getValue().size(); j++)
+//            drawElement(_list_segment.getValue()[j], points, x);
     }
     else
     {
         for (unsigned int i=0; i<_indexedElements->size(); ++i)
-            drawElement(i, points, x);
+        {
+            Index a = (*_indexedElements)[i][0];
+            Index b = (*_indexedElements)[i][1];
+
+            auto computeMatrix = [&](defaulttype::Mat<3, 12, Real>& matrixA, Real ksi, Real eta, Real zeta, Real l)
+            {
+                matrixA[0][0] = 1 - ksi;                                  matrixA[1][0] = 0;                                        matrixA[2][0] = 0;
+                matrixA[0][1] = 6 * (ksi - ksi*ksi) * eta;                matrixA[1][1] = 1 - 3 * ksi*ksi + 2*ksi*ksi*ksi;          matrixA[2][1] = 0;
+                matrixA[0][2] = 6 * (ksi - ksi*ksi) * zeta;               matrixA[1][2] = 0;                                        matrixA[2][2] = 1 - 3 * ksi*ksi + 2*ksi*ksi*ksi;
+                matrixA[0][3] = 0;                                        matrixA[1][3] = -(1-ksi) * l * zeta;                      matrixA[2][3] = -(1-ksi) * l * eta;
+                matrixA[0][4] = (1 - 4*ksi + 3*ksi*ksi) * l * zeta;       matrixA[1][4] = 0;                                        matrixA[2][4] = (-ksi + 2*ksi*ksi-ksi*ksi*ksi)*l;
+                matrixA[0][5] = (-1 + 4 * ksi - 3 * ksi*ksi) * l * eta;   matrixA[1][5] = (ksi - 2 * ksi*ksi + ksi*ksi*ksi) * l;    matrixA[2][5] = 0;
+                matrixA[0][6] = ksi;                                      matrixA[1][6] = 0;                                        matrixA[2][6] = 0;
+                matrixA[0][7] = 6 * (-ksi + ksi*ksi) * eta;               matrixA[1][7] = 3*ksi*ksi - 2 * ksi*ksi*ksi;              matrixA[2][7] = 0;
+                matrixA[0][8] = 6 * (-ksi + ksi*ksi) * zeta;              matrixA[1][8] = 0;                                        matrixA[2][8] = 3*ksi*ksi - 2 * ksi*ksi*ksi;
+                matrixA[0][9] = 0;                                        matrixA[1][9] = -l * ksi * zeta;                          matrixA[2][9] = -l * ksi * eta;
+                matrixA[0][10] = (-2 * ksi + 3 * ksi*ksi) * l * zeta;     matrixA[1][10] = 0;                                       matrixA[2][10] = (ksi*ksi - ksi*ksi*ksi) * l;
+                matrixA[0][11] = (2 * ksi - 3 * ksi*ksi) * l * eta;       matrixA[1][11] = (-ksi*ksi + ksi*ksi*ksi) * l;            matrixA[2][11] = 0;
+            };
+
+
+            unsigned int nb_samples = 10;
+            for(unsigned int j = 0 ; j < nb_samples ; ++j)
+            {
+                defaulttype::Mat<3, 12, Real> matrix;
+                defaulttype::Vec3d Pi;
+                Pi = x[a].getCenter() * j/Real(nb_samples) + (1 - j/Real(nb_samples)) * x[b].getCenter();
+
+                computeMatrix(matrix, Pi[0], Pi[1], Pi[2], 1);
+
+                defaulttype::Vec<12, Real> U(x[a][0], x[a][1], x[a][2], x[a][3], x[a][4], x[a][5],
+                                            x[b][0], x[b][1], x[b][2], x[b][3], x[b][4], x[b][5]);
+
+                defaulttype::Vec3d p;
+                p = matrix * U;
+                points.push_back(p);
+            }
+//            drawElement(i, points, x);
+        }
     }
-    vparams->drawTool()->drawLines(points[0], 1, defaulttype::Vec<4,float>(1,0,0,1));
-    vparams->drawTool()->drawLines(points[1], 1, defaulttype::Vec<4,float>(0,1,0,1));
-    vparams->drawTool()->drawLines(points[2], 1, defaulttype::Vec<4,float>(0,0,1,1));
+//    vparams->drawTool()->drawLines(points[0], 1, defaulttype::Vec<4,float>(1,0,0,1));
+//    vparams->drawTool()->drawLines(points[1], 1, defaulttype::Vec<4,float>(0,1,0,1));
+//    vparams->drawTool()->drawLines(points[2], 1, defaulttype::Vec<4,float>(0,0,1,1));
+
+      vparams->drawTool()->drawPoints(points, 5, defaulttype::Vec<4,float>(1,0,0,1));
 }
 
 template<class DataTypes>

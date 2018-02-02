@@ -152,7 +152,7 @@ void BeamMapping<TIn, TOut>::draw(const core::visual::VisualParams* vparams)
         defaulttype::Vec<12, Real> U(xfrom[i][0], xfrom[i][1], xfrom[i][2], xfrom[i][3], xfrom[i][4], xfrom[i][5],
                                     xfrom[i+1][0], xfrom[i+1][1], xfrom[i+1][2], xfrom[i+1][3], xfrom[i+1][4], xfrom[i+1][5]);
         out[i] = matrixA * U;
-        points.push_back(x[i]);
+        points.push_back(out[i]);
     }
 
     vparams->drawTool()->drawPoints(points, 7, sofa::defaulttype::Vec<4,float>(1,1,0,1));
