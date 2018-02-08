@@ -56,6 +56,7 @@ public:
     typedef typename DataTypes::Real        Real        ;
     typedef typename DataTypes::Coord       Coord       ;
     typedef typename DataTypes::Deriv       Deriv       ;
+    typedef typename DataTypes::Quat        Quat        ;
     typedef typename DataTypes::VecCoord    VecCoord    ;
     typedef typename DataTypes::VecDeriv    VecDeriv    ;
     typedef typename DataTypes::VecReal     VecReal     ;
