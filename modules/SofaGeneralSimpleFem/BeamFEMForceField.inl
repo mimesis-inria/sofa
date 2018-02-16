@@ -663,9 +663,9 @@ void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparam
 
     auto computeMatrix = [&](defaulttype::Mat<3, 12, Real>& matrixA, Real x, Real y, Real z, Real l)
     {
-        Real ksi = x / l;
-        Real eta  = y / l;
-        Real zeta = z / l;
+        Real ksi = x;
+        Real eta  = y;
+        Real zeta = z;
 
         matrixA[0][0] = 1 - ksi;                                  matrixA[1][0] = 0;                                        matrixA[2][0] = 0;
         matrixA[0][1] = 6 * (ksi - ksi*ksi) * eta;                matrixA[1][1] = 1 - 3 * ksi*ksi + 2*ksi*ksi*ksi;          matrixA[2][1] = 0;
@@ -694,36 +694,14 @@ void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparam
             Index b = (*_indexedElements)[i][1];
 
 
-            defaulttype::Vec3d anglesA = x[a].getOrientation().toEulerVector();
-            defaulttype::Vec3d anglesB = x[b].getOrientation().toEulerVector();
+            Vec3 projected = x[a].getOrientation().inverseRotate(Vec3(0,0,0));
+
+            Vec3 anglesA = x[a].getOrientation().toEulerVector();
+            Vec3 anglesB = x[b].getOrientation().toEulerVector();
             defaulttype::Vec<12, Real> U(x[a][0], x[a][1], x[a][2], anglesA[0], anglesA[1], anglesA[2],
                                         x[b][0], x[b][1], x[b][2], anglesB[0], anglesB[1], anglesB[2]);
 
 
-
-            //projeter x[a] et a[b] dans une base canonique
-
-//            Quat DOF_to_local_rotationA;
-//            Quat DOF_to_local_rotationB;
-
-//            //getDOFtoLocalTransform
-//            Real angleA;
-//            defaulttype::Vec3d axesA;
-//            x[a].getOrientation().quatToAxis(axesA, angleA);
-
-//            DOF_to_local_rotationA.axisToQuat(Vec3(1,0,0), angleA);
-//            DOF_to_local_rotationA.normalize();
-
-
-//            Real angleB;
-//            defaulttype::Vec3d axesB;
-//            x[b].getOrientation().quatToAxis(axesB, angleB);
-
-//            DOF_to_local_rotationB.axisToQuat(Vec3(1,0,0), angleB);
-//            DOF_to_local_rotationB.normalize();
-
-//            Quat DOF0Global_H_local0 = DOF_to_local_rotationA * x[a].getOrientation();
-//            Quat DOF1Global_H_local1 = DOF_to_local_rotationB * x[b].getOrientation();
 
 
             glPointSize(10);
@@ -735,12 +713,14 @@ void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparam
             {
                 defaulttype::Mat<3, 12, Real> matrix;
                 matrix.clear();
-                defaulttype::Vec3d Pi;
 
                 Real t = Real(j) / Real(nb_samples);
-                //Pi = (1 - t) * DOF0Global_H_local0 + t * DOF1Global_H_local1;
+
+//                Vec3 p = x[a].getOrientation().inverseRotate(x[a]-xfrom[0].getCenter());
 
                 Real l = 1;
+
+                Vec3 itp(t,0,0);
 
 //                std::cout << "point #" <<j << std::endl;
 //                std::cout << "x[a]: " << x[a].getCenter() << std::endl;
@@ -749,11 +729,12 @@ void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparam
 //                std::cout << "x[b]: " << x[b].getOrientation().toEulerVector() << std::endl;
 //                std::cout << "Pi: " << Pi << std::endl;
 //                std::cout << "Pi (2): " << t << " 0 0" << std::endl;
-                computeMatrix(matrix, t, 0., 0., l);
+                computeMatrix(matrix, itp[0]/l, itp[1]/l, itp[2]/l, l);
 //                std::cout << "matrix: " << matrix << std::endl;
 
                 defaulttype::Vec3d p;
-                p = matrix * U;                
+                p = matrix * U;
+
 //                std::cout << "p: " << p << std::endl;
 //                std::cout << "---" << std::endl;
                 points.push_back(p);
