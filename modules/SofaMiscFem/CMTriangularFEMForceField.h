@@ -361,7 +361,7 @@ public:
     Data<helper::vector<Real> > f_young;
     Data<Real> f_damping;
 
-	//SingleLink<CMTriangularFEMForceField, sofa::component::topology::SurfaceMaskTraversal, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> mask_;
+    SingleLink<CMTriangularFEMForceField<DataTypes>, sofa::component::topology::SurfaceMaskTraversal<DataTypes>, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> mask;
 
 
     /// Initial strain parameters (if FEM is initialised with predefine values)

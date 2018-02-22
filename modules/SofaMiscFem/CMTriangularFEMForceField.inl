@@ -129,6 +129,7 @@ CMTriangularFEMForceField<DataTypes>::CMTriangularFEMForceField() :
     , showFracturableTriangles(initData(&showFracturableTriangles,false,"showFracturableTriangles","Flag activating rendering of triangles to fracture"))
     , f_computePrincipalStress(initData(&f_computePrincipalStress,false,"computePrincipalStress","Compute principal stress for each triangle"))
 	//, faces_cache(initLink("travFaces", "A personalized face traversor"))
+    , mask(initLink("mask", "Traversal mask"))
 #ifdef PLOT_CURVE
     , elementID( initData(&elementID, (Real)0, "id","element id to follow for fracture criteria") )
     , f_graphStress( initData(&f_graphStress,"graphMaxStress","Graph of max stress corresponding to the element id") )
@@ -136,6 +137,7 @@ CMTriangularFEMForceField<DataTypes>::CMTriangularFEMForceField() :
     , f_graphOrientation( initData(&f_graphOrientation,"graphOrientation","Graph of the orientation of the principal stress direction corresponding to the element id"))
 #endif
 {
+
     _anisotropicMaterial = false;
 	//triangleHandler = new TRQSTriangleHandler(this, &triangleInfo);
 #ifdef PLOT_CURVE
@@ -197,11 +199,13 @@ void CMTriangularFEMForceField<DataTypes>::init()
 		return x[a][2] <= 12. && x[b][2] <= 12. && x[c][2] <= 12. ;
 	};
 
-	//if(mask_ == nullptr)
-	cell_traversor->build<Face>();
-	cell_traversor->set_filter<Face>(face_validator);
+    if (!mask.get())
+    {
+        cell_traversor->build<Face>();
+        cell_traversor->set_filter<Face>(face_validator);
+    }
 	//else
-	// cell_traversor->build<Face>(mask_);
+    // cell_traversor->build<Face>(mask);
 
 
 	m_rotatedInitialElements = _topology->add_attribute<RotatedInitialElements, Face>("CMTriangularFEMForceField_RotatedInitialElements");

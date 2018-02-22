@@ -75,8 +75,7 @@ set(HEADER_FILES
     VolumeTopologyModifier.h
     VolumeGeometryAlgorithms.h
     MapHexahedronSetTopologyContainer.h
-
-	SurfaceMaskTraversal.h
+    SurfaceMaskTraversal.h
 )
 
 set(SOURCE_FILES
@@ -117,6 +116,7 @@ set(SOURCE_FILES
     VolumeTopologyModifier.cpp
     VolumeGeometryAlgorithms.cpp
     MapHexahedronSetTopologyContainer.cpp
+    SurfaceMaskTraversal.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
