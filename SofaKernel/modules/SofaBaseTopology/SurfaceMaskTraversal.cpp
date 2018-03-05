@@ -35,27 +35,28 @@ namespace component
 namespace topology
 {
 
-SOFA_DECL_CLASS(SurfaceMaskTraversal)
+SOFA_DECL_CLASS(FixedConstraintMask)
 
 
 using namespace sofa::defaulttype;
 
 // Register in the Factory
-int SurfaceMaskTraversalClass = core::RegisterObject("Traversal masking")
+int FixedConstraintMaskClass = core::RegisterObject("Traversal masking")
 #ifndef SOFA_FLOAT
-        .add< SurfaceMaskTraversal<Vec3dTypes> >()
+        .add< FixedConstraintMask<Vec3dTypes> >()
 #endif
 #ifndef SOFA_DOUBLE
-        .add< SurfaceMaskTraversal<Vec3fTypes> >()
+        .add< FixedConstraintMask<Vec3fTypes> >()
 #endif
         ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_BASE_TOPOLOGY_API SurfaceMaskTraversal<Vec3dTypes>;
+template class SOFA_BASE_TOPOLOGY_API FixedConstraintMask<Vec3dTypes>;
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_BASE_TOPOLOGY_API SurfaceMaskTraversal<Vec3fTypes>;
+template class SOFA_BASE_TOPOLOGY_API FixedConstraintMask<Vec3fTypes>;
 #endif
+
 
 } // namespace topology
 

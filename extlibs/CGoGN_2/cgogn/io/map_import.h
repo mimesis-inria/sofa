@@ -43,7 +43,7 @@
 #include <cgogn/io/formats/obj.h>
 #include <cgogn/io/formats/2dm.h>
 #include <cgogn/io/formats/ply.h>
-#include <cgogn/io/formats/lm6.h>
+#include <cgogn/io/formats/meshb.h>
 #include <cgogn/io/formats/msh.h>
 #include <cgogn/io/formats/tetgen.h>
 #include <cgogn/io/formats/nastran.h>
@@ -66,7 +66,9 @@ inline std::unique_ptr<GraphFileImport> new_graph_import(const std::string& file
 	switch (ft)
 	{
 		case FileType::FileType_SKEL:		return make_unique<SkelGraphImport<VEC3>>();
-		case FileType::FileType_VTK_LEGACY:	return make_unique<VtkGraphImport<VEC3>>();
+		case FileType::FileType_VTK_LEGACY:
+		case FileType::FileType_VTU:
+		case FileType::FileType_VTP:		return make_unique<VtkGraphImport<VEC3>>();
 		case FileType::FileType_CG:			return make_unique<CgGraphImport<VEC3>>();
 		case FileType::FileType_CSKEL:		return make_unique<CskelGraphImport<VEC3>>();
 		case FileType::FileType_DOT:		return make_unique<DotGraphImport<VEC3>>();
@@ -92,7 +94,7 @@ inline std::unique_ptr<SurfaceFileImport<MAP>> new_surface_import(MAP& map, cons
 		case FileType::FileType_PLY: return make_unique<PlySurfaceImport<MAP, VEC3>>(map);
 		case FileType::FileType_STL: return make_unique<StlSurfaceImport<MAP, VEC3>>(map);
 		case FileType::FileType_MSH: return make_unique<MshSurfaceImport<MAP, VEC3>>(map);
-		case FileType::FileType_MESHB: return make_unique<LM6SurfaceImport<MAP, VEC3>>(map);
+		case FileType::FileType_MESHB: return make_unique<MeshbSurfaceImport<MAP, VEC3>>(map);
 		default:
 			cgogn_log_warning("SurfaceImport") << "SurfaceImport does not handle files with extension \"" << extension(filename) << "\".";
 			return std::unique_ptr<SurfaceFileImport<MAP>>();
@@ -107,7 +109,7 @@ inline std::unique_ptr<VolumeFileImport<MAP>> new_volume_import(MAP& map, const 
 	{
 		case FileType::FileType_VTK_LEGACY:
 		case FileType::FileType_VTU:		return make_unique<VtkVolumeImport<MAP, VEC3>>(map);
-		case FileType::FileType_MESHB:		return make_unique<LM6VolumeImport<MAP, VEC3>>(map);
+		case FileType::FileType_MESHB:		return make_unique<MeshbVolumeImport<MAP, VEC3>>(map);
 		case FileType::FileType_MSH:		return make_unique<MshVolumeImport<MAP, VEC3>>(map);
 		case FileType::FileType_TETGEN:		return make_unique<TetgenVolumeImport<MAP, VEC3>>(map);
 		case FileType::FileType_NASTRAN:	return make_unique<NastranVolumeImport<MAP, VEC3>>(map);
@@ -148,14 +150,14 @@ inline void import_volume(MAP& map, const std::string& filename)
 }
 
 
-#if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_MAP_IMPORT_CPP_))
+#if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_EXTERNAL_TEMPLATES_CPP_))
 extern template CGOGN_IO_API void import_graph<Eigen::Vector3f>(UndirectedGraph&, const std::string&);
 extern template CGOGN_IO_API void import_graph<Eigen::Vector3d>(UndirectedGraph&, const std::string&);
 extern template CGOGN_IO_API void import_surface<Eigen::Vector3f>(CMap2&, const std::string&);
 extern template CGOGN_IO_API void import_surface<Eigen::Vector3d>(CMap2&, const std::string&);
 extern template CGOGN_IO_API void import_volume<Eigen::Vector3f>(CMap3&, const std::string&);
 extern template CGOGN_IO_API void import_volume<Eigen::Vector3d>(CMap3&, const std::string&);
-#endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_MAP_IMPORT_CPP_))
+#endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_EXTERNAL_TEMPLATES_CPP_))
 
 } // namespace io
 

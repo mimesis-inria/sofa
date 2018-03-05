@@ -14,41 +14,85 @@ namespace component
 namespace topology
 {
 
-template<class TDataTypes>
-class SurfaceMaskTraversal : public virtual core::objectmodel::BaseObject
+class SurfaceMaskTraversal: public virtual core::objectmodel::BaseObject
 {
 
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(SurfaceMaskTraversal, TDataTypes), core::objectmodel::BaseObject);
+    SOFA_CLASS(SurfaceMaskTraversal, BaseObject);
 
     using SurfaceTopology = sofa::component::topology::SurfaceTopologyContainer;
+    using Vertex = SurfaceTopology::Vertex;
+    using Edge = SurfaceTopology::Edge;
     using Face = SurfaceTopology::Face;
-    typedef unsigned int Index;
-    typedef typename TDataTypes::VecCoord VecCoord;
 
 protected:
     SurfaceMaskTraversal()
         :BaseObject()
-    , mstate(initLink("mstate", "MechanicalState used by this ForceField"))
     {}
-	virtual ~SurfaceMaskTraversal()
-	{}
 
-public:    
+public:
+    virtual bool operator() (Vertex vertex) = 0;
+
+    virtual bool operator() (Edge edge) = 0;
+
+    virtual bool operator() (Face face) = 0;
+};
+
+
+template<class TDataTypes>
+class FixedConstraintMask : public SurfaceMaskTraversal
+{
+
+public:
+    SOFA_CLASS(SOFA_TEMPLATE(FixedConstraintMask, TDataTypes), SurfaceMaskTraversal);
+
+    using SurfaceTopology = SurfaceMaskTraversal::SurfaceTopology;
+    using Face = SurfaceTopology::Face;
+    typedef unsigned int Index;
+    typedef typename TDataTypes::VecCoord VecCoord;
+    typedef typename TDataTypes::Coord Coord;
+    typedef typename Coord::value_type Real;
+
+protected:
+    FixedConstraintMask()
+        :BaseObject()
+        , f_coef(initData(&f_coef,(Real)0.,"coef","Coef example"))
+        , mstate(initLink("mstate", "MechanicalState used by this ForceField"))
+    {}
+
+public:
     SurfaceTopology* topology_;
     VecCoord x_;
+    Data<Real> f_coef;
 
-    SingleLink<SurfaceMaskTraversal<TDataTypes>,sofa::core::behavior::MechanicalState<TDataTypes>,BaseLink::FLAG_STRONGLINK> mstate;
+    SingleLink<FixedConstraintMask<TDataTypes>,sofa::core::behavior::MechanicalState<TDataTypes>,BaseLink::FLAG_STRONGLINK> mstate;
 
-    virtual void init()
+public:
+    FixedConstraintMask(const FixedConstraintMask& rhs)
+    {
+        topology_= rhs.topology_;
+        x_ = rhs.x_;
+        mstate = rhs.mstate;
+    }
+
+    virtual ~FixedConstraintMask()
+    { }
+
+    virtual void init() override
     {
         this->getContext()->get(topology_);
+        if (mstate.get() == NULL)
+            msg_warning() << "mstate not found";
         x_ = mstate->read(core::ConstVecCoordId::position())->getValue();
     }
 
+    bool operator() (Vertex vertex) override
+    { }
 
-    // Operator() called by the thread
-    bool operator() (cgogn::Dart face)
+    bool operator() (Edge edge) override
+    { }
+
+    bool operator() (Face face) override
     {
         const auto& dofs = topology_->get_dofs(Face(face));
 
@@ -56,25 +100,19 @@ public:
         Index b = dofs[1];
         Index c = dofs[2];
 
-        return x_[a][2] <= 12. && x_[b][2] <= 12. && x_[c][2] <= 12. ;
+        return x_[a][2] <= f_coef.getValue() && x_[b][2] <= f_coef.getValue() && x_[c][2] <= f_coef.getValue();
     }
+
+    /*
+    struct SomeStruct  {
+        auto func_name(int x, int y) -> int;
+    };
+
+    auto SomeStruct::func_name(int x, int y) -> int {
+        return x + y;
+    }
+    */
 };
-
-//template<class TDataTypes>
-//class FixedConstraintMask : public SurfaceMaskTraversal
-//{
-
-//public:
-//    SOFA_CLASS(SOFA_TEMPLATE(FixedConstraintMask, TDataTypes), SOFA_TEMPLATE(SurfaceMaskTraversal, TDataTypes));
-
-//protected:
-//	FixedConstraintMask():BaseObject() {}
-//	virtual ~FixedConstraintMask()
-//	{}
-
-////public:
-////	bool select(cgogn::Dart d) override;
-//};
 
 
 } //end namespace topology

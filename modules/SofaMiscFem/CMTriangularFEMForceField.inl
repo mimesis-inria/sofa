@@ -155,6 +155,8 @@ template <class DataTypes>
 CMTriangularFEMForceField<DataTypes>::~CMTriangularFEMForceField()
 {
 	if(triangleHandler) delete triangleHandler;
+
+    cell_traversor.release();
 }
 
 
@@ -186,26 +188,13 @@ void CMTriangularFEMForceField<DataTypes>::init()
 
 	cell_traversor = cgogn::make_unique<FilteredQuickTraversor>(_topology->getMap());
 
-	const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
-
-	std::function<bool(cgogn::Dart)> face_validator = [&](cgogn::Dart face) -> bool
-	{
-		const auto& dofs = _topology->get_dofs(Face(face));
-
-		Index a = dofs[0];
-		Index b = dofs[1];
-		Index c = dofs[2];
-
-		return x[a][2] <= 12. && x[b][2] <= 12. && x[c][2] <= 12. ;
-	};
-
     if (!mask.get())
-    {
         cell_traversor->build<Face>();
-        cell_traversor->set_filter<Face>(face_validator);
+    else
+    {
+        cell_traversor->build<Face>();     
+        cell_traversor->set_filter<Face>(std::move(std::ref(*(mask.get()))));
     }
-	//else
-    // cell_traversor->build<Face>(mask);
 
 
 	m_rotatedInitialElements = _topology->add_attribute<RotatedInitialElements, Face>("CMTriangularFEMForceField_RotatedInitialElements");

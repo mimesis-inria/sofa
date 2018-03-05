@@ -35,7 +35,11 @@
 
 #include <SofaBaseTopology/SurfaceMaskTraversal.h>
 
+#include <sofa/core/DataTracker.h>
 #include <cgogn/core/utils/masks.h>
+
+#include <functional>
+
 
 
 #include <map>
@@ -122,7 +126,6 @@ protected:
     typedef defaulttype::Mat<6, 6, Real> Stiffness;					    ///< the stiffness matrix
     typedef sofa::helper::vector<StrainDisplacement> VecStrainDisplacement; ///< a vector of strain-displacement matrices
     typedef defaulttype::Mat<3, 3, Real > Transformation;				    ///< matrix for rigid transformations like rotations
-
 
 protected:
     /// ForceField API
@@ -361,8 +364,7 @@ public:
     Data<helper::vector<Real> > f_young;
     Data<Real> f_damping;
 
-    SingleLink<CMTriangularFEMForceField<DataTypes>, sofa::component::topology::SurfaceMaskTraversal<DataTypes>, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> mask;
-
+    SingleLink<CMTriangularFEMForceField<DataTypes>, sofa::component::topology::SurfaceMaskTraversal, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> mask;
 
     /// Initial strain parameters (if FEM is initialised with predefine values)
 	typedef helper::fixed_array<Coord,3> RotatedInitialElements;

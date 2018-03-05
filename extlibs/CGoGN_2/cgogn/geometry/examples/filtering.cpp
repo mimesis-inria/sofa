@@ -59,29 +59,6 @@ using Vec3 = Eigen::Vector3d;
 template <typename T>
 using VertexAttribute = Map2::VertexAttribute<T>;
 
-
-class CustomFilter : public cgogn::CellFilters
-{
-public:
-
-	CustomFilter(const VertexAttribute<Vec3>& p) : position_(p) {}
-
-	inline bool filter(Vertex v) const
-	{
-		return position_[v][0] > 0;
-	}
-
-	inline cgogn::uint32 filtered_cells() const
-	{
-		return cgogn::orbit_mask<Vertex>();
-	}
-
-protected:
-
-	const VertexAttribute<Vec3>& position_;
-};
-
-
 class Viewer : public QOGLViewer
 {
 public:
@@ -109,7 +86,7 @@ private:
 
 	Map2::CellCache cell_cache_;
 	cgogn::FilteredQuickTraversor<Map2> fqt_;
-	std::unique_ptr<CustomFilter> filter_;
+	cgogn::CellFilters filters_;
 
 	cgogn::geometry::AABB<Vec3> bb_;
 
@@ -159,15 +136,15 @@ void Viewer::import(const std::string& surface_mesh)
 	map_.copy_attribute(vertex_position2_, vertex_position_);
 
 	vertex_normal_ = map_.template add_attribute<Vec3, Vertex>("normal");
-	cgogn::geometry::compute_normal<Vec3>(map_, vertex_position_, vertex_normal_);
+	cgogn::geometry::compute_normal(map_, vertex_position_, vertex_normal_);
 
 	cell_cache_.build<Vertex>();
 	cell_cache_.build<Edge>();
 
 	fqt_.build<Vertex>();
-	fqt_.set_filter<Vertex>([&] (cgogn::Dart d) { return vertex_position_[Vertex(d)][0] > 0; });
+	fqt_.set_filter<Vertex>([&] (Vertex v) { return vertex_position_[v][0] > 0; });
 
-	filter_ = cgogn::make_unique<CustomFilter>(vertex_position_);
+	filters_.set_filter<Vertex>([&] (Vertex v) { return vertex_position_[v][0] > 0; });
 
 	cgogn::geometry::compute_AABB(vertex_position_, bb_);
 	setSceneRadius(bb_.diag_size()/2.0);
@@ -181,7 +158,6 @@ Viewer::~Viewer()
 
 void Viewer::closeEvent(QCloseEvent*)
 {
-	filter_.reset();
 	render_.reset();
 	drawer_rend_.reset();
 	vbo_pos_.reset();
@@ -240,12 +216,12 @@ void Viewer::keyPressEvent(QKeyEvent *ev)
 //			bb_rendering_ = !bb_rendering_;
 //			break;
 		case Qt::Key_A: {
-			cgogn::geometry::filter_average<Vec3>(map_, fqt_, vertex_position_, vertex_position2_);
-//			cgogn::geometry::filter_average<Vec3>(map_, *filter_, vertex_position_, vertex_position2_);
-//			cgogn::geometry::filter_average<Vec3>(map_, cell_cache_, vertex_position_, vertex_position2_);
-//			cgogn::geometry::filter_average<Vec3>(map_, vertex_position_, vertex_position2_);
+//			cgogn::geometry::filter_average(map_, fqt_, vertex_position_, vertex_position2_);
+			cgogn::geometry::filter_average(map_, filters_, vertex_position_, vertex_position2_);
+//			cgogn::geometry::filter_average(map_, cell_cache_, vertex_position_, vertex_position2_);
+//			cgogn::geometry::filter_average(map_, vertex_position_, vertex_position2_);
 			map_.swap_attributes(vertex_position_, vertex_position2_);
-			cgogn::geometry::compute_normal<Vec3>(map_, vertex_position_, vertex_normal_);
+			cgogn::geometry::compute_normal(map_, vertex_position_, vertex_normal_);
 			cgogn::rendering::update_vbo(vertex_position_, vbo_pos_.get());
 			cgogn::rendering::update_vbo(vertex_normal_, vbo_norm_.get());
 			cgogn::rendering::update_vbo(vertex_normal_, vbo_color_.get(), [] (const Vec3& n) -> std::array<float,3>
@@ -257,9 +233,9 @@ void Viewer::keyPressEvent(QKeyEvent *ev)
 			break;
 		}
 		case Qt::Key_B:
-			cgogn::geometry::filter_bilateral<Vec3>(map_, cell_cache_, vertex_position_, vertex_position2_, vertex_normal_);
+			cgogn::geometry::filter_bilateral(map_, cell_cache_, vertex_position_, vertex_position2_, vertex_normal_);
 			map_.swap_attributes(vertex_position_, vertex_position2_);
-			cgogn::geometry::compute_normal<Vec3>(map_, vertex_position_, vertex_normal_);
+			cgogn::geometry::compute_normal(map_, vertex_position_, vertex_normal_);
 			cgogn::rendering::update_vbo(vertex_position_, vbo_pos_.get());
 			cgogn::rendering::update_vbo(vertex_normal_, vbo_norm_.get());
 			cgogn::rendering::update_vbo(vertex_normal_, vbo_color_.get(), [] (const Vec3& n) -> std::array<float,3>
@@ -270,8 +246,8 @@ void Viewer::keyPressEvent(QKeyEvent *ev)
 			setSceneRadius(bb_.diag_size()/2.0);
 			break;
 		case Qt::Key_T:
-			cgogn::geometry::filter_taubin<Vec3>(map_, cell_cache_, vertex_position_, vertex_position2_);
-			cgogn::geometry::compute_normal<Vec3>(map_, vertex_position_, vertex_normal_);
+			cgogn::geometry::filter_taubin(map_, cell_cache_, vertex_position_, vertex_position2_);
+			cgogn::geometry::compute_normal(map_, vertex_position_, vertex_normal_);
 			cgogn::rendering::update_vbo(vertex_position_, vbo_pos_.get());
 			cgogn::rendering::update_vbo(vertex_normal_, vbo_norm_.get());
 			cgogn::rendering::update_vbo(vertex_normal_, vbo_color_.get(), [] (const Vec3& n) -> std::array<float,3>
@@ -370,7 +346,7 @@ void Viewer::init()
 
 	render_->init_primitives(map_, cgogn::rendering::POINTS);
 	render_->init_primitives(map_, cgogn::rendering::LINES);
-	render_->init_primitives<Vec3>(map_, cgogn::rendering::TRIANGLES, &vertex_position_);
+	render_->init_primitives(map_, cgogn::rendering::TRIANGLES, &vertex_position_);
 
 	param_point_sprite_ = cgogn::rendering::ShaderPointSpriteSize::generate_param();
 	param_point_sprite_->set_all_vbos(vbo_pos_.get(), vbo_sphere_sz_.get());
