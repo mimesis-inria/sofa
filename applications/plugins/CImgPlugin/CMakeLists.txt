@@ -52,7 +52,7 @@ if(JPEG_FOUND)
     list(APPEND CIMG_CFLAGS ${CIMG_JPEG_CCFLAGS} -DCIMGPLUGIN_HAVE_JPEG -Dcimg_use_jpeg)
     if(WIN32)
         # prevent INT32 redefinition on Windows (see jmorecfg.h)
-        SET(CIMG_CFLAGS "${CIMG_CFLAGS} -DXMD_H")
+        list(APPEND CIMG_CFLAGS -DXMD_H)
     endif()
     link_directories(${JPEG_LIB_DIRS})
     include_directories(${JPEG_INCLUDE_DIR})
@@ -88,7 +88,7 @@ endif()
 #Remove CImg sys calls
 list(APPEND CIMG_CFLAGS -Dcimg_no_system_calls)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/CImgPlugin.h DESTINATION "include/CImgPlugin")
+
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 
