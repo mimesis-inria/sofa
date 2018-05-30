@@ -40,8 +40,8 @@
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/simulation/Node.h>
 
-#include "StiffnessContainer.h"
-#include "PoissonContainer.h"
+//#include "StiffnessContainer.h"
+//#include "PoissonContainer.h"
 
 
 namespace sofa
@@ -64,6 +64,8 @@ BeamFEMForceField<DataTypes>::BeamFEMForceField()
 //  , _timoshenko(initData(&_timoshenko,true,"timoshenko","use Timoshenko beam (non-null section shear area)"))
     , _radius(initData(&_radius,(Real)0.1,"radius","radius of the section"))
     , _radiusInner(initData(&_radiusInner,(Real)0.0,"radiusInner","inner radius of the section for hollow beams"))
+    , _radii(initData(&_radii,"radii","list of radii defined per element"))
+    , _innerRadii(initData(&_innerRadii,"innerRadii","list of inner radii for hollow beams defined per element"))
     , _list_segment(initData(&_list_segment,"listSegment", "apply the forcefield to a subset list of beam segments. If no segment defined, forcefield applies to the whole topology"))
     , _useSymmetricAssembly(initData(&_useSymmetricAssembly,false,"useSymmetricAssembly","use symmetric assembly of the matrix K"))
     , _partial_list_segment(false)
@@ -87,6 +89,8 @@ BeamFEMForceField<DataTypes>::BeamFEMForceField(Real poissonRatio, Real youngMod
 //  , _timoshenko(initData(&_timoshenko,true,"timoshenko","use Timoshenko beam (non-null section shear area)"))
     , _radius(initData(&_radius,(Real)radius,"radius","radius of the section"))
     , _radiusInner(initData(&_radiusInner,(Real)radiusInner,"radiusInner","inner radius of the section for hollow beams"))
+    , _radii(initData(&_radii,"radii","list of radii defined per element"))
+    , _innerRadii(initData(&_innerRadii,"innerRadii","list of inner radii for hollow beams defined per element"))
     , _list_segment(initData(&_list_segment,"listSegment", "apply the forcefield to a subset list of beam segments. If no segment defined, forcefield applies to the whole topology"))
     , _useSymmetricAssembly(initData(&_useSymmetricAssembly,false,"useSymmetricAssembly","use symmetric assembly of the matrix K"))
     , _partial_list_segment(false)
@@ -126,8 +130,8 @@ void BeamFEMForceField<DataTypes>::init()
     _topology = context->getMeshTopology();
 
 
-    stiffnessContainer = context->core::objectmodel::BaseContext::get<container::StiffnessContainer>();
-    poissonContainer = context->core::objectmodel::BaseContext::get<container::PoissonContainer>();
+//    stiffnessContainer = context->core::objectmodel::BaseContext::get<container::StiffnessContainer>();
+//    poissonContainer = context->core::objectmodel::BaseContext::get<container::PoissonContainer>();
 
     if (_topology==NULL)
     {
@@ -176,10 +180,37 @@ void BeamFEMForceField<DataTypes>::reinit()
     unsigned int n = _indexedElements->size();
     _forces.resize( this->mstate->getSize() );
 
+    sofa::helper::ReadAccessor< Data<VecReal> > radii = _radii;
+    sofa::helper::ReadAccessor< Data<VecReal> > innerRadii = _innerRadii;
+
+    if (radii.empty()) {
+        sofa::helper::WriteAccessor< Data<VecReal> > waRadii = _radii;
+        //waradii.resize(n, _radius.getValue());
+        waRadii.resize(n);
+        for (size_t i = 0; i < n; i++)
+            waRadii[i] = _radius.getValue();
+    } else {
+        if (radii.size() != n)
+            msg_error() << "number of radii and beams differs";
+    }
+
+    if (innerRadii.empty()) {
+        sofa::helper::WriteAccessor< Data<VecReal> > waInRadii = _innerRadii;
+        //waradii.resize(n, _radius.getValue());
+        waInRadii.resize(n);
+        for (size_t i = 0; i < n; i++)
+            waInRadii[i] = _radiusInner.getValue();
+    } else {
+        if (innerRadii.size() != n)
+            msg_error() << "number of inner radii and beams differs";
+    }
+
+
     initBeams( n );
     for (unsigned int i=0; i<n; ++i)
         reinitBeam(i);
     msg_info() << "reinit OK, "<<n<<" elements." ;
+
 }
 
 template <class DataTypes>
@@ -190,15 +221,16 @@ void BeamFEMForceField<DataTypes>::reinitBeam(unsigned int i)
     Index b = (*_indexedElements)[i][1];
 
     const VecCoord& x0 = this->mstate->read(core::ConstVecCoordId::restPosition())->getValue();
-    if (stiffnessContainer)
-        stiffness = stiffnessContainer->getStiffness(i) ;
-    else
-        stiffness =  _youngModulus.getValue() ;
+    //if (stiffnessContainer)
+    //    stiffness = stiffnessContainer->getStiffness(i) ;
+    //else
+
+    stiffness =  _youngModulus.getValue() ;
 
     length = (x0[a].getCenter()-x0[b].getCenter()).norm() ;
 
-    radius = _radius.getValue() ;
-    radiusInner = _radiusInner.getValue();
+    radius = _radii.getValue()[i] ;
+    radiusInner = _innerRadii.getValue()[i];
     poisson = _poissonRatio.getValue() ;
 
 
