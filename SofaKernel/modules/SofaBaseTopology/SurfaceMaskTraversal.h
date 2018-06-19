@@ -100,7 +100,8 @@ public:
         Index b = dofs[1];
         Index c = dofs[2];
 
-        return x_[a][2] <= f_coef.getValue() && x_[b][2] <= f_coef.getValue() && x_[c][2] <= f_coef.getValue();
+//        return x_[a][2] <= f_coef.getValue() && x_[b][2] <= f_coef.getValue() && x_[c][2] <= f_coef.getValue();
+                return x_[a][2] <= 31. && x_[b][2] <= -48. && x_[c][2] <= -38;
     }
 
     /*

@@ -34,6 +34,134 @@
 #include <cgogn/core/basic/cell_marker.h>
 #include <cgogn/io/io_utils.h>
 
+
+namespace sofa
+{
+
+namespace helper
+{
+
+
+/// ReadAccessor implementation class for cgogn attributes types
+template<class T, cgogn::Orbit ORBIT>
+class ReadAccessorAttribut
+{
+public:
+    typedef T container_type;
+    typedef size_t size_type;
+    typedef typename container_type::value_type value_type;
+    typedef value_type&				reference;
+    typedef const value_type&		const_reference;
+    typedef typename container_type::iterator iterator;
+    typedef typename container_type::const_iterator const_iterator;
+
+//    typedef typename T::orb_ ORBIT;
+
+    static const cgogn::Orbit orb_ = ORBIT;
+
+protected:
+    const container_type* vref;
+
+public:
+    ReadAccessorAttribut(const container_type& container) : vref(&container) {}
+
+    const container_type& ref() const { return *vref; }
+
+    bool empty() const { return vref->size() == 0; }
+    size_type size() const { return vref->size(); }
+    const_reference operator[](cgogn::Dart c) const { return (*vref)[cgogn::Cell<ORBIT>(c)]; }
+
+    const_iterator begin() const { return vref->begin(); }
+    const_iterator end() const { return vref->end(); }
+
+//    inline friend std::ostream& operator<< ( std::ostream& os, const ReadAccessorAttribut<T,ORBIT>& vec )
+//    {
+        //return os << *vec.vref;
+//    }
+
+};
+
+template<class T, cgogn::Orbit ORBIT>
+class WriteAccessorAttribut
+{
+public:
+    typedef T container_type;
+    typedef size_t size_type;
+    typedef typename container_type::value_type value_type;
+    typedef value_type&				reference;
+    typedef const value_type&		const_reference;
+    typedef typename container_type::iterator iterator;
+    typedef typename container_type::const_iterator const_iterator;
+
+    static const cgogn::Orbit orb_ = ORBIT;
+
+protected:
+    container_type* vref;
+
+public:
+    WriteAccessorAttribut(container_type& container) : vref(&container) {}
+
+    const container_type& ref() const { return *vref; }
+    container_type& wref() { return *vref; }
+
+    bool empty() const { return vref->size() == 0; }
+    size_type size() const { return vref->size(); }
+
+    const_reference operator[](cgogn::Dart c) const { return (*vref)[ cgogn::Cell<ORBIT>(c)]; }
+    reference operator[](cgogn::Dart c) { return (*vref)[cgogn::Cell<ORBIT>(c)]; }
+
+    const_iterator begin() const { return vref->begin(); }
+    iterator begin() { return vref->begin(); }
+    const_iterator end() const { return vref->end(); }
+    iterator end() { return vref->end(); }
+
+    //void clear() { vref->clear(); }
+    //void resize(size_type s, bool /*init*/ = true) { vref->resize(s); }
+    //void reserve(size_type s) { vref->reserve(s); }
+    //void push_back(const value_type& v) { vref->push_back(v); }
+
+//    inline friend std::ostream& operator<< ( std::ostream& os, const WriteAccessorAttribut<T, ORBIT>& vec )
+//    {
+        //return os << *vec.vref;
+//    }
+
+//    inline friend std::istream& operator>> ( std::istream& in, WriteAccessorAttribut<T,ORBIT>& vec )
+//    {
+        //return in >> *vec.vref;
+//    }
+
+};
+
+template<class T, cgogn::Orbit ORBIT>
+class ReadAccessor< cgogn::Attribute<T, ORBIT>> : public ReadAccessorAttribut< cgogn::Attribute<T, ORBIT>, ORBIT >
+{
+public:
+    using Inherit = ReadAccessorAttribut< cgogn::Attribute<T, ORBIT>, ORBIT > ;
+    using container_type = typename Inherit::container_type ;
+    ReadAccessor(const container_type& c) : Inherit(c) {}
+};
+
+template<class T, cgogn::Orbit ORBIT>
+class WriteAccessor<cgogn::Attribute<T, ORBIT>> : public WriteAccessorAttribut< cgogn::Attribute<T, ORBIT>, ORBIT >
+{
+public:
+    using Inherit = WriteAccessorAttribut<cgogn::Attribute<T, ORBIT>, ORBIT>;
+    using container_type = typename Inherit::container_type ;
+    WriteAccessor(container_type& c) : Inherit(c) {}
+};
+
+}
+
+}
+
+
+
+
+
+
+
+
+
 namespace sofa
 {
 
