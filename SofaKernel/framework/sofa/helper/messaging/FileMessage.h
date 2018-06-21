@@ -19,15 +19,33 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_SOFADISTANCEGRID_CONFIG_H
-#define SOFA_SOFADISTANCEGRID_CONFIG_H
+#ifndef FILEMESSAGE_H
+#define FILEMESSAGE_H
 
-#include <SofaGui/config.h>
+#include <iostream>
+#include <string>
+#include <sofa/helper/helper.h>
 
-#ifdef SOFA_HAVE_SOFADISTANCEGRID
-#  define SOFA_SOFADISTANCEGRID_API SOFA_EXPORT_DYNAMIC_LIBRARY
-#else
-#  define SOFA_SOFADISTANCEGRID_API SOFA_IMPORT_DYNAMIC_LIBRARY
-#endif
+namespace sofa
+{
 
-#endif
+namespace helper
+{
+
+namespace messaging
+{
+
+class SOFA_HELPER_API FileMessage
+{
+public:
+
+    FileMessage() {}
+    static const std::string unableToOpenFile(const char* filename);
+
+};
+
+} // logging
+} // helper
+} // sofa
+
+#endif // FILEMESSAGE_H

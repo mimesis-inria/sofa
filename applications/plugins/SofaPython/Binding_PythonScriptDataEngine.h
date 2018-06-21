@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2017 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,35 +19,15 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_HELPER_DEPRECATEDCOMPONENTS_H
-#define SOFA_HELPER_DEPRECATEDCOMPONENTS_H
 
-#include <string>
-#include <vector>
-#include <map>
-#include "helper.h"
+#ifndef BINDING_PYTHONSCRIPTDATAENGINE_H
+#define BINDING_PYTHONSCRIPTDATAENGINE_H
 
-namespace sofa
-{
+#include "PythonMacros.h"
+#include "PythonScriptDataEngine.h"
 
-namespace helper
-{
+SP_DECLARE_CLASS_TYPE(PythonScriptDataEngine)
 
-namespace deprecatedcomponents
-{
-
-constexpr int indexName {0};
-constexpr int indexMessage {1};
-
-extern SOFA_HELPER_API std::map<std::string, std::string>  messages ;
-extern SOFA_HELPER_API std::map<std::string, std::vector<std::string>> components ;
-extern SOFA_HELPER_API std::map<std::string, std::vector<std::string>> uncreateablecomponents ;
+#endif // BINDING_PYTHONSCRIPTDATAENGINE_H
 
 
-} /// namespace deprecatedcomponents
-
-} /// namespace helper
-
-} /// namespace sofa
-
-#endif

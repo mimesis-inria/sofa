@@ -48,6 +48,7 @@
 #include "Binding_BaseMechanicalState.h"
 #include "Binding_MechanicalObject.h"
 #include "Binding_PythonScriptController.h"
+#include "Binding_PythonScriptDataEngine.h"
 #include "Binding_LinearSpring.h"
 #include "Binding_BaseTopologyObject.h"
 #include "Binding_TriangleSetTopologyModifier.h"
@@ -65,7 +66,15 @@ using sofa::PythonFactory;
 
 void bindSofaPythonModule()
 {
-    PythonFactory::s_sofaPythonModule = SP_INIT_MODULE(Sofa)
+    static std::string docstring=R"(
+            Sofa module.
+
+            This module is part of the SofaPython plugin and contains function and binding to the c++
+            objects.
+
+            )";
+
+    PythonFactory::s_sofaPythonModule = SP_INIT_MODULE(Sofa,docstring.c_str())
 
     /// non Base-Inherited types
     SP_ADD_CLASS_IN_SOFAMODULE(Data)
@@ -107,6 +116,7 @@ void bindSofaPythonModule()
     SP_ADD_CLASS_IN_FACTORY(OBJExporter,sofa::component::misc::OBJExporter)
     SP_ADD_CLASS_IN_FACTORY(STLExporter,sofa::component::misc::STLExporter)
     SP_ADD_CLASS_IN_FACTORY(PythonScriptController,sofa::component::controller::PythonScriptController)
+    SP_ADD_CLASS_IN_FACTORY(PythonScriptDataEngine,sofa::component::controller::PythonScriptDataEngine)
     SP_ADD_CLASS_IN_FACTORY(PointSetTopologyModifier,sofa::component::topology::PointSetTopologyModifier)
     SP_ADD_CLASS_IN_FACTORY(TriangleSetTopologyModifier,sofa::component::topology::TriangleSetTopologyModifier)
 
