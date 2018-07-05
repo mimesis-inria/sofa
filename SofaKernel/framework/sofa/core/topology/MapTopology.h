@@ -470,7 +470,7 @@ public:
 //	virtual void addTriangle(int a, int b, int c);
 //	virtual void addQuad(int a, int b, int c, int d);
 //	virtual bool checkConnexity();
-	unsigned int getNumberOfConnectedComponent();
+    virtual unsigned int getNumberOfConnectedComponent() { return 0; }
 	const sofa::helper::vector<index_type> getConnectedElement(index_type elem);
 	void reOrientateTriangle(TriangleID id);
 

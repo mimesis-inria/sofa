@@ -237,6 +237,11 @@ void SurfaceTopologyContainer::cleanup()
 	Inherit1::cleanup();
 }
 
+unsigned int SurfaceTopologyContainer::getNumberOfConnectedComponent()
+{
+    return topology_.nb_connected_components();
+}
+
 } // namespace topology
 
 } // namespace component

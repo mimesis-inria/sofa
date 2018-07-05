@@ -58,7 +58,7 @@ void MapTopology::createQuadsInHexahedronArray()
 	serr << "createQuadsInHexahedronArray not implemented" << sendl;
 }
 
-const BaseMeshTopology::SeqEdges&MapTopology::getEdges()
+const BaseMeshTopology::SeqEdges& MapTopology::getEdges()
 {
 	return d_edge.getValue();
 }
@@ -70,12 +70,12 @@ const BaseMeshTopology::SeqTriangles& MapTopology::getTriangles()
 	return d_triangle.getValue();
 }
 
-const BaseMeshTopology::SeqQuads&MapTopology::getQuads()
+const BaseMeshTopology::SeqQuads& MapTopology::getQuads()
 {
 	return d_quad.getValue();
 }
 
-const BaseMeshTopology::SeqTetrahedra&MapTopology::getTetrahedra()
+const BaseMeshTopology::SeqTetrahedra& MapTopology::getTetrahedra()
 {
 	return d_tetra.getValue();
 }
@@ -90,14 +90,14 @@ unsigned int MapTopology::getNbHexahedra() const
 	return getHexahedra().size();
 }
 
-const BaseMeshTopology::EdgesAroundVertex&MapTopology::getEdgesAroundVertex(Topology::PointID i)
+const BaseMeshTopology::EdgesAroundVertex& MapTopology::getEdgesAroundVertex(Topology::PointID i)
 {
 	if (!m_edgesAroundVertex.is_valid())
 		createEdgesAroundVertexArray();
 	return m_edgesAroundVertex[i];
 }
 
-const BaseMeshTopology::EdgesInTriangle&MapTopology::getEdgesInTriangle(Topology::TriangleID i)
+const BaseMeshTopology::EdgesInTriangle& MapTopology::getEdgesInTriangle(Topology::TriangleID i)
 {
 	const static EdgesInTriangle empty;
 	if (!m_edgesInTriangle.is_valid())
@@ -106,7 +106,7 @@ const BaseMeshTopology::EdgesInTriangle&MapTopology::getEdgesInTriangle(Topology
 
 }
 
-const BaseMeshTopology::EdgesInQuad&MapTopology::getEdgesInQuad(Topology::QuadID i)
+const BaseMeshTopology::EdgesInQuad& MapTopology::getEdgesInQuad(Topology::QuadID i)
 {
 	const static EdgesInQuad empty;
 	if (!m_edgesInQuad.is_valid())
@@ -114,22 +114,22 @@ const BaseMeshTopology::EdgesInQuad&MapTopology::getEdgesInQuad(Topology::QuadID
 	return m_edgesInQuad.is_valid() ? m_edgesInQuad[i] : empty;
 }
 
-const BaseMeshTopology::TrianglesAroundVertex&MapTopology::getTrianglesAroundVertex(Topology::PointID i)
+const BaseMeshTopology::TrianglesAroundVertex& MapTopology::getTrianglesAroundVertex(Topology::PointID i)
 {
-//	return m_trianglesAroundVertex[i];
+    return m_trianglesAroundVertex[i];
 }
 
-const BaseMeshTopology::TrianglesAroundEdge&MapTopology::getTrianglesAroundEdge(Topology::EdgeID i)
+const BaseMeshTopology::TrianglesAroundEdge& MapTopology::getTrianglesAroundEdge(Topology::EdgeID i)
 {
-//	return m_trianglesAroundEdge[i];
+    return m_trianglesAroundEdge[i];
 }
 
-const BaseMeshTopology::QuadsAroundVertex&MapTopology::getQuadsAroundVertex(Topology::PointID i)
+const BaseMeshTopology::QuadsAroundVertex& MapTopology::getQuadsAroundVertex(Topology::PointID i)
 {
 	return m_quadsAroundVertex[i];
 }
 
-const BaseMeshTopology::QuadsAroundEdge&MapTopology::getQuadsAroundEdge(Topology::EdgeID i)
+const BaseMeshTopology::QuadsAroundEdge& MapTopology::getQuadsAroundEdge(Topology::EdgeID i)
 {
 	return m_quadsAroundEdge[i];
 }
@@ -140,7 +140,7 @@ const BaseMeshTopology::VerticesAroundVertex MapTopology::getVerticesAroundVerte
 	return VerticesAroundVertex();
 }
 
-const MapTopology::TrianglesInTetrahedron&MapTopology::getTrianglesInTetrahedron(MapTopology::TetrahedronID i)
+const MapTopology::TrianglesInTetrahedron& MapTopology::getTrianglesInTetrahedron(MapTopology::TetrahedronID i)
 {
 	const static TrianglesInTetrahedron empty;
 	if (!m_trianglesInTetrahedron.is_valid())
@@ -148,7 +148,7 @@ const MapTopology::TrianglesInTetrahedron&MapTopology::getTrianglesInTetrahedron
 	return m_trianglesInTetrahedron.is_valid()? m_trianglesInTetrahedron[i] : empty;
 }
 
-const MapTopology::EdgesInTetrahedron&MapTopology::getEdgesInTetrahedron(MapTopology::TetrahedronID i)
+const MapTopology::EdgesInTetrahedron& MapTopology::getEdgesInTetrahedron(MapTopology::TetrahedronID i)
 {
 	const static EdgesInTetrahedron empty;
 	if (!m_edgesInTetrahedron.is_valid())
@@ -180,7 +180,7 @@ const MapTopology::HexahedraAroundQuad& MapTopology::getHexahedraAroundQuad(MapT
 	return m_hexahedraAroundQuad.is_valid()? m_hexahedraAroundQuad[i] : empty;
 }
 
-const MapTopology::EdgesInHexahedron&MapTopology::getEdgesInHexahedron(MapTopology::HexahedronID i)
+const MapTopology::EdgesInHexahedron& MapTopology::getEdgesInHexahedron(MapTopology::HexahedronID i)
 {
 	const static EdgesInHexahedron empty;
 	if (!m_edgesInHexahedron.is_valid())
@@ -188,7 +188,7 @@ const MapTopology::EdgesInHexahedron&MapTopology::getEdgesInHexahedron(MapTopolo
 	return m_edgesInHexahedron.is_valid()? m_edgesInHexahedron[i] : empty;
 }
 
-const MapTopology::QuadsInHexahedron&MapTopology::getQuadsInHexahedron(MapTopology::HexahedronID i)
+const MapTopology::QuadsInHexahedron& MapTopology::getQuadsInHexahedron(MapTopology::HexahedronID i)
 {
 	const static QuadsInHexahedron empty;
 	if (!m_quadsInHexahedron.is_valid())
@@ -223,7 +223,7 @@ int MapTopology::getQuadIndex(Topology::PointID v1, Topology::PointID v2, Topolo
 
 int MapTopology::getVertexIndexInTriangle(const TriangleIds& t, Topology::PointID vertexIndex) const
 {
-
+    return -1;
 }
 
 int MapTopology::getEdgeIndexInTriangle(const BaseMeshTopology::EdgesInTriangle& t, Topology::EdgeID edgeIndex) const
@@ -239,11 +239,6 @@ int MapTopology::getVertexIndexInQuad(const Topology::Quad& t, Topology::PointID
 int MapTopology::getEdgeIndexInQuad(const BaseMeshTopology::EdgesInQuad& t, Topology::EdgeID edgeIndex) const
 {
 	return -1;
-}
-
-unsigned int MapTopology::getNumberOfConnectedComponent()
-{
-
 }
 
 const sofa::helper::vector<Topology::index_type> MapTopology::getConnectedElement(Topology::index_type elem)

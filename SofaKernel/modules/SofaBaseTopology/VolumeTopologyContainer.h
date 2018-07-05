@@ -481,6 +481,8 @@ public:
 	virtual void cleanup() override;
 	virtual void draw(const core::visual::VisualParams*) override;
 
+    unsigned int getNumberOfConnectedComponent() override;
+
 	virtual void exportMesh(const std::string& filename) override
 	{
 		cgogn::io::export_volume(topology_, cgogn::io::ExportOptions::create().filename(filename).position_attribute(Vertex::ORBIT, "position"));

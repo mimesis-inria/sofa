@@ -256,6 +256,8 @@ public:
 	virtual void reset() override;
 	virtual void cleanup() override;
 
+    unsigned int getNumberOfConnectedComponent() override;
+
 	virtual void exportMesh(const std::string& filename) override
 	{
 		cgogn::io::export_surface(topology_, cgogn::io::ExportOptions::create().filename(filename).position_attribute(Vertex::ORBIT, "position"));

@@ -271,6 +271,12 @@ void VolumeTopologyContainer::cleanup()
 	Inherit1::cleanup();
 }
 
+unsigned int VolumeTopologyContainer::getNumberOfConnectedComponent()
+{
+    return topology_.nb_connected_components();
+}
+
+
 void VolumeTopologyContainer::draw(const core::visual::VisualParams* /*vparams*/)
 {
 //	TriangleSetGeometryAlgorithms<DataTypes>::draw(vparams);
