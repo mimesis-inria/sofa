@@ -154,7 +154,7 @@ void Monitor<DataTypes>::handleEvent( core::objectmodel::Event* ev )
 
         m_X = &mmodel->read(core::ConstVecCoordId::position())->getValue();
         m_V = &mmodel->read(core::ConstVecDerivId::velocity())->getValue();
-        m_F = &mmodel->read(core::ConstVecDerivId::force())->getValue();
+        m_F = &mmodel->read(core::ConstVecDerivId::force())->getValue();        
 
         if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() )
             exportGnuplot ( (Real) this ->getTime() );
