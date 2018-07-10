@@ -150,12 +150,6 @@ void Monitor<DataTypes>::handleEvent( core::objectmodel::Event* ev )
 {
     if (sofa::simulation::AnimateEndEvent::checkEventType(ev))
     {
-        core::behavior::MechanicalState<DataTypes>* mmodel = dynamic_cast<core::behavior::MechanicalState<DataTypes>*>( this->getContext()->getMechanicalState() );
-
-        m_X = &mmodel->read(core::ConstVecCoordId::position())->getValue();
-        m_V = &mmodel->read(core::ConstVecDerivId::velocity())->getValue();
-        m_F = &mmodel->read(core::ConstVecDerivId::force())->getValue();
-
         if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() )
             exportGnuplot ( (Real) this ->getTime() );
 
