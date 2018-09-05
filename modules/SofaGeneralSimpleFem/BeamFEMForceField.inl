@@ -28,8 +28,6 @@
 #include <sofa/core/topology/BaseMeshTopology.h>
 #include <SofaBaseTopology/GridTopology.h>
 #include <sofa/simulation/Simulation.h>
-#include <sofa/helper/gl/template.h>
-#include <sofa/helper/gl/Axis.h>
 #include <sofa/helper/rmath.h>
 #include <assert.h>
 #include <iostream>
@@ -688,6 +686,8 @@ void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparam
     if (!vparams->displayFlags().getShowForceFields()) return;
     if (!this->mstate) return;
 
+    vparams->drawTool()->saveLastState();
+
     const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
 
     std::vector< defaulttype::Vector3 > points[3];
@@ -705,6 +705,8 @@ void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparam
     vparams->drawTool()->drawLines(points[0], 1, defaulttype::Vec<4,float>(1,0,0,1));
     vparams->drawTool()->drawLines(points[1], 1, defaulttype::Vec<4,float>(0,1,0,1));
     vparams->drawTool()->drawLines(points[2], 1, defaulttype::Vec<4,float>(0,0,1,1));
+
+    vparams->drawTool()->restoreLastState();
 }
 
 template<class DataTypes>
