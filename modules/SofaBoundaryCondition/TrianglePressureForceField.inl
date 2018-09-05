@@ -95,6 +95,8 @@ void TrianglePressureForceField<DataTypes>::addForce(const core::MechanicalParam
     VecDeriv& f = *d_f.beginEdit();
     Deriv force;
 
+    updateTriangleInformation();
+
 	const sofa::helper::vector <unsigned int>& my_map = trianglePressureMap.getMap2Elements();
 
 	if (p_useConstantForce.getValue()) {
