@@ -19,9 +19,45 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_CONFIG_BUILD_OPTION_EXPERIMENTAL_FEATURES_H
-#define SOFA_CONFIG_BUILD_OPTION_EXPERIMENTAL_FEATURES_H
+#ifndef InitTasks_h__
+#define InitTasks_h__
 
-#define SOFA_WITH_EXPERIMENTAL_FEATURES() ${SOFA_WITH_EXPERIMENTAL_FEATURES_}
+#include "TaskScheduler.h"
 
-#endif
+namespace sofa
+{
+    namespace simulation
+    {
+
+        using namespace sofa;
+
+
+
+        class InitPerThreadDataTask : public Task
+        {
+
+        public:
+
+            InitPerThreadDataTask(std::atomic<int>* atomicCounter, std::mutex* mutex, Task::Status* pStatus);
+
+            virtual ~InitPerThreadDataTask();
+
+            virtual bool run(WorkerThread*) override;
+
+        private:
+
+            std::mutex*	 IdFactorygetIDMutex;
+            std::atomic<int>* _atomicCounter;
+        };
+
+
+        //fix and prefer using the global runThreadSpecificTask
+        SOFA_MULTITHREADING_PLUGIN_API void initThreadLocalData();
+        
+
+        
+    } // namespace simulation
+
+} // namespace sofa
+
+#endif // InitTasks_h__
