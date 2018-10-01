@@ -2127,6 +2127,7 @@ void MeshMatrixMass<DataTypes, MassType>::draw(const core::visual::VisualParams*
     vparams->drawTool()->drawPoints(points, 2, color);
 
     std::vector<sofa::defaulttype::Vector3> vertices;
+    vparams->drawTool()->drawPoints(points, 0, defaulttype::Vec<4,float>(1,1,1,1));
 
     if(d_showCenterOfGravity.getValue())
     {
