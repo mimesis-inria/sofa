@@ -19,65 +19,20 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SCRIPTEVENT_H
-#define SCRIPTEVENT_H
+#ifndef SOFAASSIMP_CONFIG_H
+#define SOFAASSIMP_CONFIG_H
 
-#include <SofaPython/config.h>
-#include <sofa/core/objectmodel/Event.h>
-#include <string>
-#include <sofa/simulation/Node.h>
+#include <sofa/helper/system/config.h>
 
+#define ASSIMP_PLUGIN_MAJOR_VERSION ${ASSIMP_PLUGIN_MAJOR_VERSION}
+#define ASSIMP_PLUGIN_MINOR_VERSION ${ASSIMP_PLUGIN_MINOR_VERSION}
 
-namespace sofa
-{
+#ifdef SOFA_BUILD_SOFAASSIMP
+#  define SOFA_TARGET SofaAssimp
+#  define SOFA_ASSIMP_API SOFA_EXPORT_DYNAMIC_LIBRARY
+#else
+#  define SOFA_ASSIMP_API SOFA_IMPORT_DYNAMIC_LIBRARY
+#endif
 
-namespace core
-{
+#endif //SOFAASSIMP_CONFIG_H
 
-namespace objectmodel
-{
-
-/**
- * @brief This event notifies about GUI interaction.
- */
-class SOFA_SOFAPYTHON_API ScriptEvent : public sofa::core::objectmodel::Event
-{
-public:
-
-    SOFA_EVENT_H( ScriptEvent )
-
-    /**
-     * @brief Constructor.
-     */
-    ScriptEvent(sofa::simulation::Node::SPtr sender, const char* eventName);
-
-    /**
-     * @brief Destructor.
-     */
-    virtual ~ScriptEvent();
-
-    /**
-     * @brief Get the sender name
-     */
-    const sofa::simulation::Node::SPtr getSender(void) const {return m_sender;}
-
-    /**
-     * @brief Get the event name
-     */
-    const std::string getEventName(void) const {return m_eventName;}
-
-    virtual const char* getClassName() const { return "ScriptEvent"; }
-private:
-
-    sofa::simulation::Node::SPtr m_sender;
-    std::string m_eventName;
-
-};
-
-} // namespace objectmodel
-
-} // namespace core
-
-} // namespace sofa
-
-#endif // SCRIPTEVENT_H
