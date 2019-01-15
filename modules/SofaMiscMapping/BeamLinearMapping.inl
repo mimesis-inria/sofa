@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2017 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -28,6 +28,7 @@
 #include <sofa/helper/io/MassSpringLoader.h>
 #include <sofa/helper/io/SphereLoader.h>
 #include <sofa/helper/io/Mesh.h>
+#include <sofa/helper/gl/template.h>
 
 #include <sofa/simulation/Simulation.h>
 
@@ -118,31 +119,30 @@ void BeamLinearMapping<TIn, TOut>::init()
 
     Inherit::init();
 }
-
 template <class TIn, class TOut>
 void BeamLinearMapping<TIn, TOut>::apply(const core::MechanicalParams * /*mparams*/, Data< typename Out::VecCoord >& _out, const Data< typename In::VecCoord >& _in)
 {
-    helper::WriteAccessor< Data< typename Out::VecCoord > > out = _out;
-    helper::ReadAccessor< Data< typename In::VecCoord > > in = _in;
-
-    rotatedPoints0.resize(points.size());
-    rotatedPoints1.resize(points.size());
-    out.resize(points.size());
-    for(unsigned int i=0; i<points.size(); i++)
-    {
-        Coord inpos = points[i];
-        int in0 = helper::rfloor(inpos[0]);
-        if (in0<0) in0 = 0; else if (in0 > (int)in.size()-2) in0 = in.size()-2;
-        inpos[0] -= in0;
-        rotatedPoints0[i] = in[in0].getOrientation().rotate(inpos) * beamLength[in0];
-        Coord out0 = in[in0].getCenter() + rotatedPoints0[i];
-        Coord inpos1 = inpos; inpos1[0] -= 1;
-        rotatedPoints1[i] = in[in0+1].getOrientation().rotate(inpos1) * beamLength[in0];
-        Coord out1 = in[in0+1].getCenter() + rotatedPoints1[i];
-        Real fact = (Real)inpos[0];
-        fact = 3*(fact*fact)-2*(fact*fact*fact);
-        out[i] = out0 * (1-fact) + out1 * (fact);
-    }
+   helper::WriteAccessor< Data< typename Out::VecCoord > > out = _out;
+   helper::ReadAccessor< Data< typename In::VecCoord > > in = _in;    int I =in.size();
+   int O =out.size();
+   rotatedPoints0.resize(points.size());
+   rotatedPoints1.resize(points.size());
+   out.resize(points.size());
+   for(unsigned int i=0; i<points.size(); i++)
+   {
+       Coord inpos = points[i];
+       int in0 = helper::rfloor(inpos[0]);
+       if (in0<0) in0 = 0; else if (in0 > (int)in.size()-2) in0 = in.size()-2;
+       inpos[0] -= in0;
+       rotatedPoints0[i] = in[in0].getOrientation().rotate(inpos) * I*(1.0/O)* beamLength[in0];
+       Coord out0 = in[in0].getCenter() + rotatedPoints0[i];
+       Coord inpos1 = inpos; inpos1[0] -= 1;
+       rotatedPoints1[i] = in[in0+1].getOrientation().rotate(inpos1) * I*(1.0/O)* beamLength[in0];
+       Coord out1 = in[in0+1].getCenter() + rotatedPoints1[i];
+       Real fact = (Real)inpos[0];
+       fact = 3*(fact*fact)-2*(fact*fact*fact);
+       out[i] = out0 * (1-fact) + out1 * (fact);
+   }
 }
 
 template <class TIn, class TOut>
@@ -193,6 +193,7 @@ void BeamLinearMapping<TIn, TOut>::applyJT(const core::MechanicalParams * /*mpar
         defaulttype::Vec<N, typename In::Real> inpos = points[i];
         int in0 = helper::rfloor(inpos[0]);
         if (in0<0) in0 = 0; else if (in0 > (int)out.size()-2) in0 = out.size()-2;
+//        if (in0<0) in0 = 0; else if (in0 > (int)in.size()-2) in0 = in.size()-2;
         inpos[0] -= in0;
         Deriv f = in[i];
         Real fact = (Real)inpos[0];
@@ -272,7 +273,6 @@ template <class TIn, class TOut>
 void BeamLinearMapping<TIn, TOut>::draw(const core::visual::VisualParams* vparams)
 {
     if (!vparams->displayFlags().getShowMappings()) return;
-    vparams->drawTool()->saveLastState();
     std::vector< sofa::defaulttype::Vector3 > points;
     sofa::defaulttype::Vector3 point;
 
@@ -284,7 +284,6 @@ void BeamLinearMapping<TIn, TOut>::draw(const core::visual::VisualParams* vparam
     }
 
     vparams->drawTool()->drawPoints(points, 7, sofa::defaulttype::Vec<4,float>(1,1,0,1));
-    vparams->drawTool()->restoreLastState();
 }
 
 

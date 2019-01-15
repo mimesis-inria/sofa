@@ -52,11 +52,13 @@ WriteState::WriteState()
     , d_DOFsV( initData(&d_DOFsV, helper::vector<unsigned int>(0), "DOFsV", "set the velocity DOFs to write"))
     , d_stopAt( initData(&d_stopAt, 0.0, "stopAt", "stop the simulation when the given threshold is reached"))
     , d_keperiod( initData(&d_keperiod, 0.0, "keperiod", "set the period to measure the kinetic energy increase"))
+    , d_groundTruth( initData(&d_groundTruth, false, "groundTruth", "writeSTate for GroundTruth"))
+    , d_observations( initData(&d_observations, false, "observations", "write state for observationsr"))
     , mmodel(NULL)
     , outfile(NULL)
-#ifdef SOFA_HAVE_ZLIB
+    #ifdef SOFA_HAVE_ZLIB
     , gzfile(NULL)
-#endif
+    #endif
     , nextIteration(0)
     , lastTime(0)
     , kineticEnergyThresholdReached(false)
@@ -227,13 +229,13 @@ void WriteState::init()
 }
 
 void WriteState::reinit(){
-if (outfile)
-    delete outfile;
+    if (outfile)
+        delete outfile;
 #ifdef SOFA_HAVE_ZLIB
-if (gzfile)
-    gzclose(gzfile);
+    if (gzfile)
+        gzclose(gzfile);
 #endif
-init();
+    init();
 }
 void WriteState::reset()
 {
@@ -254,10 +256,10 @@ void WriteState::handleEvent(sofa::core::objectmodel::Event* event)
     {
         if (!mmodel) return;
         if (!outfile
-#ifdef SOFA_HAVE_ZLIB
-            && !gzfile
-#endif
-           )
+        #ifdef SOFA_HAVE_ZLIB
+                && !gzfile
+        #endif
+                )
             return;
 
         if (kineticEnergyThresholdReached)
@@ -354,43 +356,65 @@ void WriteState::handleEvent(sofa::core::objectmodel::Event* event)
             }
             else
 #endif
-                if (outfile)
-                {
+                if (d_groundTruth.getValue())
+                    time=time-this->getContext()->getDt();
+
+            if (outfile)
+            {
+                if (d_observations.getValue()){
+                    (*outfile) << time << "  ";
+                    if (d_writeX.getValue())
+                    {
+                        mmodel->writeVec(core::VecId::position(), *outfile);
+                        (*outfile) << "\n";
+                    }
+                } else {
+
+
                     // write the X state
                     (*outfile) << "T= "<< time << "\n";
                     if (d_writeX.getValue())
                     {
                         (*outfile) << "  X= ";
+                        //<TO REMOVE>
+                        //mmodel->writeX(*outfile);
                         mmodel->writeVec(core::VecId::position(), *outfile);
                         (*outfile) << "\n";
                     }
-                    if (d_writeX0.getValue())
-                    {
-                        (*outfile) << "  X0= ";
-                        mmodel->writeVec(core::VecId::restPosition(), *outfile);
-                        (*outfile) << "\n";
-                    }
-                    //write the V state
-                    if (d_writeV.getValue())
-                    {
-                        (*outfile) << "  V= ";
-                        mmodel->writeVec(core::VecId::velocity(), *outfile);
-                        (*outfile) << "\n";
-                    }
-                    //write the F state
-                    if (d_writeF.getValue())
-                    {
-                        (*outfile) << "  F= ";
-                        mmodel->writeVec(core::VecId::force(), *outfile);
-                        (*outfile) << "\n";
-                    }
-                    outfile->flush();
                 }
-            msg_info() <<"Export done (time = "<< time <<")";
+                if (d_writeX0.getValue())
+                {
+                    (*outfile) << "  X0= ";
+                    //<TO REMOVE>
+                    //mmodel->setX(core::VecId::restPosition());
+                    //mmodel->writeX((*outfile));
+                    //mmodel->setX(core::VecId::position());
+                    mmodel->writeVec(core::VecId::restPosition(), *outfile);
+                    (*outfile) << "\n";
+                }
+                //write the V state
+                if (d_writeV.getValue())
+                {
+                    (*outfile) << "  V= ";
+                    //<TO REMOVE>
+                    //mmodel->writeV(*outfile);
+                    mmodel->writeVec(core::VecId::velocity(), *outfile);
+                    (*outfile) << "\n";
+                }
+                //write the F state
+                if (d_writeF.getValue())
+                {
+                    (*outfile) << "  F= ";
+                    //<TO REMOVE>
+                    //mmodel->writeV(*outfile);
+                    mmodel->writeVec(core::VecId::force(), *outfile);
+                    (*outfile) << "\n";
+                }
+                outfile->flush();
+            }
         }
     }
 }
-
 } // namespace misc
 
 } // namespace component
