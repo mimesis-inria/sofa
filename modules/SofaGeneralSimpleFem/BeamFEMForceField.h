@@ -36,11 +36,11 @@ namespace sofa
 namespace component
 {
 
-namespace container
+/*namespace container
 {
 class StiffnessContainer;
 class PoissonContainer;
-} // namespace container
+} // namespace container*/
 
 namespace forcefield
 {
@@ -176,6 +176,8 @@ protected:
     Data<Real> d_youngModulus; ///< Young Modulus
     Data<Real> d_radius; ///< radius of the section
     Data<Real> d_radiusInner; ///< inner radius of the section for hollow beams
+    Data<VecReal> _radii;
+    Data<VecReal> _innerRadii;
     Data< BaseMeshTopology::SetIndex > d_listSegment; ///< apply the forcefield to a subset list of beam segments. If no segment defined, forcefield applies to the whole topology
     Data< bool> d_useSymmetricAssembly; ///< use symmetric assembly of the matrix K
     bool m_partialListSegment;

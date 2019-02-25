@@ -41,7 +41,6 @@
 #include "PoissonContainer.h"
 #include "BeamFEMForceField.h"
 
-
 namespace sofa
 {
 
@@ -71,6 +70,8 @@ BeamFEMForceField<DataTypes>::BeamFEMForceField()
     , m_updateStiffnessMatrix(true)
     , m_assembling(false)
     , m_edgeHandler(NULL)
+    , _radii(initData(&_radii,"radii","list of radii defined per element"))
+    , _innerRadii(initData(&_innerRadii,"innerRadii","list of inner radii for hollow beams defined per element"))
 {
     m_edgeHandler = new BeamFFEdgeHandler(this, &m_beamsData);
 
@@ -92,6 +93,8 @@ BeamFEMForceField<DataTypes>::BeamFEMForceField(Real poissonRatio, Real youngMod
     , m_updateStiffnessMatrix(true)
     , m_assembling(false)
     , m_edgeHandler(NULL)
+    , _radii(initData(&_radii,"radii","list of radii defined per element"))
+    , _innerRadii(initData(&_innerRadii,"innerRadii","list of inner radii for hollow beams defined per element"))
 {
     m_edgeHandler = new BeamFFEdgeHandler(this, &m_beamsData);
 
@@ -175,6 +178,32 @@ void BeamFEMForceField<DataTypes>::reinit()
     unsigned int n = m_indexedElements->size();
     m_forces.resize( this->mstate->getSize() );
 
+    sofa::helper::ReadAccessor< Data<VecReal> > radii = _radii;
+    sofa::helper::ReadAccessor< Data<VecReal> > innerRadii = _innerRadii;
+
+    if (radii.empty()) {
+        sofa::helper::WriteAccessor< Data<VecReal> > waRadii = _radii;
+        //waradii.resize(n, _radius.getValue());
+        waRadii.resize(n);
+        for (size_t i = 0; i < n; i++)
+            waRadii[i] = _radius.getValue();
+    } else {
+        if (radii.size() != n)
+            msg_error() << "number of radii and beams differs";
+    }
+
+    if (innerRadii.empty()) {
+        sofa::helper::WriteAccessor< Data<VecReal> > waInRadii = _innerRadii;
+        //waradii.resize(n, _radius.getValue());
+        waInRadii.resize(n);
+        for (size_t i = 0; i < n; i++)
+            waInRadii[i] = _radiusInner.getValue();
+    } else {
+        if (innerRadii.size() != n)
+            msg_error() << "number of inner radii and beams differs";
+    }
+
+
     initBeams( n );
     for (unsigned int i=0; i<n; ++i)
         reinitBeam(i);
@@ -199,6 +228,9 @@ void BeamFEMForceField<DataTypes>::reinitBeam(unsigned int i)
     radius = d_radius.getValue() ;
     radiusInner = d_radiusInner.getValue();
     poisson = d_poissonRatio.getValue() ;
+
+    radius = _radii.getValue()[i] ;
+    radiusInner = _innerRadii.getValue()[i];
 
 
     setBeam(i, stiffness, length, poisson, radius, radiusInner);
