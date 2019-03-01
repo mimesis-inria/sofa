@@ -41,7 +41,6 @@
 #include "PoissonContainer.h"
 #include "BeamFEMForceField.h"
 
-
 namespace sofa
 {
 
@@ -65,14 +64,14 @@ BeamFEMForceField<DataTypes>::BeamFEMForceField()
     , d_youngModulus(initData(&d_youngModulus,(Real)5000,"youngModulus","Young Modulus"))
     , d_radius(initData(&d_radius,(Real)0.1,"radius","radius of the section"))
     , d_radiusInner(initData(&d_radiusInner,(Real)0.0,"radiusInner","inner radius of the section for hollow beams"))
-    , _radii(initData(&_radii,"radii","list of radii defined per element"))
-    , _innerRadii(initData(&_innerRadii,"innerRadii","list of inner radii for hollow beams defined per element"))
     , d_listSegment(initData(&d_listSegment,"listSegment", "apply the forcefield to a subset list of beam segments. If no segment defined, forcefield applies to the whole topology"))
     , d_useSymmetricAssembly(initData(&d_useSymmetricAssembly,false,"useSymmetricAssembly","use symmetric assembly of the matrix K"))
     , m_partialListSegment(false)
     , m_updateStiffnessMatrix(true)
     , m_assembling(false)
     , m_edgeHandler(NULL)
+    , _radii(initData(&_radii,"radii","list of radii defined per element"))
+    , _innerRadii(initData(&_innerRadii,"innerRadii","list of inner radii for hollow beams defined per element"))
 {
     m_edgeHandler = new BeamFFEdgeHandler(this, &m_beamsData);
 
@@ -88,14 +87,14 @@ BeamFEMForceField<DataTypes>::BeamFEMForceField(Real poissonRatio, Real youngMod
     , d_youngModulus(initData(&d_youngModulus,(Real)youngModulus,"youngModulus","Young Modulus"))
     , d_radius(initData(&d_radius,(Real)radius,"radius","radius of the section"))
     , d_radiusInner(initData(&d_radiusInner,(Real)radiusInner,"radiusInner","inner radius of the section for hollow beams"))
-    , _radii(initData(&_radii,"radii","list of radii defined per element"))
-    , _innerRadii(initData(&_innerRadii,"innerRadii","list of inner radii for hollow beams defined per element"))
     , d_listSegment(initData(&d_listSegment,"listSegment", "apply the forcefield to a subset list of beam segments. If no segment defined, forcefield applies to the whole topology"))
     , d_useSymmetricAssembly(initData(&d_useSymmetricAssembly,false,"useSymmetricAssembly","use symmetric assembly of the matrix K"))
     , m_partialListSegment(false)
     , m_updateStiffnessMatrix(true)
     , m_assembling(false)
     , m_edgeHandler(NULL)
+    , _radii(initData(&_radii,"radii","list of radii defined per element"))
+    , _innerRadii(initData(&_innerRadii,"innerRadii","list of inner radii for hollow beams defined per element"))
 {
     m_edgeHandler = new BeamFFEdgeHandler(this, &m_beamsData);
 
@@ -179,6 +178,32 @@ void BeamFEMForceField<DataTypes>::reinit()
     unsigned int n = m_indexedElements->size();
     m_forces.resize( this->mstate->getSize() );
 
+    sofa::helper::ReadAccessor< Data<VecReal> > radii = _radii;
+    sofa::helper::ReadAccessor< Data<VecReal> > innerRadii = _innerRadii;
+
+    if (radii.empty()) {
+        sofa::helper::WriteAccessor< Data<VecReal> > waRadii = _radii;
+        //waradii.resize(n, _radius.getValue());
+        waRadii.resize(n);
+        for (size_t i = 0; i < n; i++)
+            waRadii[i] = _radius.getValue();
+    } else {
+        if (radii.size() != n)
+            msg_error() << "number of radii and beams differs";
+    }
+
+    if (innerRadii.empty()) {
+        sofa::helper::WriteAccessor< Data<VecReal> > waInRadii = _innerRadii;
+        //waradii.resize(n, _radius.getValue());
+        waInRadii.resize(n);
+        for (size_t i = 0; i < n; i++)
+            waInRadii[i] = _radiusInner.getValue();
+    } else {
+        if (innerRadii.size() != n)
+            msg_error() << "number of inner radii and beams differs";
+    }
+
+
     initBeams( n );
     for (unsigned int i=0; i<n; ++i)
         reinitBeam(i);
@@ -199,26 +224,13 @@ void BeamFEMForceField<DataTypes>::reinitBeam(unsigned int i)
         stiffness =  d_youngModulus.getValue() ;
 
     length = (x0[a].getCenter()-x0[b].getCenter()).norm() ;
-
-    if(_radii.isSet() && _innerRadii.isSet())
-    {
-        if( i < _radii.size() && i < _innerRadii.size())
-        {
-            radius = _radii.getValue()[i] ;
-            radiusInner = _innerRadii.getValue()[i];
-        }
-        else
-        {
-            msg_error(this) << "Vectors of radii are inconsistent with the number of beams.";
-        }
-    }
-    else
-    {
-        radius = d_radius.getValue() ;
-        radiusInner = d_radiusInner.getValue();
-    }
-
+    
+    radius = d_radius.getValue() ;
+    radiusInner = d_radiusInner.getValue();
     poisson = d_poissonRatio.getValue() ;
+
+    radius = _radii.getValue()[i] ;
+    radiusInner = _innerRadii.getValue()[i];
 
 
     setBeam(i, stiffness, length, poisson, radius, radiusInner);
