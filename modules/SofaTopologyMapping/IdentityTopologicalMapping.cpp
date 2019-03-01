@@ -58,8 +58,6 @@ using namespace sofa::defaulttype;
 using namespace sofa::component::topology;
 using namespace sofa::core::topology;
 
-SOFA_DECL_CLASS(IdentityTopologicalMapping)
-
 // Register in the Factory
 int IdentityTopologicalMappingClass = core::RegisterObject("This class is a specific implementation of TopologicalMapping where the destination topology should be kept identical to the source topology. The implementation currently assumes that both topology have been initialized identically.")
         .add< IdentityTopologicalMapping >()
@@ -121,7 +119,7 @@ void IdentityTopologicalMapping::updateTopologicalMappingTopDown()
     toModel->getContext()->get(toPointMod);
     if (!toPointMod)
     {
-        serr << "No PointSetTopologyModifier found for target topology." << sendl;
+         msg_error()<<"No PointSetTopologyModifier found for target topology." ;
         return;
     }
 

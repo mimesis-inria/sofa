@@ -41,11 +41,26 @@ namespace component
 namespace forcefield
 {
 
+template <class DataTypes>
+EdgePressureForceField<DataTypes>::EdgePressureForceField()
+    : edgePressureMap(initData(&edgePressureMap, "edgePressureMap", "map between edge indices and their pressure"))
+    ,pressure(initData(&pressure, "pressure", "Pressure force per unit area"))
+    , edgeIndices(initData(&edgeIndices,"edgeIndices", "Indices of edges separated with commas where a pressure is applied"))
+    , edges(initData(&edges, "edges", "List of edges where a pressure is applied"))
+    , normal(initData(&normal,"normal", "Normal direction for the plane selection of edges"))
+    , dmin(initData(&dmin,(Real)0.0, "dmin", "Minimum distance from the origin along the normal direction"))
+    , dmax(initData(&dmax,(Real)0.0, "dmax", "Maximum distance from the origin along the normal direction"))
+    , arrowSizeCoef(initData(&arrowSizeCoef,(SReal)0.0, "arrowSizeCoef", "Size of the drawn arrows (0->no arrows, sign->direction of drawing"))
+    , p_intensity(initData(&p_intensity,"p_intensity", "pressure intensity on edge normal"))
+    , p_binormal(initData(&p_binormal,"binormal", "Binormal of the 2D plane"))
+    , p_showForces(initData(&p_showForces, (bool)false, "showForces", "draw arrows of edge pressures"))
+{
+    _completeTopology = NULL;
+}
 
 template <class DataTypes> EdgePressureForceField<DataTypes>::~EdgePressureForceField()
 {
 }
-
 
 template <class DataTypes>
 void EdgePressureForceField<DataTypes>::init()
@@ -55,7 +70,7 @@ void EdgePressureForceField<DataTypes>::init()
     _topology = this->getContext()->getMeshTopology();
     if(_topology == NULL)
     {
-        serr << "ERROR(EdgePressureForceField): No base topology available." << sendl;
+        msg_error() << " No base topology available." ;
         return;
     }
 
@@ -64,7 +79,7 @@ void EdgePressureForceField<DataTypes>::init()
 
     if (edgeGeo==NULL)
     {
-        serr << "ERROR(EdgePressureForceField): object must have an EdgeSetTopology."<<sendl;
+        msg_error() << " object must have an EdgeSetTopology.";
         return;
     }
 
@@ -74,7 +89,7 @@ void EdgePressureForceField<DataTypes>::init()
 
     if(_completeTopology == NULL && edgeIndices.getValue().empty() && edges.getValue().empty())
     {
-        serr << "ERROR(EdgePressureForceField): Either a pressure vector or a TriangleSetTopology is required." << sendl;
+        msg_error() << "Either a pressure vector or a TriangleSetTopology is required.";
     }
 
     // init edgesubsetData engine
@@ -97,7 +112,6 @@ void EdgePressureForceField<DataTypes>::init()
     initEdgeInformation();
 }
 
-
 template <class DataTypes>
 void EdgePressureForceField<DataTypes>::addForce(const sofa::core::MechanicalParams* /*mparams*/, DataVecDeriv &  dataF, const DataVecCoord &  /*dataX */, const DataVecDeriv & /*dataV*/ )
 {
@@ -118,16 +132,46 @@ void EdgePressureForceField<DataTypes>::addForce(const sofa::core::MechanicalPar
     updateEdgeInformation();
 }
 
+template <class DataTypes>
+void EdgePressureForceField<DataTypes>::addDForce(const core::MechanicalParams* mparams, DataVecDeriv& /* d_df */, const DataVecDeriv& /* d_dx */)
+{
+    //TODO: remove this line (avoid warning message) ...
+    mparams->setKFactorUsed(true);
+}
+
+template <class DataTypes>
+SReal EdgePressureForceField<DataTypes>::getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const
+{
+    msg_error() << "Get potentialEnergy not implemented" ;
+    return 0.0;
+}
+
+template <class DataTypes>
+void EdgePressureForceField<DataTypes>::setDminAndDmax(const SReal _dmin, const SReal _dmax)
+{
+    dmin.setValue((Real)_dmin); dmax.setValue((Real)_dmax);
+}
+
+template<class DataTypes>
+bool EdgePressureForceField<DataTypes>::isPointInPlane(Coord p)
+{
+    Real d=dot(p,normal.getValue());
+    if ((d>dmin.getValue())&& (d<dmax.getValue()))
+        return true;
+    else
+        return false;
+}
+
 template<class DataTypes>
 void EdgePressureForceField<DataTypes>::initEdgeInformation()
 {
+    if (!this->mstate.get())
+        msg_error() << " No mechanical Object linked.";
+
     const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
 
     if (x.empty())
-    {
-        serr << "ERROR(EdgePressureForceField): No mechanical Object linked."<<sendl;
         return;
-    }
 
     const helper::vector<Real>& intensities = p_intensity.getValue();
 
@@ -178,7 +222,7 @@ void EdgePressureForceField<DataTypes>::initEdgeInformation()
 
                 Vec3d sum;
                 bool found = false;
-                int k = 0;
+                size_t k = 0;
                 while ((!found) && (k < _completeTopology->getNbEdges()))
                 {
                     f = _completeTopology->getEdge(k);
@@ -234,15 +278,16 @@ void EdgePressureForceField<DataTypes>::initEdgeInformation()
     return;
 }
 
-
 template<class DataTypes>
 void EdgePressureForceField<DataTypes>::updateEdgeInformation()
 {
+    if (!this->mstate.get())
+        msg_error() << " No mechanical Object linked.";
+
     const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
 
     if (x.empty())
     {
-        serr << "ERROR(EdgePressureForceField): No mechanical Object linked."<<sendl;
         return;
     }
 
@@ -277,7 +322,6 @@ void EdgePressureForceField<DataTypes>::updateEdgeInformation()
     initEdgeInformation();
 }
 
-
 template <class DataTypes>
 void EdgePressureForceField<DataTypes>::selectEdgesAlongPlane()
 {
@@ -296,7 +340,7 @@ void EdgePressureForceField<DataTypes>::selectEdgesAlongPlane()
     helper::vector<unsigned int> inputEdges;
 
 
-    for (int n=0; n<_topology->getNbEdges(); ++n)
+    for (size_t n=0; n<_topology->getNbEdges(); ++n)
     {
         if ((vArray[_topology->getEdge(n)[0]]) && (vArray[_topology->getEdge(n)[1]]))
         {
@@ -327,7 +371,7 @@ void EdgePressureForceField<DataTypes>::selectEdgesFromIndices(const helper::vec
         my_subset.push_back(t);
 
         if (inputIndices[i] >= sizeTest)
-            serr << "ERROR(EdgePressureForceField): Edge indice: " << inputIndices[i] << " is out of edge indices bounds. This could lead to non desired behavior." <<sendl;
+            msg_error() << " Edge indice: " << inputIndices[i] << " is out of edge indices bounds. This could lead to non desired behavior." ;
     }
     edgePressureMap.endEdit();
 

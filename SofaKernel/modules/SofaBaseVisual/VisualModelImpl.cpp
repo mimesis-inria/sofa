@@ -60,6 +60,72 @@ using namespace sofa::core::topology;
 using namespace sofa::core::loader;
 using helper::vector;
 
+ExtVec3State::ExtVec3State()
+    : m_positions(initData(&m_positions, "position", "Vertices coordinates"))
+    , m_restPositions(initData(&m_restPositions, "restPosition", "Vertices rest coordinates"))
+    , m_vnormals (initData (&m_vnormals, "normal", "Normals of the model"))
+    , modified(false)
+{
+    m_positions.setGroup("Vector");
+    m_restPositions.setGroup("Vector");
+    m_vnormals.setGroup("Vector");
+}
+
+void ExtVec3State::resize(size_t vsize)
+{
+    helper::WriteOnlyAccessor< Data<sofa::defaulttype::ResizableExtVector<Coord> > > positions = m_positions;
+    if( positions.size() == vsize ) return;
+    helper::WriteOnlyAccessor< Data<sofa::defaulttype::ResizableExtVector<Coord> > > restPositions = m_restPositions;
+    helper::WriteOnlyAccessor< Data<sofa::defaulttype::ResizableExtVector<Deriv> > > normals = m_vnormals;
+
+    positions.resize(vsize);
+    restPositions.resize(vsize); // todo allocate restpos only when it is necessary
+    normals.resize(vsize);
+
+    modified = true;
+}
+
+size_t ExtVec3State::getSize() const { return m_positions.getValue().size(); }
+
+Data<ExtVec3State::VecCoord>* ExtVec3State::write(     core::VecCoordId  v )
+{
+    modified = true;
+
+    if( v == core::VecCoordId::position() )
+        return &m_positions;
+    if( v == core::VecCoordId::restPosition() )
+        return &m_restPositions;
+
+    return NULL;
+}
+
+const Data<ExtVec3State::VecCoord>* ExtVec3State::read(core::ConstVecCoordId  v )  const
+{
+    if( v == core::VecCoordId::position() )
+        return &m_positions;
+    if( v == core::VecCoordId::restPosition() )
+        return &m_restPositions;
+
+    return NULL;
+}
+
+Data<ExtVec3State::VecDeriv>*	ExtVec3State::write(core::VecDerivId v )
+{
+    if( v == core::VecDerivId::normal() )
+        return &m_vnormals;
+
+    return NULL;
+}
+
+const Data<ExtVec3State::VecDeriv>* ExtVec3State::read(core::ConstVecDerivId v ) const
+{
+    if( v == core::VecDerivId::normal() )
+        return &m_vnormals;
+
+    return NULL;
+}
+
+
 void VisualModelImpl::parse(core::objectmodel::BaseObjectDescription* arg)
 {
     this->core::visual::VisualModel::parse(arg);
@@ -109,8 +175,6 @@ void VisualModelImpl::parse(core::objectmodel::BaseObjectDescription* arg)
                                   (Real)arg->getAttributeAsFloat("sz",1.0)));
     }
 }
-
-SOFA_DECL_CLASS(VisualModelImpl)
 
 int VisualModelImplClass = core::RegisterObject("Generic visual model. If a viewer is active it will replace the VisualModel alias, otherwise nothing will be displayed.")
         .add< VisualModelImpl >()
@@ -823,14 +887,6 @@ void VisualModelImpl::init()
         }
     }
 
-    m_vertices2.beginEdit();
-    m_vnormals.beginEdit();
-    m_vtexcoords.beginEdit();
-    m_vtangents.beginEdit();
-    m_vbitangents.beginEdit();
-    m_triangles.beginEdit();
-    m_quads.beginEdit();
-
     applyScale(m_scale.getValue()[0], m_scale.getValue()[1], m_scale.getValue()[2]);
     applyRotation(m_rotation.getValue()[0], m_rotation.getValue()[1], m_rotation.getValue()[2]);
     applyTranslation(m_translation.getValue()[0], m_translation.getValue()[1], m_translation.getValue()[2]);
@@ -1084,6 +1140,45 @@ void VisualModelImpl::computeBBox(const core::ExecParams* params, bool)
     this->f_bbox.setValue(params,sofa::defaulttype::TBoundingBox<SReal>(minBBox,maxBBox));
 }
 
+
+void VisualModelImpl::computeUVSphereProjection()
+{
+    sofa::core::visual::VisualParams* vparams = sofa::core::visual::VisualParams::defaultInstance();
+    this->computeBBox(vparams);
+
+    Vector3 center = (this->f_bbox.getValue().minBBox() + this->f_bbox.getValue().maxBBox())*0.5f;
+    
+    // Map mesh vertices to sphere
+    // transform cart to spherical coordinates (r, theta, phi) and sphere to cart back with radius = 1
+    const VecCoord& coords = getVertices();
+    int nbrV = coords.size();
+    VecCoord m_sphereV;
+    m_sphereV.resize(nbrV);
+
+    VecTexCoord& vtexcoords = *(m_vtexcoords.beginEdit());
+    vtexcoords.resize(nbrV);
+
+    for (int i = 0; i < nbrV; ++i)
+    {
+        Coord Vcentered = coords[i] - center;
+        float r = sqrtf(Vcentered[0] * Vcentered[0] + Vcentered[1] * Vcentered[1] + Vcentered[2] * Vcentered[2]);
+        float theta = acos(Vcentered[2] / r);
+        float phi = atan2(Vcentered[1], Vcentered[0]);
+
+        r = 1.0;
+        m_sphereV[i][0] = r * sin(theta)*cos(phi) + center[0];
+        m_sphereV[i][1] = r * sin(theta)*sin(phi) + center[1];
+        m_sphereV[i][2] = r * cos(theta) + center[2];
+
+        Coord pos = m_sphereV[i] - center;
+        pos.normalize();
+        vtexcoords[i][0] = 0.5 + atan2(pos[1], pos[0]) / (2 * R_PI);
+        vtexcoords[i][1] = 0.5 - asin(pos[2]) / R_PI;
+    }
+
+    m_vtexcoords.endEdit();
+}
+
 void VisualModelImpl::flipFaces()
 {
     ResizableExtVector<Deriv>& vnormals = *(m_vnormals.beginEdit());
@@ -1181,6 +1276,10 @@ void VisualModelImpl::updateVisual()
         if (m_updateTangents.getValue())
             computeTangents();
         modified = false;
+
+        if (m_vtexcoords.getValue().size() == 0)
+            computeUVSphereProjection();
+
     }
 
     m_positions.updateIfDirty();
@@ -1538,12 +1637,12 @@ void VisualModelImpl::handleTopologyChange()
 
                             if(is_forgotten)
                             {
-                                int ind_forgotten = j_loc;
+                                unsigned int ind_forgotten = j_loc;
 
                                 bool is_in_shell = false;
                                 for (unsigned int j_glob=0; j_glob<shell.size(); ++j_glob)
                                 {
-                                    is_in_shell = is_in_shell || ((int)shell[j_glob] == ind_forgotten);
+                                    is_in_shell = is_in_shell || (shell[j_glob] == ind_forgotten);
                                 }
 
                                 if(!is_in_shell)

@@ -56,13 +56,8 @@ public:
     bool elongationOnly;    ///< only forbid elongation, not compression
     bool enabled;           ///< false to disable this spring (i.e. broken)
 
-    LinearSpring(int m1=0, int m2=0, double ks=0.0, double kd=0.0, double initpos=0.0, bool noCompression=false, bool enabled=true)
-        : m1(m1), m2(m2), ks((Real)ks), kd((Real)kd), initpos((Real)initpos), elongationOnly(noCompression), enabled(enabled)
-    {
-    }
-
-    LinearSpring(int m1, int m2, float ks, float kd=0, float initpos=0, bool noCompression=false, bool enabled=true)
-        : m1(m1), m2(m2), ks((Real)ks), kd((Real)kd), initpos((Real)initpos), elongationOnly(noCompression), enabled(enabled)
+    LinearSpring(int m1=0, int m2=0, Real ks=0.0, Real kd=0.0, Real initpos=0.0, bool noCompression=false, bool enabled=true)
+        : m1(m1), m2(m2), ks(ks), kd(kd), initpos(initpos), elongationOnly(noCompression), enabled(enabled)
     {
     }
 
@@ -215,21 +210,13 @@ public:
     std::ofstream* m_gnuplotFileEnergy;
 };
 
-#if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_SPRINGFORCEFIELD_CPP)
-#ifndef SOFA_FLOAT
+#if  !defined(SOFA_COMPONENT_FORCEFIELD_SPRINGFORCEFIELD_CPP)
 extern template class SOFA_DEFORMABLE_API LinearSpring<double>;
-extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec3dTypes>;
-extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec2dTypes>;
-extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec1dTypes>;
-extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec6dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_DEFORMABLE_API LinearSpring<float>;
-extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec3fTypes>;
-extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec2fTypes>;
-extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec1fTypes>;
-extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec6fTypes>;
-#endif
+extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec3Types>;
+extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec2Types>;
+extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec1Types>;
+extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Vec6Types>;
+extern template class SOFA_DEFORMABLE_API SpringForceField<defaulttype::Rigid3Types>;
 #endif
 
 } // namespace interactionforcefield

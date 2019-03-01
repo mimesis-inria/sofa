@@ -41,7 +41,6 @@ public:
 
 };
 
-SOFA_DECL_CLASS(ComponentDeprecated)
 int ComponentDeprecatedClassId = sofa::core::RegisterObject("")
         .add< ComponentDeprecated >();
 
@@ -189,6 +188,7 @@ struct SceneChecker_test : public Sofa_test<>
         scene << "<?xml version='1.0'?>                                           \n"
               << "<Node name='Root' gravity='0 -9.81 0' time='0' animate='0' >    \n"
               << "    <MechanicalObject template='Vec3d' />                       \n"
+              << "    <MeshTopology />                                            \n"
               << "    <" << componentName << "/>                                  \n"
               << "</Node>                                                         \n";
 

@@ -103,32 +103,18 @@ double computeDot(const typename DataTypes::Deriv& v0, const typename DataTypes:
 }
 
 
-#ifndef SOFA_FLOAT
 template<>
-bool derivVectors<sofa::defaulttype::Rigid3dTypes>(const sofa::defaulttype::Rigid3dTypes::VecCoord& x0, const sofa::defaulttype::Rigid3dTypes::VecCoord& x1, sofa::defaulttype::Rigid3dTypes::VecDeriv& d, bool derivRotation )
+bool derivVectors<sofa::defaulttype::Rigid3Types>(const sofa::defaulttype::Rigid3Types::VecCoord& x0, const sofa::defaulttype::Rigid3Types::VecCoord& x1, sofa::defaulttype::Rigid3Types::VecDeriv& d, bool derivRotation )
 {
-    return derivRigid3Vectors<sofa::defaulttype::Rigid3dTypes>(x0,x1,d, derivRotation);
+    return derivRigid3Vectors<sofa::defaulttype::Rigid3Types>(x0,x1,d, derivRotation);
 }
 template <>
-double computeDot<sofa::defaulttype::Rigid3dTypes>(const sofa::defaulttype::Rigid3dTypes::Deriv& v0, const sofa::defaulttype::Rigid3dTypes::Deriv& v1)
+double computeDot<sofa::defaulttype::Rigid3Types>(const sofa::defaulttype::Rigid3Types::Deriv& v0, const sofa::defaulttype::Rigid3Types::Deriv& v1)
 {
     return dot(getVCenter(v0),getVCenter(v1)) + dot(getVOrientation(v0), getVOrientation(v1));
 }
 
-#endif
-#ifndef SOFA_DOUBLE
-template<>
-bool derivVectors<sofa::defaulttype::Rigid3fTypes>(const sofa::defaulttype::Rigid3fTypes::VecCoord& x0, const sofa::defaulttype::Rigid3fTypes::VecCoord& x1, sofa::defaulttype::Rigid3fTypes::VecDeriv& d, bool derivRotation )
-{
-    return derivRigid3Vectors<sofa::defaulttype::Rigid3fTypes>(x0,x1,d, derivRotation);
-}
-template <>
-double computeDot<sofa::defaulttype::Rigid3fTypes>(const sofa::defaulttype::Rigid3fTypes::Deriv& v0, const sofa::defaulttype::Rigid3fTypes::Deriv& v1)
-{
-    return dot(getVCenter(v0),getVCenter(v1)) + dot(getVOrientation(v0), getVOrientation(v1));
-}
 
-#endif
 
 } // anonymous namespace
 
@@ -176,7 +162,7 @@ void LCPForceFeedback<DataTypes>::init()
     this->ForceFeedback::init();
     if(!c)
     {
-        serr << "LCPForceFeedback has no current context. Initialisation failed." << sendl;
+        msg_error() << "LCPForceFeedback has no current context. Initialisation failed.";
         return;
     }
 
@@ -184,14 +170,14 @@ void LCPForceFeedback<DataTypes>::init()
 
     if (!constraintSolver)
     {
-        serr << "LCPForceFeedback has no binding ConstraintSolver. Initialisation failed." << sendl;
+        msg_error() << "LCPForceFeedback has no binding ConstraintSolver. Initialisation failed.";
         return;
     }
 
     mState = dynamic_cast<core::behavior::MechanicalState<DataTypes> *> (c->getMechanicalState());
     if (!mState)
     {
-        serr << "LCPForceFeedback has no binding MechanicalState. Initialisation failed." << sendl;
+        msg_error() << "LCPForceFeedback has no binding MechanicalState. Initialisation failed.";
         return;
     }
 }
@@ -427,24 +413,16 @@ void LCPForceFeedback<DataTypes>::computeWrench(const sofa::defaulttype::SolidTy
 }
 
 
-#ifndef SOFA_DOUBLE
 
 template <>
-void SOFA_HAPTICS_API LCPForceFeedback< sofa::defaulttype::Rigid3fTypes >::computeForce(SReal x, SReal y, SReal z, SReal, SReal, SReal, SReal, SReal& fx, SReal& fy, SReal& fz);
-
-#endif // SOFA_DOUBLE
-
-#ifndef SOFA_FLOAT
+void SOFA_HAPTICS_API LCPForceFeedback< sofa::defaulttype::Rigid3Types >::computeForce(double x, double y, double z, double, double, double, double, double& fx, double& fy, double& fz);
 
 template <>
-void SOFA_HAPTICS_API LCPForceFeedback< sofa::defaulttype::Rigid3dTypes >::computeForce(double x, double y, double z, double, double, double, double, double& fx, double& fy, double& fz);
-
-template <>
-void SOFA_HAPTICS_API LCPForceFeedback< sofa::defaulttype::Rigid3dTypes >::computeWrench(const sofa::defaulttype::SolidTypes<double>::Transform &world_H_tool,
+void SOFA_HAPTICS_API LCPForceFeedback< sofa::defaulttype::Rigid3Types >::computeWrench(const sofa::defaulttype::SolidTypes<double>::Transform &world_H_tool,
         const sofa::defaulttype::SolidTypes<double>::SpatialVector &/*V_tool_world*/,
         sofa::defaulttype::SolidTypes<double>::SpatialVector &W_tool_world );
 
-#endif // SOFA_FLOAT
+ 
 
 
 } // namespace controller

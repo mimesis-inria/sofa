@@ -89,7 +89,7 @@ void ClusteringEngine<DataTypes>::init()
 
 
 template <class DataTypes>
-void ClusteringEngine<DataTypes>::update()
+void ClusteringEngine<DataTypes>::doUpdate()
 {
     if(load()) return;
 
@@ -158,7 +158,6 @@ void ClusteringEngine<DataTypes>::update()
     }
 
     save();
-    cleanDirty();
 }
 
 
@@ -305,16 +304,15 @@ bool ClusteringEngine<DataTypes>::load()
 {
     if (!this->input_filename.isSet()) return false;
 
-    input_filename.update();
     string fname(this->input_filename.getFullPath());
     if(!fname.compare(loadedFilename)) return true;
 
     if (!fname.size()) return false;
-    if (!helper::system::DataRepository.findFile(fname))  { serr << "ClusteringEngine: cannot find "<<fname<<sendl;  return false;	}
+    if (!helper::system::DataRepository.findFile(fname))  { msg_error() << "ClusteringEngine: cannot find "<<fname;  return false;	}
     fname=helper::system::DataRepository.getFile(fname);
 
     ifstream fileStream (fname.c_str(), std::ifstream::in);
-    if (!fileStream.is_open())	{ serr << "ClusteringEngine: cannot open "<<fname<<sendl;  return false;	}
+    if (!fileStream.is_open())	{ msg_error() << "ClusteringEngine: cannot open "<<fname;  return false;	}
 
     WriteOnlyAccessor< Data< VVI > > clust = this->d_cluster;
     clust.clear();
@@ -345,7 +343,7 @@ bool ClusteringEngine<DataTypes>::save()
     if (!fname.size()) return false;
 
     ofstream fileStream (fname.c_str(), ofstream::out);
-    if (!fileStream.is_open())	{ serr << "ClusteringEngine: cannot open "<<fname<<sendl;  return false;	}
+    if (!fileStream.is_open())	{ msg_error() << "ClusteringEngine: cannot open "<<fname;  return false;	}
 
     ReadAccessor< Data< VVI > > clust = this->d_cluster;
 
@@ -363,7 +361,7 @@ bool ClusteringEngine<DataTypes>::save()
         fileStream << std::endl;
     }
 
-    sout << "ClusteringEngine: saved clusters in "<<fname<<sendl;
+    sout << "ClusteringEngine: saved clusters in "<<fname;
 
     return true;
 }
@@ -406,7 +404,6 @@ void ClusteringEngine<DataTypes>::draw(const core::visual::VisualParams* vparams
                 }
         }
         vparams->drawTool()->drawLines(vertices, 1.0, colors);
-
         vparams->drawTool()->restoreLastState();
     }
 }

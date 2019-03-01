@@ -24,8 +24,6 @@
 
 #include <SofaMiscMapping/BeamLinearMapping.h>
 #include <sofa/core/visual/VisualParams.h>
-
-#include <sofa/helper/io/MassSpringLoader.h>
 #include <sofa/helper/io/SphereLoader.h>
 #include <sofa/helper/io/Mesh.h>
 
@@ -90,7 +88,7 @@ void BeamLinearMapping<TIn, TOut>::init()
             beamLength[xfrom.size()-1] = beamLength[xfrom.size()-2];
 
         const VecCoord& x = this->toModel->read(core::ConstVecCoordId::position())->getValue();
-        sout << "BeamLinearMapping: init "<<x.size()<<" points."<<sendl;
+        msg_info() << "BeamLinearMapping: init "<<x.size()<<" points.";
         points.resize(x.size());
 
         if (local)

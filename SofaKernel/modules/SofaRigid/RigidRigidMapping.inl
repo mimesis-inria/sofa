@@ -28,7 +28,7 @@
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 
-#include <sofa/helper/io/MassSpringLoader.h>
+#include <sofa/helper/io/XspLoader.h>
 #include <sofa/helper/io/SphereLoader.h>
 #include <sofa/helper/io/Mesh.h>
 
@@ -45,23 +45,46 @@ namespace mapping
 {
 
 template <class TIn, class TOut>
-class RigidRigidMapping<TIn, TOut>::Loader : public helper::io::MassSpringLoader, public helper::io::SphereLoader
+RigidRigidMapping<TIn,TOut>::RigidRigidMapping()
+    : Inherit(),
+      points(initData(&points, "initialPoints", "Initial position of the points")),
+      repartition(initData(&repartition,"repartition","number of child frames per parent frame. \n"
+                           "If empty, all the children are attached to the parent with index \n"
+                           "given in the \"index\" attribute. If one value, each parent frame drives \n"
+                           "the given number of children frames. Otherwise, the values are the number \n"
+                           "of child frames driven by each parent frame. ")),
+      index(initData(&index,(unsigned)0,"index","input frame index")),
+      fileRigidRigidMapping(initData(&fileRigidRigidMapping,"fileRigidRigidMapping","Filename")),
+      axisLength(initData( &axisLength, 0.7, "axisLength", "axis length for display")),
+      indexFromEnd( initData ( &indexFromEnd,false,"indexFromEnd","input DOF index starts from the end of input DOFs vector") ),
+      globalToLocalCoords ( initData ( &globalToLocalCoords,"globalToLocalCoords","are the output DOFs initially expressed in global coordinates" ) )
+{
+    this->addAlias(&fileRigidRigidMapping,"filename");
+}
+
+
+template <class TIn, class TOut>
+class RigidRigidMapping<TIn, TOut>::Loader :
+        public helper::io::XspLoaderDataHook,
+        public helper::io::SphereLoaderDataHook
 {
 public:
     RigidRigidMapping<TIn, TOut>* dest;
     Loader(RigidRigidMapping<TIn, TOut>* dest) : dest(dest) {}
+
     virtual void addMass(SReal px, SReal py, SReal pz, SReal, SReal, SReal, SReal, SReal, bool, bool)
     {
         OutCoord c;
         Out::set(c,px,py,pz);
-        dest->points.beginEdit()->push_back(c); //Coord((Real)px,(Real)py,(Real)pz));
+        dest->points.beginEdit()->push_back(c);
         dest->points.endEdit();
     }
+
     virtual void addSphere(SReal px, SReal py, SReal pz, SReal)
     {
         OutCoord c;
         Out::set(c,px,py,pz);
-        dest->points.beginEdit()->push_back(c); //Coord((Real)px,(Real)py,(Real)pz));
+        dest->points.beginEdit()->push_back(c);
         dest->points.endEdit();
     }
 };
@@ -75,12 +98,12 @@ void RigidRigidMapping<TIn, TOut>::load(const char *filename)
     if (strlen(filename)>4 && !strcmp(filename+strlen(filename)-4,".xs3"))
     {
         Loader loader(this);
-        loader.helper::io::MassSpringLoader::load(filename);
+        sofa::helper::io::XspLoader::Load(filename, loader);
     }
     else if (strlen(filename)>4 && !strcmp(filename+strlen(filename)-4,".sph"))
     {
         Loader loader(this);
-        loader.helper::io::SphereLoader::load(filename);
+        sofa::helper::io::SphereLoader::Load(filename, loader);
     }
     else if (strlen(filename)>0)
     {

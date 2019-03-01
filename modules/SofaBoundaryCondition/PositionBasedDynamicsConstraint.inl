@@ -45,7 +45,6 @@ PositionBasedDynamicsConstraint<DataTypes>::PositionBasedDynamicsConstraint()
     , velocity(initData(&velocity,"velocity","Velocities."))
     , old_position(initData(&old_position,"old_position","Old positions."))
 {
-    // stiffness.setWidget("0to1RatioWidget");
 }
 
 
@@ -68,7 +67,7 @@ template <class DataTypes>
 void PositionBasedDynamicsConstraint<DataTypes>::init()
 {
     this->core::behavior::ProjectiveConstraintSet<DataTypes>::init();
-    if ((int)position.getValue().size() != (int)this->mstate->getSize())    serr << "Invalid target position vector size." << sendl;
+    if ((int)position.getValue().size() != (int)this->mstate->getSize())    msg_error() << "Invalid target position vector size." ;
 }
 
 
@@ -92,17 +91,6 @@ template <class DataTypes>
 void PositionBasedDynamicsConstraint<DataTypes>::projectJacobianMatrix(const core::MechanicalParams* mparams, DataMatrixDeriv& cData)
 {
     helper::WriteAccessor<DataMatrixDeriv> c ( mparams, cData );
-
-    /*
-    MatrixDerivRowIterator rowIt = c->begin();
-    MatrixDerivRowIterator rowItEnd = c->end();
-    { // fix everything
-        while (rowIt != rowItEnd)
-        {
-            rowIt.row().clear();
-            ++rowIt;
-        }
-    }*/
 }
 
 
@@ -113,7 +101,7 @@ void PositionBasedDynamicsConstraint<DataTypes>::projectVelocity(const core::Mec
     helper::WriteAccessor<DataVecDeriv> res ( mparams, vData );
 	helper::ReadAccessor<DataVecDeriv> vel ( mparams, velocity );
 
-    if (vel.size() != res.size()) 	{ serr << "Invalid target position vector size." << sendl;		return; }
+    if (vel.size() != res.size()) 	{ msg_error() << "Invalid target position vector size." ;		return; }
     std::copy(vel.begin(),vel.end(),res.begin());
 }
 
@@ -124,7 +112,7 @@ void PositionBasedDynamicsConstraint<DataTypes>::projectPosition(const core::Mec
 	helper::WriteAccessor<DataVecDeriv> vel ( mparams, velocity );
 	helper::WriteAccessor<DataVecCoord> old_pos ( mparams, old_position );
     helper::ReadAccessor<DataVecCoord> tpos = position ;
-    if (tpos.size() != res.size()) 	{ serr << "Invalid target position vector size." << sendl;		return; }
+    if (tpos.size() != res.size()) 	{ msg_error() << "Invalid target position vector size." ;		return; }
 
     Real dt =  (Real)this->getContext()->getDt();
     if(!dt) return;
@@ -146,14 +134,9 @@ void PositionBasedDynamicsConstraint<DataTypes>::projectPosition(const core::Mec
 }
 
 // Specialization for rigids
-#ifndef SOFA_FLOAT
 template <>
-void PositionBasedDynamicsConstraint<defaulttype::Rigid3dTypes >::projectPosition(const core::MechanicalParams* mparams, DataVecCoord& xData);
-#endif
-#ifndef SOFA_DOUBLE
-template <>
-void PositionBasedDynamicsConstraint<defaulttype::Rigid3fTypes >::projectPosition(const core::MechanicalParams* mparams, DataVecCoord& xData);
-#endif
+void PositionBasedDynamicsConstraint<defaulttype::Rigid3Types >::projectPosition(const core::MechanicalParams* mparams, DataVecCoord& xData);
+
 
 
 

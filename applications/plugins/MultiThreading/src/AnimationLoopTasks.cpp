@@ -18,8 +18,8 @@ namespace sofa
         
         
         
-        StepTask::StepTask(core::behavior::BaseAnimationLoop* aloop, const double t, Task::Status* pStatus)
-        : Task(pStatus)
+        StepTask::StepTask(core::behavior::BaseAnimationLoop* aloop, const double t, Task::Status* status)
+        : Task(status)
         , animationloop(aloop)
         , dt(t)
         {
@@ -30,10 +30,10 @@ namespace sofa
         }
         
         
-        bool StepTask::run(WorkerThread* )
+        Task::MemoryAlloc StepTask::run()
         {
             animationloop->step( core::ExecParams::defaultInstance(), dt);
-            return true;
+            return Task::MemoryAlloc::Dynamic;
         }        
         
     } // namespace simulation

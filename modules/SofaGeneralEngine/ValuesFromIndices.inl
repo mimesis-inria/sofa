@@ -67,12 +67,10 @@ void ValuesFromIndices<T>::reinit()
 }
 
 template <class T>
-void ValuesFromIndices<T>::update()
+void ValuesFromIndices<T>::doUpdate()
 {
     helper::ReadAccessor<Data<VecValue> > in = f_in;
     helper::ReadAccessor<Data<VecIndex> > indices = f_indices;
-
-    cleanDirty();
 
     helper::WriteOnlyAccessor<Data<VecValue> > out = f_out;
 
@@ -83,7 +81,7 @@ void ValuesFromIndices<T>::update()
         if ((unsigned)indices[i] < in.size())
             out.push_back(in[indices[i]]);
         else
-            serr << "Invalid input index " << i <<": " << indices[i] << " >= " << in.size() << sendl;
+            msg_error() << "Invalid input index " << i <<": " << indices[i] << " >= " << in.size();
     }
 }
 

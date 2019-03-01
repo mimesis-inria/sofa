@@ -30,7 +30,7 @@
 #include <sofa/core/topology/BaseMeshTopology.h>
 #include <sofa/core/topology/TopologyChange.h>
 #include <sofa/simulation/Simulation.h>
-#include <sofa/helper/io/MassSpringLoader.h>
+#include <sofa/helper/io/XspLoader.h>
 #include <sofa/helper/system/config.h>
 #include <cassert>
 #include <iostream>
@@ -73,12 +73,12 @@ SpringForceField<DataTypes>::SpringForceField(SReal _ks, SReal _kd)
 
 
 template <class DataTypes>
-class SpringForceField<DataTypes>::Loader : public helper::io::MassSpringLoader
+class SpringForceField<DataTypes>::Loader : public helper::io::XspLoaderDataHook
 {
 public:
     SpringForceField<DataTypes>* dest;
     Loader(SpringForceField<DataTypes>* dest) : dest(dest) {}
-    virtual void addSpring(int m1, int m2, SReal ks, SReal kd, SReal initpos)
+    void addSpring(size_t m1, size_t m2, SReal ks, SReal kd, SReal initpos) override
     {
         helper::vector<Spring>& springs = *dest->springs.beginEdit();
         springs.push_back(Spring(m1,m2,ks,kd,initpos));
@@ -93,7 +93,7 @@ bool SpringForceField<DataTypes>::load(const char *filename)
     if (filename && filename[0])
     {
         Loader loader(this);
-        ret &= loader.load(filename);
+        ret &= helper::io::XspLoader::Load(filename, loader);
     }
     else ret = false;
     return ret;
@@ -124,20 +124,21 @@ void SpringForceField<DataTypes>::addSpringForce(Real& ener, VecDeriv& f1, const
 {
     int a = spring.m1;
     int b = spring.m2;
-    Coord u = p2[b]-p1[a];
+    typename DataTypes::CPos u = DataTypes::getCPos(p2[b])-DataTypes::getCPos(p1[a]);
     Real d = u.norm();
     if( spring.enabled && d<1.0e-4 ) // null length => no force
         return;
     Real inverseLength = 1.0f/d;
     u *= inverseLength;
-    Real elongation = (Real)(d - spring.initpos);
+    Real elongation = d - spring.initpos;
     ener += elongation * elongation * spring.ks /2;
-    Deriv relativeVelocity = v2[b]-v1[a];
+    typename DataTypes::DPos relativeVelocity = DataTypes::getDPos(v2[b])-DataTypes::getDPos(v1[a]);
     Real elongationVelocity = dot(u,relativeVelocity);
-    Real forceIntensity = (Real)(spring.ks*elongation+spring.kd*elongationVelocity);
-    Deriv force = u*forceIntensity;
-    f1[a]+=force;
-    f2[b]-=force;
+    Real forceIntensity = spring.ks*elongation+spring.kd*elongationVelocity;
+    typename DataTypes::DPos force = u*forceIntensity;
+
+    DataTypes::setDPos( f1[a], DataTypes::getDPos(f1[a]) + force ) ;
+    DataTypes::setDPos( f2[b], DataTypes::getDPos(f2[b]) - force ) ;
 }
 
 template<class DataTypes>
@@ -217,8 +218,6 @@ void SpringForceField<DataTypes>::draw(const core::visual::VisualParams* vparams
 
     std::vector< Vector3 > points[4];
     bool external = (this->mstate1!=this->mstate2);
-    //if (!external)
-    //	glColor4f(1,1,1,1);
     const helper::vector<Spring>& springs = this->springs.getValue();
     for (unsigned int i=0; i<springs.size(); i++)
     {

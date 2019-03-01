@@ -27,8 +27,6 @@
 #if defined(WIN32)
 #include <windows.h>
 #include <direct.h>
-#elif defined(_XBOX)
-#include <xtl.h>
 #else
 #include <unistd.h>
 #endif
@@ -43,6 +41,8 @@
 #include <sstream>
 #include <sofa/helper/logging/Messaging.h>
 #include <sofa/helper/Utils.h>
+#include <sofa/helper/system/FileSystem.h>
+using sofa::helper::system::FileSystem;
 
 #ifdef WIN32
 #define ON_WIN32 true
@@ -75,20 +75,16 @@ std::string cleanPath( const std::string& path )
     return p;
 }
 
-/// Initialize PluginRepository with the current working directory
+// Initialize PluginRepository and DataRepository
 #ifdef WIN32
 FileRepository PluginRepository( "SOFA_PLUGIN_PATH", Utils::getExecutableDirectory().c_str() );
 #else
 FileRepository PluginRepository( "SOFA_PLUGIN_PATH", Utils::getSofaPathTo("lib").c_str() );
 #endif
+FileRepository DataRepository( "SOFA_DATA_PATH", 0, Utils::getSofaPathTo("etc/sofa.ini").c_str() );
 
-FileRepository DataRepository("SOFA_DATA_PATH");
 
-#if defined (_XBOX) || defined(PS3)
-char* getenv(const char* varname) { return NULL; } // NOT IMPLEMENTED
-#endif
-
-FileRepository::FileRepository(const char* envVar, const char* relativePath)
+FileRepository::FileRepository(const char* envVar, const char* relativePath, const char *iniFilePath)
 {
     if (envVar != NULL && envVar[0]!='\0')
     {
@@ -112,33 +108,35 @@ FileRepository::FileRepository(const char* envVar, const char* relativePath)
             p0 = p1+1;
         }
     }
-    //print();
+    if ( iniFilePath != NULL && iniFilePath[0] != '\0' )
+    {
+        std::map<std::string, std::string> iniFileValues = Utils::readBasicIniFile(iniFilePath);
+        for ( const auto &iniFileValue : iniFileValues )
+        {
+            std::string dir = iniFileValue.second;
+            dir = SetDirectory::GetRelativeFromProcess(dir.c_str());
+            if(FileSystem::isDirectory(dir))
+            {
+                addFirstPath(dir);
+            }
+        }
+    }
 }
 
 FileRepository::~FileRepository()
 {
 }
 
-std::string FileRepository::cleanPath( const std::string& path )
+std::string FileRepository::cleanPath(const std::string& path)
 {
-    std::string p = path;
-    size_t pos = p.find("//");
-    size_t len = p.length();
-    while( pos != std::string::npos )
-    {
-        if ( pos == (len-2))
-            p.replace( pos, 2, "");
-        else
-            p.replace(pos,2,"/");
-        pos = p.find("//");
-    }
-    return p;
+    msg_deprecated("FileRepository::cleanPath") << "Use FileSystem::cleanPath instead.";
+    return FileSystem::cleanPath(path);
 }
 
 void FileRepository::addFirstPath(const std::string& p)
 {
     // replacing every occurences of "//" by "/"
-    std::string path = cleanPath( p );
+    std::string path = FileSystem::cleanPath(p);
 
     std::vector<std::string> entries;
     size_t p0 = 0;
@@ -158,7 +156,7 @@ void FileRepository::addFirstPath(const std::string& p)
 void FileRepository::addLastPath(const std::string& p)
 {
     // replacing every occurences of "//" by "/"
-    std::string path = cleanPath( p );
+    std::string path = FileSystem::cleanPath(p);
 
     std::vector<std::string> entries;
     size_t p0 = 0;
@@ -195,6 +193,11 @@ void FileRepository::removePath(const std::string& path)
     {
         vpath.erase( find(vpath.begin(), vpath.end(), *it) );
     }
+}
+
+void FileRepository::clear()
+{
+    vpath.clear();
 }
 
 std::string FileRepository::getFirstPath()
@@ -267,6 +270,19 @@ void FileRepository::print()
 {
     for (std::vector<std::string>::const_iterator it = vpath.begin(); it != vpath.end(); ++it)
         std::cout << *it << std::endl;
+}
+
+const std::string FileRepository::getPathsJoined()
+{
+    std::ostringstream imploded;
+    char* delim = ":";
+#ifdef WIN32
+    delim = ";";
+#endif
+    std::copy(vpath.begin(), vpath.end(), std::ostream_iterator<std::string>(imploded, delim));
+    std::string implodedStr = imploded.str();
+    implodedStr = implodedStr.substr(0, implodedStr.size()-1); // remove trailing separator
+    return implodedStr;
 }
 
 /*static*/

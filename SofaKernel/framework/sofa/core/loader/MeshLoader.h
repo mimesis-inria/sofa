@@ -44,7 +44,9 @@ namespace core
 namespace loader
 {
 
+//todo(dmarchal 05/02/2019): This mix of types is bad.
 using sofa::defaulttype::Vector3;
+using sofa::defaulttype::Vec3;
 using topology::Topology;
 
 class SOFA_CORE_API MeshLoader : public BaseLoader
@@ -133,7 +135,7 @@ public:
     /// @}
 
     // Point coordinates in 3D in double.
-    Data< helper::vector<sofa::defaulttype::Vec<3,SReal> > > d_positions; ///< Vertices of the mesh loaded
+    Data< helper::vector< Vec3 > > d_positions; ///< Vertices of the mesh loaded
 
     //Tab of 1D elements
     Data< helper::vector< Polyline > > d_polylines; ///< Polylines of the mesh loaded
@@ -146,14 +148,14 @@ public:
     Data< helper::vector< HighOrderEdgePosition > > d_highOrderEdgePositions; ///< High order edge points of the mesh loaded
     Data< helper::vector< HighOrderTrianglePosition > > d_highOrderTrianglePositions; ///< High order triangle points of the mesh loaded
     Data< helper::vector< HighOrderQuadPosition > > d_highOrderQuadPositions; ///< High order quad points of the mesh loaded
-    Data< helper::vector< Pyramid > > d_pyramids; ///< Pyramids of the mesh loaded
+
     // Tab of 3D elements composition
     Data< helper::vector< Tetrahedron > > d_tetrahedra; ///< Tetrahedra of the mesh loaded
-    
-    Data< helper::vector< Pentahedron > > d_pentahedra; ///< Pentahedra of the mesh loaded
     Data< helper::vector< Hexahedron > > d_hexahedra; ///< Hexahedra of the mesh loaded
+    Data< helper::vector< Pentahedron > > d_pentahedra; ///< Pentahedra of the mesh loaded
     Data< helper::vector< HighOrderTetrahedronPosition > > d_highOrderTetrahedronPositions; ///< High order tetrahedron points of the mesh loaded
     Data< helper::vector< HighOrderHexahedronPosition > > d_highOrderHexahedronPositions; ///< High order hexahedron points of the mesh loaded
+    Data< helper::vector< Pyramid > > d_pyramids; ///< Pyramids of the mesh loaded
 
     // polygons in 3D ?
 

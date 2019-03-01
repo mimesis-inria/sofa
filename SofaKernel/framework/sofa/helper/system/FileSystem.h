@@ -47,6 +47,8 @@ class SOFA_HELPER_API FileSystem
 {
 public:
 
+typedef enum { SLASH, BACKSLASH } separator;
+
 /// @brief Get the extension of a file from an absolute path description
 /// @return i.e. if given"a/b/c.d", return "d"
 static std::string getExtension(const std::string& filename);
@@ -67,6 +69,15 @@ static bool listDirectory(const std::string& directoryPath,
 static bool listDirectory(const std::string& directoryPath,
                           std::vector<std::string>& outputFilenames,
                           const std::string& extension);
+
+/// @brief Find the files from a directory which match the given extension.
+///
+/// It pushes the files absolute paths in the vector provided in argument.
+/// @warning The directory must exist.
+/// @return the number of files found or -1 as error
+static int findFiles(const std::string& directoryPath,
+                          std::vector<std::string>& outputFilePaths,
+                          const std::string& extension, const int depth = 0);
 
 /// @brief Create a directory. (This function accepts relative paths)
 ///
@@ -107,11 +118,17 @@ static bool isFile(const std::string& path);
 /// @brief Replace backslashes with slashes.
 static std::string convertBackSlashesToSlashes(const std::string& path);
 
+/// @brief Replace slashes with backslashes.
+static std::string convertSlashesToBackSlashes(const std::string& path);
+
 /// @brief Replace consecutive occurrences of '/' with a single '/'.
 static std::string removeExtraSlashes(const std::string& path);
 
+/// @brief Replace consecutive occurrences of '\' with a single '\'.
+static std::string removeExtraBackSlashes(const std::string& path);
+
 /// @brief Clean path (backslashes, extra slashes...)
-static std::string cleanPath(const std::string& path);
+static std::string cleanPath(const std::string& path, separator s = SLASH);
 
 /// @brief Strip the last component from a path.
 /// Return the path given in argument with its last non-slash

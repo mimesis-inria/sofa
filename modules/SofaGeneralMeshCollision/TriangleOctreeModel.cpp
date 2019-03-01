@@ -64,10 +64,7 @@ void TriangleOctreeModel::draw (const core::visual::VisualParams* vparams)
         if (vparams->displayFlags().getShowWireFrame ())
             glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
 
-        glEnable (GL_LIGHTING);
-        //Enable<GL_BLEND> blending;
-        //glLightModeli(GL  _LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-
+        glEnable (GL_LIGHTING); 
         glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, getColor4f());
         static const float emissive[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
         static const float specular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -87,7 +84,7 @@ void TriangleOctreeModel::draw (const core::visual::VisualParams* vparams)
 
 void TriangleOctreeModel::computeBoundingTree(int maxDepth)
 {
-    const helper::vector<topology::Triangle>& tri = *triangles;
+    const helper::vector<topology::Triangle>& tri = *m_triangles;
     if(octreeRoot)
     {
         delete octreeRoot;
@@ -98,16 +95,16 @@ void TriangleOctreeModel::computeBoundingTree(int maxDepth)
     updateFromTopology();
 
     if (!isMoving() && !cubeModel->empty()) return; // No need to recompute BBox if immobile
-    int size2=mstate->getSize();
+    int size2=m_mstate->getSize();
     pNorms.resize(size2);
     for(int i=0; i<size2; i++)
     {
         pNorms[i]=defaulttype::Vector3(0,0,0);
     }
     defaulttype::Vector3 minElem, maxElem;
-    maxElem[0]=minElem[0]=mstate->read(core::ConstVecCoordId::position())->getValue()[0][0];
-    maxElem[1]=minElem[1]=mstate->read(core::ConstVecCoordId::position())->getValue()[0][1];
-    maxElem[2]=minElem[2]=mstate->read(core::ConstVecCoordId::position())->getValue()[0][2];
+    maxElem[0]=minElem[0]=m_mstate->read(core::ConstVecCoordId::position())->getValue()[0][0];
+    maxElem[1]=minElem[1]=m_mstate->read(core::ConstVecCoordId::position())->getValue()[0][1];
+    maxElem[2]=minElem[2]=m_mstate->read(core::ConstVecCoordId::position())->getValue()[0][2];
 
     cubeModel->resize(1);  // size = number of triangles
     for (int i=1; i<size; i++)
@@ -143,21 +140,6 @@ void TriangleOctreeModel::computeBoundingTree(int maxDepth)
     {
         pNorms[i].normalize();
     }
-#if 0
-    if(!pTri.size())
-    {
-        /*creates the list of triangles that are associated to a point*/
-        pTri.resize(size2);
-        for(int i=0; i<size; i++)
-        {
-            pTri[tri[i][0]].push_back(i);
-
-            pTri[tri[i][1]].push_back(i);
-            pTri[tri[i][2]].push_back(i);
-        }
-    }
-#endif
-
 }
 
 void TriangleOctreeModel::computeContinuousBoundingTree(double/* dt*/, int maxDepth)
