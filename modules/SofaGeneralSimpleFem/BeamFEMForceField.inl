@@ -186,7 +186,7 @@ void BeamFEMForceField<DataTypes>::reinit()
         //waradii.resize(n, _radius.getValue());
         waRadii.resize(n);
         for (size_t i = 0; i < n; i++)
-            waRadii[i] = _radius.getValue();
+            waRadii[i] = d_radius.getValue();
     } else {
         if (radii.size() != n)
             msg_error() << "number of radii and beams differs";
@@ -197,7 +197,7 @@ void BeamFEMForceField<DataTypes>::reinit()
         //waradii.resize(n, _radius.getValue());
         waInRadii.resize(n);
         for (size_t i = 0; i < n; i++)
-            waInRadii[i] = _radiusInner.getValue();
+            waInRadii[i] = d_radiusInner.getValue();
     } else {
         if (innerRadii.size() != n)
             msg_error() << "number of inner radii and beams differs";
