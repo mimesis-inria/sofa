@@ -31,8 +31,8 @@ namespace simulation
 
 Visitor::Result CollisionVisitor::processNodeTopDown(simulation::Node* node)
 {
-    for_each(this, node, node->constraintSet, &CollisionVisitor::fwdConstraintSet);
     for_each(this, node, node->collisionPipeline, &CollisionVisitor::processCollisionPipeline);
+    for_each(this, node, node->constraintSet, &CollisionVisitor::fwdConstraintSet);
     return RESULT_CONTINUE;
 }
 

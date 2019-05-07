@@ -53,6 +53,9 @@ public:
     void redraw();
     int closeGUI();
 
+	void playpauseGUI(bool value);
+	void switchPlaypauseGUI();
+
     static void setNumIterations(const std::string& nbIterInp) 
     {
         int inpLen= nbIterInp.length();
@@ -98,6 +101,8 @@ protected:
     std::string filename;
     static signed int nbIter;
     static std::string nbIterInp;
+
+	bool m_animated;
 };
 
 } // namespace gui
