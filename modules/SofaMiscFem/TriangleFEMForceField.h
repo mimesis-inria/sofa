@@ -136,6 +136,8 @@ public:
     void setPoisson(Real val) { f_poisson.setValue(val); }
     Real getYoung() { return f_young.getValue(); }
     void setYoung(Real val) { f_young.setValue(val); }
+	Real getThickness() { return f_thickness.getValue(); }
+	void setThickness(Real val) { f_thickness.setValue(val); }
 //    Real getDamping() { return f_damping.getValue(); }
 //    void setDamping(Real val) { f_damping.setValue(val); }
     int  getMethod() { return method; }
