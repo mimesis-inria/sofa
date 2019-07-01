@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU General Public License as published by the Free  *
@@ -26,7 +26,7 @@ using sofa::core::VecId;
 #include <sofa/defaulttype/Vec.h>
 #include <sofa/defaulttype/VecTypes.h>
 using sofa::defaulttype::Vec3Types;
-using sofa::defaulttype::ExtVec3fTypes;
+using sofa::defaulttype::ExtVec3Types;
 using Coord3 = sofa::defaulttype::Vector3;
 using VecCoord3 = sofa::helper::vector<Coord3>;
 #include <sofa/gui/GUIManager.h>
@@ -43,7 +43,7 @@ using VecCoord3 = sofa::helper::vector<Coord3>;
 #include <SofaBaseLinearSolver/CGLinearSolver.h>
 using CGLinearSolver = sofa::component::linearsolver::CGLinearSolver<sofa::component::linearsolver::GraphScatteredMatrix, sofa::component::linearsolver::GraphScatteredVector>;
 #include <SofaBaseMechanics/BarycentricMapping.h>
-using BarycentricMapping3_to_Ext3 = sofa::component::mapping::BarycentricMapping<Vec3Types, ExtVec3fTypes>;
+using BarycentricMapping3_to_Ext3 = sofa::component::mapping::BarycentricMapping<Vec3Types, ExtVec3Types>;
 #include <SofaBaseMechanics/MechanicalObject.h>
 using MechanicalObject3 = sofa::component::container::MechanicalObject<Vec3Types>;
 #include <SofaBaseMechanics/UniformMass.h>

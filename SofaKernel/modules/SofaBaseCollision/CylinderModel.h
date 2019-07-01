@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,7 +25,7 @@
 
 #include <sofa/core/CollisionModel.h>
 #include <SofaBaseMechanics/MechanicalObject.h>
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 
 namespace sofa
 {
@@ -108,12 +108,12 @@ protected:
     TCylinderModel(core::behavior::MechanicalState<DataTypes>* mstate );
 
 public:
-    virtual void init() override;
+    void init() override;
 
     // -- CollisionModel interface
-    virtual void resize(int size) override;
+    void resize(int size) override;
 
-    virtual void computeBoundingTree(int maxDepth=0) override;
+    void computeBoundingTree(int maxDepth=0) override;
 
     void draw(const core::visual::VisualParams* vparams,int index) override;
 
@@ -177,16 +177,11 @@ inline TCylinder<DataTypes>::TCylinder(const core::CollisionElementIterator& i)
 typedef TCylinderModel<sofa::defaulttype::Rigid3Types> CylinderModel;
 typedef TCylinder<sofa::defaulttype::Rigid3Types> Cylinder;
 
-#if !defined(SOFA_COMPONENT_COLLISION_CYLINDERMODEL_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_BASE_COLLISION_API TCylinder<defaulttype::Rigid3dTypes>;
-extern template class SOFA_BASE_COLLISION_API TCylinderModel<defaulttype::Rigid3dTypes>;
+#if  !defined(SOFA_COMPONENT_COLLISION_CYLINDERMODEL_CPP)
+extern template class SOFA_BASE_COLLISION_API TCylinder<defaulttype::Rigid3Types>;
+extern template class SOFA_BASE_COLLISION_API TCylinderModel<defaulttype::Rigid3Types>;
 #endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_BASE_COLLISION_API TCylinder<defaulttype::Rigid3fTypes>;
-extern template class SOFA_BASE_COLLISION_API TCylinderModel<defaulttype::Rigid3fTypes>;
-#endif
-#endif
+
 } // namespace collision
 
 } // namespace component

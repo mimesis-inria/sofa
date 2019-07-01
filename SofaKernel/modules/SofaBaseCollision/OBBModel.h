@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -149,13 +149,13 @@ protected:
     TOBBModel();
     TOBBModel(core::behavior::MechanicalState<TDataTypes>* mstate );
 public:
-    virtual void init() override;
+    void init() override;
 
     // -- CollisionModel interface
 
-    virtual void resize(int size) override;
+    void resize(int size) override;
 
-    virtual void computeBoundingTree(int maxDepth=0) override;
+    void computeBoundingTree(int maxDepth=0) override;
 
     //virtual void computeContinuousBoundingTree(SReal dt, int maxDepth=0);
 
@@ -259,7 +259,7 @@ public:
     Data<VecCoord> & writeExtents();
 
 
-    virtual void computeBBox(const core::ExecParams* params, bool onlyVisible=false) override;
+    void computeBBox(const core::ExecParams* params, bool onlyVisible=false) override;
 
 protected:
     core::behavior::MechanicalState<DataTypes>* _mstate;
@@ -281,14 +281,9 @@ typedef TOBBModel<sofa::defaulttype::Rigid3Types> OBBModel;
 typedef TOBB<sofa::defaulttype::Rigid3Types> OBB;
 
 #if  !defined(SOFA_COMPONENT_COLLISION_OBBMODEL_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_BASE_COLLISION_API TOBB<defaulttype::Rigid3dTypes>;
-extern template class SOFA_BASE_COLLISION_API TOBBModel<defaulttype::Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_BASE_COLLISION_API TOBB<defaulttype::Rigid3fTypes>;
-extern template class SOFA_BASE_COLLISION_API TOBBModel<defaulttype::Rigid3fTypes>;
-#endif
+extern template class SOFA_BASE_COLLISION_API TOBB<defaulttype::Rigid3Types>;
+extern template class SOFA_BASE_COLLISION_API TOBBModel<defaulttype::Rigid3Types>;
+
 #endif
 
 } // namespace collision

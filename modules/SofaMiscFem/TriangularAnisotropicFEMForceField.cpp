@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -38,20 +38,12 @@ using namespace sofa::defaulttype;
 
 // Register in the Factory
 int TriangularAnisotropicFEMForceFieldClass = core::RegisterObject("Triangular finite element model using anisotropic material")
-#ifndef SOFA_FLOAT
-        .add< TriangularAnisotropicFEMForceField<Vec3dTypes> >()
-#endif
-#ifndef SOFA_DOUBLE
-        .add< TriangularAnisotropicFEMForceField<Vec3fTypes> >()
-#endif
+        .add< TriangularAnisotropicFEMForceField<Vec3Types> >()
+
         ;
 
-#ifndef SOFA_FLOAT
-template class SOFA_MISC_FEM_API TriangularAnisotropicFEMForceField<Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class SOFA_MISC_FEM_API TriangularAnisotropicFEMForceField<Vec3fTypes>;
-#endif
+template class SOFA_MISC_FEM_API TriangularAnisotropicFEMForceField<Vec3Types>;
+
 
 
 } // namespace forcefield

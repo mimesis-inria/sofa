@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -26,7 +26,7 @@
 
 
 #include <sofa/defaulttype/Vec.h>
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 #include <sofa/core/DataEngine.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/helper/map.h>
@@ -62,7 +62,7 @@ protected:
 
     TextureInterpolation();
 
-    ~TextureInterpolation() {}
+    ~TextureInterpolation() override {}
 public:
     void init() override;
 
@@ -115,16 +115,10 @@ protected:
 };
 
 #if  !defined(SOFA_COMPONENT_ENGINE_TEXTUREINTERPOLATION_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec1dTypes>;
-extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec2dTypes>;
-extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec3dTypes>;
-#endif //SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec1fTypes>;
-extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec2fTypes>;
-extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec3fTypes>;
-#endif //SOFA_DOUBLE
+extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec1Types>;
+extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec2Types>;
+extern template class SOFA_GENERAL_ENGINE_API TextureInterpolation<defaulttype::Vec3Types>;
+ 
 #endif
 
 } // namespace engine

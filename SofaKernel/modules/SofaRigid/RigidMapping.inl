@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -31,14 +31,14 @@
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 
-#include <sofa/helper/io/MassSpringLoader.h>
+#include <sofa/helper/io/XspLoader.h>
 #include <sofa/helper/io/SphereLoader.h>
 #include <sofa/helper/io/Mesh.h>
 #include <sofa/helper/decompose.h>
 
 #include <sofa/simulation/Simulation.h>
 
-#include <string.h>
+#include <cstring>
 #include <iostream>
 #include <cassert>
 #include <numeric>
@@ -56,8 +56,9 @@ namespace mapping
 
 
 template <class TIn, class TOut>
-class RigidMapping<TIn, TOut>::Loader : public helper::io::MassSpringLoader,
-        public helper::io::SphereLoader
+class RigidMapping<TIn, TOut>::Loader :
+        public helper::io::XspLoaderDataHook,
+        public helper::io::SphereLoaderDataHook
 {
 public:
 
@@ -69,14 +70,14 @@ public:
         points(dest->points)
     {
     }
-    virtual void addMass(SReal px, SReal py, SReal pz, SReal, SReal, SReal,
-                         SReal, SReal, bool, bool)
+    void addMass(SReal px, SReal py, SReal pz, SReal, SReal, SReal,
+                         SReal, SReal, bool, bool) override
     {
         Coord c;
         Out::set(c, px, py, pz);
         points.push_back(c); //Coord((Real)px,(Real)py,(Real)pz));
     }
-    virtual void addSphere(SReal px, SReal py, SReal pz, SReal)
+    void addSphere(SReal px, SReal py, SReal pz, SReal) override
     {
         Coord c;
         Out::set(c, px, py, pz);
@@ -94,13 +95,13 @@ void RigidMapping<TIn, TOut>::load(const char *filename)
             && !strcmp(filename + strlen(filename) - 4, ".xs3"))
     {
         Loader loader(this);
-        loader.helper::io::MassSpringLoader::load(filename);
+        helper::io::XspLoader::Load(filename, loader);
     }
     else if (strlen(filename) > 4
              && !strcmp(filename + strlen(filename) - 4, ".sph"))
     {
         Loader loader(this);
-        loader.helper::io::SphereLoader::load(filename);
+        helper::io::SphereLoader::Load(filename, loader);
     }
     else if (strlen(filename) > 0)
     {
@@ -129,7 +130,7 @@ RigidMapping<TIn, TOut>::RigidMapping()
     : Inherit()
     , points(initData(&points, "initialPoints", "Local Coordinates of the points"))
     , index(initData(&index, (unsigned)0, "index", "input DOF index"))
-    , fileRigidMapping(initData(&fileRigidMapping, "fileRigidMapping", "Filename"))
+    , fileRigidMapping(initData(&fileRigidMapping, "filename", "Xsp file where rigid mapping information can be loaded from."))
     , useX0(initData(&useX0, false, "useX0", "Use x0 instead of local copy of initial positions (to support topo changes)"))
     , indexFromEnd(initData(&indexFromEnd, false, "indexFromEnd", "input DOF index starts from the end of input DOFs vector"))
     , rigidIndexPerPoint(initData(&rigidIndexPerPoint, "rigidIndexPerPoint", "For each mapped point, the index of the Rigid it is mapped from"))
@@ -138,7 +139,7 @@ RigidMapping<TIn, TOut>::RigidMapping()
     , matrixJ()
     , updateJ(false)
 {
-    this->addAlias(&fileRigidMapping, "filename");
+    this->addAlias(&fileRigidMapping, "fileRigidMapping");
 }
 
 template <class TIn, class TOut>

@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -44,6 +44,24 @@ namespace component
 namespace constraintset
 {
 
+template <class DataTypes>
+DistanceLMConstraint<DataTypes>::DistanceLMConstraint( MechanicalState *dof1, MechanicalState * dof2)
+    : core::behavior::LMConstraint<DataTypes,DataTypes>(dof1,dof2)
+    , vecConstraint(sofa::core::objectmodel::Base::initData(&vecConstraint, "vecConstraint", "List of the edges to constrain"))
+{
+}
+
+template <class DataTypes>
+DistanceLMConstraint<DataTypes>::DistanceLMConstraint( MechanicalState *dof)
+    : DistanceLMConstraint(dof,dof)
+{
+}
+
+template <class DataTypes>
+DistanceLMConstraint<DataTypes>::DistanceLMConstraint()
+    : DistanceLMConstraint(nullptr, nullptr)
+{
+}
 
 template <class DataTypes>
 void DistanceLMConstraint<DataTypes>::init()
@@ -164,14 +182,9 @@ void DistanceLMConstraint<DataTypes>::writeConstraintEquations(unsigned int& lin
 }
 
 
-#ifndef SOFA_FLOAT
 template <>
-void DistanceLMConstraint<defaulttype::Rigid3dTypes>::draw(const core::visual::VisualParams* vparams);
-#endif
-#ifndef SOFA_DOUBLE
-template <>
-void DistanceLMConstraint<defaulttype::Rigid3fTypes>::draw(const core::visual::VisualParams* vparams);
-#endif
+void DistanceLMConstraint<defaulttype::Rigid3Types>::draw(const core::visual::VisualParams* vparams);
+
 
 template <class DataTypes>
 void DistanceLMConstraint<DataTypes>::draw(const core::visual::VisualParams* vparams)

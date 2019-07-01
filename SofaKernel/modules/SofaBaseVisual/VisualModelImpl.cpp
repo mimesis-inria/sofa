@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -60,7 +60,7 @@ using namespace sofa::core::topology;
 using namespace sofa::core::loader;
 using helper::vector;
 
-ExtVec3fState::ExtVec3fState()
+ExtVec3State::ExtVec3State()
     : m_positions(initData(&m_positions, "position", "Vertices coordinates"))
     , m_restPositions(initData(&m_restPositions, "restPosition", "Vertices rest coordinates"))
     , m_vnormals (initData (&m_vnormals, "normal", "Normals of the model"))
@@ -71,7 +71,7 @@ ExtVec3fState::ExtVec3fState()
     m_vnormals.setGroup("Vector");
 }
 
-void ExtVec3fState::resize(size_t vsize)
+void ExtVec3State::resize(size_t vsize)
 {
     helper::WriteOnlyAccessor< Data<sofa::defaulttype::ResizableExtVector<Coord> > > positions = m_positions;
     if( positions.size() == vsize ) return;
@@ -85,9 +85,9 @@ void ExtVec3fState::resize(size_t vsize)
     modified = true;
 }
 
-size_t ExtVec3fState::getSize() const { return m_positions.getValue().size(); }
+size_t ExtVec3State::getSize() const { return m_positions.getValue().size(); }
 
-Data<ExtVec3fState::VecCoord>* ExtVec3fState::write(     core::VecCoordId  v )
+Data<ExtVec3State::VecCoord>* ExtVec3State::write(     core::VecCoordId  v )
 {
     modified = true;
 
@@ -99,7 +99,7 @@ Data<ExtVec3fState::VecCoord>* ExtVec3fState::write(     core::VecCoordId  v )
     return NULL;
 }
 
-const Data<ExtVec3fState::VecCoord>* ExtVec3fState::read(core::ConstVecCoordId  v )  const
+const Data<ExtVec3State::VecCoord>* ExtVec3State::read(core::ConstVecCoordId  v )  const
 {
     if( v == core::VecCoordId::position() )
         return &m_positions;
@@ -109,7 +109,7 @@ const Data<ExtVec3fState::VecCoord>* ExtVec3fState::read(core::ConstVecCoordId  
     return NULL;
 }
 
-Data<ExtVec3fState::VecDeriv>*	ExtVec3fState::write(core::VecDerivId v )
+Data<ExtVec3State::VecDeriv>*	ExtVec3State::write(core::VecDerivId v )
 {
     if( v == core::VecDerivId::normal() )
         return &m_vnormals;
@@ -117,7 +117,7 @@ Data<ExtVec3fState::VecDeriv>*	ExtVec3fState::write(core::VecDerivId v )
     return NULL;
 }
 
-const Data<ExtVec3fState::VecDeriv>* ExtVec3fState::read(core::ConstVecDerivId v ) const
+const Data<ExtVec3State::VecDeriv>* ExtVec3State::read(core::ConstVecDerivId v ) const
 {
     if( v == core::VecDerivId::normal() )
         return &m_vnormals;
@@ -202,7 +202,7 @@ VisualModelImpl::VisualModelImpl() //const std::string &name, std::string filena
     , m_quads           (initData   (&m_quads, "quads", "quads of the model"))
     , m_vertPosIdx      (initData   (&m_vertPosIdx, "vertPosIdx", "If vertices have multiple normals/texcoords stores vertices position indices"))
     , m_vertNormIdx     (initData   (&m_vertNormIdx, "vertNormIdx", "If vertices have multiple normals/texcoords stores vertices normal indices"))
-    , fileMesh          (initData   (&fileMesh, "fileMesh"," Path to the model"))
+    , fileMesh          (initData   (&fileMesh, "filename"," Path to an ogl model"))
     , texturename       (initData   (&texturename, "texturename", "Name of the Texture"))
     , m_translation     (initData   (&m_translation, Vec3Real(), "translation", "Initial Translation of the object"))
     , m_rotation        (initData   (&m_rotation, Vec3Real(), "rotation", "Initial Rotation of the object"))
@@ -216,10 +216,10 @@ VisualModelImpl::VisualModelImpl() //const std::string &name, std::string filena
     , groups			(initData	(&groups, "groups", "Groups of triangles and quads using a given material"))
     , xformsModified(false)
 {
-    m_topology = 0;
+    m_topology = nullptr;
 
     //material.setDisplayed(false);
-    addAlias(&fileMesh, "filename");
+    addAlias(&fileMesh, "fileMesh");
 
     m_vertices2     .setGroup("Vector");
     m_vnormals      .setGroup("Vector");
@@ -887,14 +887,6 @@ void VisualModelImpl::init()
         }
     }
 
-    m_vertices2.beginEdit();
-    m_vnormals.beginEdit();
-    m_vtexcoords.beginEdit();
-    m_vtangents.beginEdit();
-    m_vbitangents.beginEdit();
-    m_triangles.beginEdit();
-    m_quads.beginEdit();
-
     applyScale(m_scale.getValue()[0], m_scale.getValue()[1], m_scale.getValue()[2]);
     applyRotation(m_rotation.getValue()[0], m_rotation.getValue()[1], m_rotation.getValue()[2]);
     applyTranslation(m_translation.getValue()[0], m_translation.getValue()[1], m_translation.getValue()[2]);
@@ -1148,6 +1140,45 @@ void VisualModelImpl::computeBBox(const core::ExecParams* params, bool)
     this->f_bbox.setValue(params,sofa::defaulttype::TBoundingBox<SReal>(minBBox,maxBBox));
 }
 
+
+void VisualModelImpl::computeUVSphereProjection()
+{
+    sofa::core::visual::VisualParams* vparams = sofa::core::visual::VisualParams::defaultInstance();
+    this->computeBBox(vparams);
+
+    Vector3 center = (this->f_bbox.getValue().minBBox() + this->f_bbox.getValue().maxBBox())*0.5f;
+    
+    // Map mesh vertices to sphere
+    // transform cart to spherical coordinates (r, theta, phi) and sphere to cart back with radius = 1
+    const VecCoord& coords = getVertices();
+    int nbrV = coords.size();
+    VecCoord m_sphereV;
+    m_sphereV.resize(nbrV);
+
+    VecTexCoord& vtexcoords = *(m_vtexcoords.beginEdit());
+    vtexcoords.resize(nbrV);
+
+    for (int i = 0; i < nbrV; ++i)
+    {
+        Coord Vcentered = coords[i] - center;
+        float r = sqrtf(Vcentered[0] * Vcentered[0] + Vcentered[1] * Vcentered[1] + Vcentered[2] * Vcentered[2]);
+        float theta = acos(Vcentered[2] / r);
+        float phi = atan2(Vcentered[1], Vcentered[0]);
+
+        r = 1.0;
+        m_sphereV[i][0] = r * sin(theta)*cos(phi) + center[0];
+        m_sphereV[i][1] = r * sin(theta)*sin(phi) + center[1];
+        m_sphereV[i][2] = r * cos(theta) + center[2];
+
+        Coord pos = m_sphereV[i] - center;
+        pos.normalize();
+        vtexcoords[i][0] = 0.5 + atan2(pos[1], pos[0]) / (2 * R_PI);
+        vtexcoords[i][1] = 0.5 - asin(pos[2]) / R_PI;
+    }
+
+    m_vtexcoords.endEdit();
+}
+
 void VisualModelImpl::flipFaces()
 {
     ResizableExtVector<Deriv>& vnormals = *(m_vnormals.beginEdit());
@@ -1245,6 +1276,10 @@ void VisualModelImpl::updateVisual()
         if (m_updateTangents.getValue())
             computeTangents();
         modified = false;
+
+        if (m_vtexcoords.getValue().size() == 0)
+            computeUVSphereProjection();
+
     }
 
     m_positions.updateIfDirty();
@@ -1602,12 +1637,12 @@ void VisualModelImpl::handleTopologyChange()
 
                             if(is_forgotten)
                             {
-                                int ind_forgotten = j_loc;
+                                unsigned int ind_forgotten = j_loc;
 
                                 bool is_in_shell = false;
                                 for (unsigned int j_glob=0; j_glob<shell.size(); ++j_glob)
                                 {
-                                    is_in_shell = is_in_shell || ((int)shell[j_glob] == ind_forgotten);
+                                    is_in_shell = is_in_shell || (shell[j_glob] == ind_forgotten);
                                 }
 
                                 if(!is_in_shell)

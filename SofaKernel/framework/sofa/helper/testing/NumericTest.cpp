@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU General Public License as published by the Free  *
@@ -22,9 +22,5 @@
 
 #include "NumericTest.h"
 
-#ifdef SOFA_WITH_FLOAT
-template struct SOFA_HELPER_API sofa::helper::testing::NumericTest<float>;
-#endif
-#ifdef SOFA_WITH_DOUBLE
 template struct SOFA_HELPER_API sofa::helper::testing::NumericTest<double>;
-#endif
+

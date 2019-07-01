@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -44,9 +44,8 @@ using namespace core::behavior;
 int BeamLinearMappingCudaClass = core::RegisterObject("Set the positions and velocities of points attached to a beam using linear interpolation between DOFs")
 
         .add< BeamLinearMapping<Rigid3fTypes, CudaVec3fTypes> >()
-#ifndef SOFA_FLOAT
-        .add< BeamLinearMapping<Rigid3dTypes, CudaVec3fTypes> >()
-#endif
+        .add< BeamLinearMapping<Rigid3Types, CudaVec3Types> >()
+
 #ifdef SOFA_GPU_CUDA_DOUBLE
         .add< BeamLinearMapping<Rigid3fTypes, CudaVec3dTypes> >()
         .add< BeamLinearMapping<Rigid3dTypes, CudaVec3dTypes> >()
@@ -67,14 +66,13 @@ using namespace defaulttype;
 using namespace core;
 using namespace core::behavior;
 
-template class BeamLinearMapping< Rigid3fTypes, sofa::gpu::cuda::CudaVec3fTypes>;
-#ifndef SOFA_FLOAT
-template class BeamLinearMapping< Rigid3dTypes, sofa::gpu::cuda::CudaVec3fTypes>;
-#endif
+template class SOFA_GPU_CUDA_API BeamLinearMapping< Rigid3fTypes, sofa::gpu::cuda::CudaVec3fTypes>;
+template class SOFA_GPU_CUDA_API BeamLinearMapping< Rigid3Types, sofa::gpu::cuda::CudaVec3Types>;
+
 
 #ifdef SOFA_GPU_CUDA_DOUBLE
-template class BeamLinearMapping< Rigid3fTypes, sofa::gpu::cuda::CudaVec3dTypes>;
-template class BeamLinearMapping< Rigid3dTypes, sofa::gpu::cuda::CudaVec3dTypes>;
+template class SOFA_GPU_CUDA_API BeamLinearMapping< Rigid3fTypes, sofa::gpu::cuda::CudaVec3dTypes>;
+template class SOFA_GPU_CUDA_API BeamLinearMapping< Rigid3dTypes, sofa::gpu::cuda::CudaVec3dTypes>;
 #endif
 
 

@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -119,13 +119,13 @@ protected:
     TCapsuleModel();
     TCapsuleModel(core::behavior::MechanicalState<DataTypes>* mstate );
 public:
-    virtual void init() override;
+    void init() override;
 
     // -- CollisionModel interface
 
-    virtual void resize(int size) override;
+    void resize(int size) override;
 
-    virtual void computeBoundingTree(int maxDepth=0) override;
+    void computeBoundingTree(int maxDepth=0) override;
 
     //virtual void computeContinuousBoundingTree(SReal dt, int maxDepth=0);
 
@@ -199,14 +199,9 @@ typedef TCapsuleModel<sofa::defaulttype::Rigid3Types> RigidCapsuleModel;
 typedef TCapsule<sofa::defaulttype::Rigid3Types> RigidCapsule;
 
 #if  !defined(SOFA_COMPONENT_COLLISION_RIGIDCAPSULEMODEL_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_BASE_COLLISION_API TCapsule<defaulttype::Rigid3dTypes>;
-extern template class SOFA_BASE_COLLISION_API TCapsuleModel<defaulttype::Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_BASE_COLLISION_API TCapsule<defaulttype::Rigid3fTypes>;
-extern template class SOFA_BASE_COLLISION_API TCapsuleModel<defaulttype::Rigid3fTypes>;
-#endif
+extern template class SOFA_BASE_COLLISION_API TCapsule<defaulttype::Rigid3Types>;
+extern template class SOFA_BASE_COLLISION_API TCapsuleModel<defaulttype::Rigid3Types>;
+
 #endif
 
 } // namespace collision

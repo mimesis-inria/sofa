@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -65,7 +65,7 @@ protected:
 
     PairBoxROI();
 
-    ~PairBoxROI() {}
+    ~PairBoxROI() override {}
 public:
     void init() override;
 
@@ -136,16 +136,10 @@ public:
 };
 
 #if  !defined(SOFA_COMPONENT_ENGINE_PAIRBOXROI_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Vec3dTypes>;
-extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Rigid3dTypes>;
-extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Vec6dTypes>; //Phuoc
-#endif //SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Vec3fTypes>;
-extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Rigid3fTypes>;
-extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Vec6fTypes>; //Phuoc
-#endif //SOFA_DOUBLE
+extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Vec3Types>;
+extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Rigid3Types>;
+extern template class SOFA_GENERAL_ENGINE_API PairBoxROI<defaulttype::Vec6Types>; //Phuoc
+ 
 #endif
 
 } // namespace engine

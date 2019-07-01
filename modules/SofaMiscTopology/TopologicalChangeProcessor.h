@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -45,12 +45,6 @@ namespace component
 namespace misc
 {
 
-#ifdef SOFA_FLOAT
-typedef float Real; ///< alias
-#else
-typedef double Real; ///< alias
-#endif
-
 class TriangleIncisionInformation;
 
 /** Read file containing topological modification. Or apply input modifications
@@ -83,8 +77,8 @@ public:
 
     Data <bool> m_saveIndicesAtInit; ///< set to 'true' to save the incision to do in the init to incise even after a movement
 
-    Data<Real>  m_epsilonSnapPath; ///< epsilon snap path
-    Data<Real>  m_epsilonSnapBorder; ///< epsilon snap path
+    Data<SReal>  m_epsilonSnapPath; ///< epsilon snap path
+    Data<SReal>  m_epsilonSnapBorder; ///< epsilon snap path
 
     Data<bool>  m_draw; ///< draw information
 
@@ -92,7 +86,7 @@ public:
 protected:
     TopologicalChangeProcessor();
 
-    virtual ~TopologicalChangeProcessor();
+    ~TopologicalChangeProcessor() override;
 
     core::topology::BaseMeshTopology* m_topology;
 
@@ -111,13 +105,13 @@ protected:
     std::vector<unsigned int>    errorTrianglesIndices;
 
 public:
-    virtual void init() override;
+    void init() override;
 
-    virtual void reinit() override;
+    void reinit() override;
 
     virtual void readDataFile();
 
-    virtual void handleEvent(sofa::core::objectmodel::Event* event) override;
+    void handleEvent(sofa::core::objectmodel::Event* event) override;
 
     void setTime(double time);
 
@@ -143,13 +137,13 @@ public:
 
 protected:
 
-    std::vector<Real> getValuesInLine(std::string line, size_t nbElements);
+    std::vector<SReal> getValuesInLine(std::string line, size_t nbElements);
 
     void findElementIndex(defaulttype::Vector3 coord, int& triangleIndex, int oldTriangleIndex);
     void saveIndices();//only for incision
     void inciseWithSavedIndices();
 
-    int findIndexInListOfTime(Real time);
+    int findIndexInListOfTime(SReal time);
 };
 
 
@@ -158,7 +152,7 @@ class TriangleIncisionInformation
 public:
     std::vector<unsigned int>      triangleIndices;
     std::vector<defaulttype::Vector3>                barycentricCoordinates;
-    Real                                           timeToIncise;
+    SReal                                           timeToIncise;
 
     std::vector<defaulttype::Vector3>                coordinates;
 
@@ -199,7 +193,7 @@ public:
             defaulttype::Vec3Types::Coord coord[3];
             unsigned int triIndex = triangleIndices[i];
 
-            if ( (int)triIndex >= topology->getNbTriangles())
+            if ( triIndex >= topology->getNbTriangles())
             {
                 msg_error("TriangleIncisionInformation") << " Bad index to access triangles  " <<  triIndex ;
             }

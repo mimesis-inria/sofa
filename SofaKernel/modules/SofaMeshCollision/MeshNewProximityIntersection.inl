@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -434,7 +434,7 @@ int MeshNewProximityIntersection::computeIntersection(Triangle& e1, TSphere<T>& 
     }
     else
     {
-        intersection->serr<<"WARNING: null distance between contact detected"<<intersection->sendl;
+        msg_warning(intersection) <<"Null distance between contact detected";
         detection->normal= defaulttype::Vector3(1,0,0);
     }
 

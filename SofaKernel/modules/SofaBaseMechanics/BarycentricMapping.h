@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -49,7 +49,7 @@ namespace mapping
 
 using sofa::defaulttype::Vec3dTypes;
 using sofa::defaulttype::Vec3fTypes;
-using sofa::defaulttype::ExtVec3fTypes;
+using sofa::defaulttype::ExtVec3Types;
 
 template <class TIn, class TOut>
 class BarycentricMapping : public core::Mapping<TIn, TOut>
@@ -82,17 +82,17 @@ public:
 
     SingleLink<BarycentricMapping<In,Out>,Mapper,BaseLink::FLAG_STRONGLINK> m_mapper;
 
-    virtual void init() override;
-    virtual void reinit() override;
-    virtual void apply(const core::MechanicalParams *mparams, Data< typename Out::VecCoord >& out, const Data< typename In::VecCoord >& in) override;
-    virtual void applyJ(const core::MechanicalParams *mparams, Data< typename Out::VecDeriv >& out, const Data< typename In::VecDeriv >& in) override;
-    virtual void applyJT(const core::MechanicalParams *mparams, Data< typename In::VecDeriv >& out, const Data< typename Out::VecDeriv >& in) override;
-    virtual void applyJT(const core::ConstraintParams *cparams, Data< typename In::MatrixDeriv >& out, const Data< typename Out::MatrixDeriv >& in) override;
+    void init() override;
+    void reinit() override;
+    void apply(const core::MechanicalParams *mparams, Data< typename Out::VecCoord >& out, const Data< typename In::VecCoord >& in) override;
+    void applyJ(const core::MechanicalParams *mparams, Data< typename Out::VecDeriv >& out, const Data< typename In::VecDeriv >& in) override;
+    void applyJT(const core::MechanicalParams *mparams, Data< typename In::VecDeriv >& out, const Data< typename Out::VecDeriv >& in) override;
+    void applyJT(const core::ConstraintParams *cparams, Data< typename In::MatrixDeriv >& out, const Data< typename Out::MatrixDeriv >& in) override;
 
-    virtual const sofa::defaulttype::BaseMatrix* getJ() override;
+    const sofa::defaulttype::BaseMatrix* getJ() override;
     virtual const helper::vector<sofa::defaulttype::BaseMatrix*>* getJs() override;
-    virtual void draw(const core::visual::VisualParams* vparams) override;
-    virtual void handleTopologyChange(core::topology::Topology* t) override;
+    void draw(const core::visual::VisualParams* vparams) override;
+    void handleTopologyChange(core::topology::Topology* t) override;
 
     /// interface for continuous friction contact
     TopologyBarycentricMapper<InDataTypes,OutDataTypes> *getMapper()
@@ -108,8 +108,8 @@ protected:
     BarycentricMapping(core::State<In>* from=nullptr, core::State<Out>* to=nullptr,
                        BaseMeshTopology * topology=nullptr );
 
-    virtual ~BarycentricMapping() override {}
-    virtual void updateForceMask() override;
+    ~BarycentricMapping() override {}
+    void updateForceMask() override;
 
     /// eigen matrix for use with Compliant plugin
     eigen_type eigen;
@@ -123,20 +123,10 @@ private:
 };
 
 #if !defined(SOFA_COMPONENT_MAPPING_BARYCENTRICMAPPING_CPP)
-#ifndef SOFA_FLOAT
 extern template class SOFA_BASE_MECHANICS_API BarycentricMapping< Vec3dTypes, Vec3dTypes >;
-extern template class SOFA_BASE_MECHANICS_API BarycentricMapping< Vec3dTypes, ExtVec3fTypes >;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_BASE_MECHANICS_API BarycentricMapping< Vec3fTypes, Vec3fTypes >;
-extern template class SOFA_BASE_MECHANICS_API BarycentricMapping< Vec3fTypes, ExtVec3fTypes >;
-#endif
-#ifndef SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-extern template class SOFA_BASE_MECHANICS_API BarycentricMapping< Vec3dTypes, Vec3fTypes >;
-extern template class SOFA_BASE_MECHANICS_API BarycentricMapping< Vec3fTypes, Vec3dTypes >;
-#endif
-#endif
+extern template class SOFA_BASE_MECHANICS_API BarycentricMapping< Vec3dTypes, ExtVec3Types >;
+
+
 #endif
 
 } // namespace mapping

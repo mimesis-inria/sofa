@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,7 +25,6 @@
 #include <sofa/core/topology/BaseMeshTopology.h>
 #include <SofaGeneralDeformable/FrameSpringForceField.h>
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/helper/io/MassSpringLoader.h>
 #include <sofa/helper/system/config.h>
 #include <sofa/defaulttype/RGBAColor.h>
 #include <cassert>
@@ -43,6 +42,11 @@ namespace component
 namespace interactionforcefield
 {
 
+template<class DataTypes>
+FrameSpringForceField<DataTypes>::FrameSpringForceField()
+    : FrameSpringForceField(nullptr, nullptr)
+{
+}
 
 template<class DataTypes>
 FrameSpringForceField<DataTypes>::FrameSpringForceField ( MechanicalState* object1, MechanicalState* object2 )
@@ -52,15 +56,6 @@ FrameSpringForceField<DataTypes>::FrameSpringForceField ( MechanicalState* objec
     , showExtraTorsion ( initData ( &showExtraTorsion, false, "show illicit Torsion", "dislpay the illicit part of the joint rotation" ) )
 {
 }
-
-template<class DataTypes>
-FrameSpringForceField<DataTypes>::FrameSpringForceField()
-    : springs ( initData ( &springs,"spring","pairs of indices, stiffness, damping, rest length" ) )
-    , showLawfulTorsion ( initData ( &showLawfulTorsion, false, "show lawful Torsion", "dislpay the lawful part of the joint rotation" ) )
-    , showExtraTorsion ( initData ( &showExtraTorsion, false, "show illicit Torsion", "dislpay the illicit part of the joint rotation" ) )
-{
-}
-
 
 template <class DataTypes>
 void FrameSpringForceField<DataTypes>::init()

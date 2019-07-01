@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -35,6 +35,8 @@ namespace component
 
 namespace topology
 {
+
+using sofa::core::objectmodel::ComponentState;
 
 const unsigned int edgesInTetrahedronArray[6][2] = {{0,1}, {0,2}, {0,3}, {1,2}, {1,3}, {2,3}};
 
@@ -138,35 +140,6 @@ void TetrahedronSetGeometryAlgorithms< DataTypes >::defineTetrahedronCubaturePoi
     }
     tetrahedronNumericalIntegration.addQuadratureMethod(m,5,qpa);
 
-/*
-    v=BarycentricCoordinatesType(0.25,0.25,0.25,0.25);
-    qpa.push_back(QuadraturePoint(v,(Real) 8/405));
-    a=(7+sqrt((Real)15))/34;
-    b=(13+3*sqrt((Real)15))/34;
-     c=(2665-14*sqrt((Real)15))/226800;
-    for (i=0;i<4;++i) {
-        v=BarycentricCoordinatesType(a,a,a,a);
-        v[i]=b;
-        qpa.push_back(QuadraturePoint(v,c));
-    }
-    a=(7-sqrt((Real)15))/34;
-    b=(13-3*sqrt((Real)15))/34;
-    c=(2665+14*sqrt((Real)15))/226800;
-    for (i=0;i<4;++i) {
-        v=BarycentricCoordinatesType(a,a,a,a);
-        v[i]=b;
-        qpa.push_back(QuadraturePoint(v,c));
-    }
-    a=(5-sqrt((Real)15))/20;
-    b=(5+sqrt((Real)15))/20;
-    c=(Real)5/567;
-    for (i=0;i<6;++i) {
-        v=BarycentricCoordinatesType(a,a,a,a);
-        v[edgesInTetrahedronArray[i][0]]=b;
-        v[edgesInTetrahedronArray[i][1]]=b;
-        qpa.push_back(QuadraturePoint(v,c));
-    }
-    tetrahedronNumericalIntegration.addQuadratureMethod(m,5,qpa); */
     /// integration with sixtic accuracy with 24 points
     // This rule is originally from Keast:
     // Patrick Keast,
@@ -711,7 +684,7 @@ void TetrahedronSetGeometryAlgorithms< DataTypes >::getTetraInBall(const Coord& 
     pa[0] = (Real) (c[0]);
     pa[1] = (Real) (c[1]);
     pa[2] = (Real) (c[2]);
-    for(int i = 0; i < this->m_topology->getNbTetrahedra(); ++i)
+    for(size_t i = 0; i < this->m_topology->getNbTetrahedra(); ++i)
     {
         if(isPointInTetrahedron(i, pa))
         {
@@ -925,11 +898,14 @@ void TetrahedronSetGeometryAlgorithms<DataTypes>::writeMSHfile(const char *filen
 template<class DataTypes>
 void TetrahedronSetGeometryAlgorithms<DataTypes>::draw(const core::visual::VisualParams* vparams)
 {
+    if(this->m_componentstate == ComponentState::Invalid)
+        return;
+
     TriangleSetGeometryAlgorithms<DataTypes>::draw(vparams);
 
     const VecCoord& coords =(this->object->read(core::ConstVecCoordId::position())->getValue());
     //Draw tetra indices
-    if (d_showTetrahedraIndices.getValue())
+    if (d_showTetrahedraIndices.getValue() && this->m_topology->getNbTetrahedra() != 0)
     {
         const sofa::defaulttype::Vec4f& color_tmp = d_drawColorTetrahedra.getValue();
         defaulttype::Vec4f color4(color_tmp[0] - 0.2f, color_tmp[1] - 0.2f, color_tmp[2] - 0.2f, 1.0);
@@ -958,33 +934,47 @@ void TetrahedronSetGeometryAlgorithms<DataTypes>::draw(const core::visual::Visua
     }
 
     // Draw Tetra
-    if (d_drawTetrahedra.getValue())
+    if (d_drawTetrahedra.getValue() && this->m_topology->getNbTetrahedra() != 0)
     {
         if (vparams->displayFlags().getShowWireFrame())
             vparams->drawTool()->setPolygonMode(0, true);
+
         const sofa::defaulttype::Vec4f& color_tmp = d_drawColorTetrahedra.getValue();
         defaulttype::Vec4f color4(color_tmp[0] - 0.2f, color_tmp[1] - 0.2f, color_tmp[2] - 0.2f, 1.0);
 
         const sofa::helper::vector<Tetrahedron> &tetraArray = this->m_topology->getTetrahedra();
         std::vector<defaulttype::Vector3>   pos;
-        pos.reserve(tetraArray.size()*4u);
+        pos.reserve(tetraArray.size() * 4u);
 
-        for (size_t i = 0; i<tetraArray.size(); ++i)
+        for (size_t i = 0; i < tetraArray.size(); ++i)
         {
             const Tetrahedron& tet = tetraArray[i];
-            for (unsigned int j = 0u; j<4u; ++j)
+            for (unsigned int j = 0u; j < 4u; ++j)
             {
                 pos.push_back(defaulttype::Vector3(DataTypes::getCPos(coords[tet[j]])));
             }
         }
 
         const float& scale = d_drawScaleTetrahedra.getValue();
-
-        if (scale >= 1.0 && scale < 0.001)
+        
+        if (scale >= 1.0 || scale < 0.001)
             vparams->drawTool()->drawTetrahedra(pos, color4);
         else
             vparams->drawTool()->drawScaledTetrahedra(pos, color4, scale);
 
+        // Draw Tetra border
+        if (!vparams->displayFlags().getShowWireFrame())
+        {
+            vparams->drawTool()->setPolygonMode(0, true);
+            //vparams->drawTool()->enablePolygonOffset(0.0, -1.0);
+            if (scale >= 1.0 || scale < 0.001)
+                vparams->drawTool()->drawTetrahedra(pos, sofa::helper::types::RGBAColor::gray());
+            else
+                vparams->drawTool()->drawScaledTetrahedra(pos, sofa::helper::types::RGBAColor::gray(), scale);
+            //vparams->drawTool()->disablePolygonOffset();
+            vparams->drawTool()->setPolygonMode(0, false);
+        }
+       
         if (vparams->displayFlags().getShowWireFrame())
             vparams->drawTool()->setPolygonMode(0, false);
     }

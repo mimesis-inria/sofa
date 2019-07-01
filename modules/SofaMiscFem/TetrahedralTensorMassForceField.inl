@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -311,7 +311,7 @@ template <class DataTypes> void TetrahedralTensorMassForceField<DataTypes>::init
         _initialPoints=p;
     }
 
-    int i;
+    size_t i;
     // set edge tensor to 0
     for (i=0; i<_topology->getNbEdges(); ++i)
     {

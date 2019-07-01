@@ -64,7 +64,7 @@ template<class TDataTypes>
 class TBulletConvexHullModel : public sofa::core::CollisionModel ,public BulletCollisionModel
 {
 public:
-    //SOFA_CLASS2(SOFA_TEMPLATE(TBulletConvexHullModel, TDataTypes),SOFA_TEMPLATE(sofa::component::collision::TTriangleModel, TDataTypes),BulletCollisionModel);
+    //SOFA_CLASS2(SOFA_TEMPLATE(TBulletConvexHullModel, TDataTypes),SOFA_TEMPLATE(sofa::component::collision::TriangleCollisionModel, TDataTypes),BulletCollisionModel);
     SOFA_CLASS(SOFA_TEMPLATE(TBulletConvexHullModel, TDataTypes),sofa::core::CollisionModel);
 
     typedef TDataTypes DataTypes;
@@ -183,12 +183,8 @@ typedef TBulletConvexHull<defaulttype::RigidTypes> BulletConvexHull;
 
 
 #if  !defined(SOFA_BUILD_BULLETCOLLISIONDETECTION)
-#ifndef SOFA_FLOAT
-extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletConvexHullModel<defaulttype::Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletConvexHullModel<defaulttype::Rigid3fTypes>;
-#endif
+extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletConvexHullModel<defaulttype::Rigid3Types>;
+
 #endif
 
 }}}

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <Node name="root" dt="0.005">
+    <RequiredPlugin name="SofaOpenglVisual"/>
     <VisualStyle displayFlags="showBehaviorModels showForceFields" />
     <RequiredPlugin pluginName="InvertibleFVM"/>
     <CollisionPipeline depth="6" verbose="0" draw="0" />
@@ -28,7 +29,7 @@
                 <MeshObjLoader name="loader" filename="mesh/torus_for_collision.obj" />
                 <Mesh src="@loader" />
                 <MechanicalObject src="@loader"  />
-                <Triangle />
+                <TriangleCollisionModel />
                 <BarycentricMapping />
             </Node>
         </Node>
@@ -50,7 +51,7 @@
                 <MeshObjLoader name="loader" filename="mesh/torus_for_collision.obj" />
                 <Mesh src="@loader" />
                 <MechanicalObject src="@loader" dx="7" />
-                <Triangle />
+                <TriangleCollisionModel />
                 <BarycentricMapping />
             </Node>
         </Node>

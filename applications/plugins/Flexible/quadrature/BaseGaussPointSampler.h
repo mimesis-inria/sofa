@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -123,11 +123,10 @@ public:
         f_method.setValue(methodOptions);
     }
 
-    virtual void init()
+    void init() override
     {
         addInput(&f_method);
         addInput(&f_order);
-//        addInput(&f_position); // can be either input or output depending on the sampler
         addOutput(&f_volume);
         addOutput(&f_transforms);
     }
@@ -141,7 +140,7 @@ public:
 
 protected:
 
-    virtual void draw(const core::visual::VisualParams* vparams)
+    void draw(const core::visual::VisualParams* vparams) override
     {
         if (!vparams->displayFlags().getShowVisualModels()) return;
 

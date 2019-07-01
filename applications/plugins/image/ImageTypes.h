@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -105,7 +105,7 @@ public:
 
 
     void clear() { img.assign(); }
-    ~Image() { clear(); }
+    ~Image() override { clear(); }
 
     //accessors
     cimg_library::CImgList<T>& getCImgList() { return img; }
@@ -158,14 +158,14 @@ public:
     }
 
     //affectors
-    void setDimensions(const imCoord& dim)
+    void setDimensions(const imCoord& dim) override
     {
         cimglist_for(img,l) img(l).resize(dim[0],dim[1],dim[2],dim[3]);
         if(img.size()>dim[4]) img.remove(dim[4],img.size()-1);
         else if(img.size()<dim[4]) img.insert(dim[4]-img.size(),cimg_library::CImg<T>(dim[0],dim[1],dim[2],dim[3]));
     }
 
-    void fill(const SReal val)
+    void fill(const SReal val) override
     {
         cimglist_for(img,l) img(l).fill((T)val);
     }
@@ -392,12 +392,7 @@ typedef Image<unsigned long> ImageUL;
 typedef Image<float> ImageF;
 typedef Image<double> ImageD;
 typedef Image<bool> ImageB;
-
-#ifdef SOFA_FLOAT
-typedef ImageF ImageR;
-#else
-typedef ImageD ImageR;
-#endif
+typedef Image<SReal> ImageR;
 
 template<> inline const char* ImageC::Name() { return "ImageC"; }
 template<> inline const char* ImageUC::Name() { return "ImageUC"; }

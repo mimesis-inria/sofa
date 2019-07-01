@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -29,7 +29,7 @@
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/topology/BaseMeshTopology.h>
 
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 
 namespace sofa
 {
@@ -67,7 +67,7 @@ public:
 
     GenerateGrid();
 
-    ~GenerateGrid() {}
+    ~GenerateGrid() override {}
 
     void init() override;
 
@@ -98,14 +98,9 @@ public:
 
 
 #if  !defined(SOFA_COMPONENT_ENGINE_GENERATEGRID_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API GenerateGrid<defaulttype::Vec3dTypes>;
-extern template class SOFA_GENERAL_ENGINE_API GenerateGrid<defaulttype::Vec2dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API GenerateGrid<defaulttype::Vec3fTypes>;
-extern template class SOFA_GENERAL_ENGINE_API GenerateGrid<defaulttype::Vec2fTypes>;
-#endif
+extern template class SOFA_GENERAL_ENGINE_API GenerateGrid<defaulttype::Vec3Types>;
+extern template class SOFA_GENERAL_ENGINE_API GenerateGrid<defaulttype::Vec2Types>;
+
 #endif
 
 } // namespace engine

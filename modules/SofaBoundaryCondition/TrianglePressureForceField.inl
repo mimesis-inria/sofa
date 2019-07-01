@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -200,7 +200,7 @@ void TrianglePressureForceField<DataTypes>::selectTrianglesAlongPlane()
     sofa::helper::vector<TrianglePressureInformation>& my_subset = *(trianglePressureMap).beginEdit();
     helper::vector<unsigned int> inputTriangles;
 
-    for (int n=0; n<_topology->getNbTriangles(); ++n)
+    for (size_t n=0; n<_topology->getNbTriangles(); ++n)
     {
         if ((vArray[_topology->getTriangle(n)[0]]) && (vArray[_topology->getTriangle(n)[1]])&& (vArray[_topology->getTriangle(n)[2]]) )
         {

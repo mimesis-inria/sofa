@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -21,7 +21,7 @@
 ******************************************************************************/
 #define SOFA_COMPONENT_CONSTRAINTSET_UNILATERALINTERACTIONCONSTRAINT_CPP
 #include <SofaConstraint/UnilateralInteractionConstraint.inl>
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 #include <SofaBaseMechanics/MechanicalObject.h>
 #include <sofa/core/ObjectFactory.h>
 
@@ -39,21 +39,13 @@ using namespace sofa::helper;
 
 //TODO(dmarchal) What does this TODO mean ?
 int UnilateralInteractionConstraintClass = core::RegisterObject("TODO-UnilateralInteractionConstraint")
-#ifndef SOFA_FLOAT
-        .add< UnilateralInteractionConstraint<Vec3dTypes> >()
-#endif
-#ifndef SOFA_DOUBLE
-        .add< UnilateralInteractionConstraint<Vec3fTypes> >()
-#endif
+        .add< UnilateralInteractionConstraint<Vec3Types> >()
+
         ;
 
 
-#ifndef SOFA_FLOAT
-template class SOFA_CONSTRAINT_API UnilateralInteractionConstraint<Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class SOFA_CONSTRAINT_API UnilateralInteractionConstraint<Vec3fTypes>;
-#endif
+template class SOFA_CONSTRAINT_API UnilateralInteractionConstraint<Vec3Types>;
+
 
 
 void UnilateralConstraintResolutionWithFriction::init(int line, double** w, double* force)

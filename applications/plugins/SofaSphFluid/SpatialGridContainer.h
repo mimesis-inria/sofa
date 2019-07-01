@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -36,7 +36,7 @@
 #include "config.h"
 
 #include <sofa/helper/system/config.h>
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/objectmodel/Event.h>
 #include <sofa/core/behavior/MechanicalState.h>
@@ -350,12 +350,12 @@ public:
     }
 protected:
     SpatialGridContainer();
-    virtual ~SpatialGridContainer();
+    ~SpatialGridContainer() override;
 public:
-    virtual void init() override;
-    virtual void reinit() override;
-    virtual void draw(const core::visual::VisualParams* vparams) override;
-    virtual void handleEvent(sofa::core::objectmodel::Event* event) override;
+    void init() override;
+    void reinit() override;
+    void draw(const core::visual::VisualParams* vparams) override;
+    void handleEvent(sofa::core::objectmodel::Event* event) override;
 
     Grid* getGrid() { return grid; }
     void updateGrid(const VecCoord& x)
@@ -386,14 +386,9 @@ protected:
 };
 
 #if  !defined(SOFA_COMPONENT_CONTAINER_SPATIALGRIDCONTAINER_CPP)
-#ifndef SOFA_FLOAT
-extern template class SpatialGridContainer< defaulttype::Vec3dTypes >;
-extern template class SOFA_SPH_FLUID_API SpatialGrid< SpatialGridTypes< sofa::defaulttype::Vec3dTypes > >;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SpatialGridContainer< defaulttype::Vec3fTypes >;
-extern template class SOFA_SPH_FLUID_API SpatialGrid< SpatialGridTypes< sofa::defaulttype::Vec3fTypes > >;
-#endif
+extern template class SpatialGridContainer< defaulttype::Vec3Types >;
+extern template class SOFA_SPH_FLUID_API SpatialGrid< SpatialGridTypes< sofa::defaulttype::Vec3Types > >;
+
 #endif
 
 } // namespace container

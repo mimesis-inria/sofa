@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -29,7 +29,7 @@
 #include <SofaSphFluid/SpatialGridContainer.h>
 #include <sofa/helper/rmath.h>
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 
 namespace sofa
@@ -561,10 +561,10 @@ public:
         return constWc(h)*particleMass.getValue();
     }
 
-    virtual void init() override;
+    void init() override;
 
-    virtual void addForce(const core::MechanicalParams* mparams, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& d_v) override;
-    virtual void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& d_df, const DataVecDeriv& d_dx) override;
+    void addForce(const core::MechanicalParams* mparams, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& d_v) override;
+    void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& d_df, const DataVecDeriv& d_dx) override;
     SReal getPotentialEnergy(const core::MechanicalParams* /* mparams */, const DataVecCoord& /* d_x */) const override;
 
 
@@ -576,27 +576,12 @@ protected:
     void computeForce(const core::MechanicalParams* mparams, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& d_v);
 };
 
-#ifndef SOFA_FLOAT
-using sofa::defaulttype::Vec3dTypes;
-using sofa::defaulttype::Vec2dTypes;
-#endif
-
-#ifndef SOFA_DOUBLE
-using sofa::defaulttype::Vec2fTypes;
-using sofa::defaulttype::Vec3fTypes;
-#endif
+using sofa::defaulttype::Vec3Types;
+using sofa::defaulttype::Vec2Types;
 
 #if  !defined(SOFA_COMPONENT_FORCEFIELD_SPHFLUIDFORCEFIELD_CPP)
-
-#ifndef SOFA_FLOAT
-extern template class SOFA_SPH_FLUID_API SPHFluidForceField<Vec3dTypes>;
-extern template class SOFA_SPH_FLUID_API SPHFluidForceField<Vec2dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_SPH_FLUID_API SPHFluidForceField<Vec3fTypes>;
-extern template class SOFA_SPH_FLUID_API SPHFluidForceField<Vec2fTypes>;
-#endif
-
+extern template class SOFA_SPH_FLUID_API SPHFluidForceField<Vec3Types>;
+extern template class SOFA_SPH_FLUID_API SPHFluidForceField<Vec2Types>;
 #endif //  !defined(SOFA_COMPONENT_FORCEFIELD_SPHFLUIDFORCEFIELD_CPP)
 
 } // namespace forcefield

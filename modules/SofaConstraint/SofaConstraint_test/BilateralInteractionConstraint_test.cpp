@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -70,6 +70,7 @@ struct BilateralInteractionConstraint_test : public NumericTest<>
     {
         sofa::simpleapi::importPlugin("SofaAllCommonComponents");
         sofa::simpleapi::importPlugin("SofaMiscCollision");
+        sofa::simpleapi::importPlugin("SofaOpenglVisual");
         if(simulation==nullptr)
             sofa::simulation::setSimulation(simulation = new sofa::simulation::graph::DAGSimulation());
     }
@@ -233,12 +234,8 @@ bool BilateralInteractionConstraint_test<Vec3Types>::test_Vec3ConstrainedPositio
 // Define the list of DataTypes to instanciate
 using testing::Types;
 typedef Types<Vec3Types
-#ifdef SOFA_WITH_DOUBLE
               ,Rigid3dTypes
-#endif //
-#ifdef SOFA_WITH_FLOAT
-              ,Rigid3fTypes
-#endif //
+ //
 > DataTypes; // the types to instanciate.
 
 // Test suite for all the instanciations

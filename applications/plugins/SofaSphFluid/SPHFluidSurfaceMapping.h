@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -123,7 +123,7 @@ protected:
     {
     }
 
-    virtual ~SPHFluidSurfaceMapping()
+    ~SPHFluidSurfaceMapping() override
     {}
 public:
     double getStep() const
@@ -259,27 +259,17 @@ protected:
     }
 
 public:
-    virtual bool insertInNode( core::objectmodel::BaseNode* node ) override { Inherit1::insertInNode(node); Inherit2::insertInNode(node); return true; }
-    virtual bool removeInNode( core::objectmodel::BaseNode* node ) override { Inherit1::removeInNode(node); Inherit2::removeInNode(node); return true; }
+    bool insertInNode( core::objectmodel::BaseNode* node ) override { Inherit1::insertInNode(node); Inherit2::insertInNode(node); return true; }
+    bool removeInNode( core::objectmodel::BaseNode* node ) override { Inherit1::removeInNode(node); Inherit2::removeInNode(node); return true; }
 };
 
 
 #if  !defined(SOFA_COMPONENT_MAPPING_SPHFLUIDSURFACEMAPPING_CPP)  //// ATTENTION PB COMPIL WIN3Z
-#ifndef SOFA_FLOAT
 extern template class SOFA_SPH_FLUID_API SPHFluidSurfaceMapping< defaulttype::Vec3dTypes, defaulttype::Vec3dTypes >;
-extern template class SOFA_SPH_FLUID_API SPHFluidSurfaceMapping< defaulttype::Vec3dTypes, defaulttype::ExtVec3fTypes >;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_SPH_FLUID_API SPHFluidSurfaceMapping< defaulttype::Vec3fTypes, defaulttype::Vec3fTypes >;
-extern template class SOFA_SPH_FLUID_API SPHFluidSurfaceMapping< defaulttype::Vec3fTypes, defaulttype::ExtVec3fTypes >;
-#endif
+extern template class SOFA_SPH_FLUID_API SPHFluidSurfaceMapping< defaulttype::Vec3dTypes, defaulttype::ExtVec3Types >;
 
-#ifndef SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-extern template class SOFA_SPH_FLUID_API SPHFluidSurfaceMapping< defaulttype::Vec3dTypes, defaulttype::Vec3fTypes >;
-extern template class SOFA_SPH_FLUID_API SPHFluidSurfaceMapping< defaulttype::Vec3fTypes, defaulttype::Vec3dTypes >;
-#endif
-#endif
+
+
 #endif
 
 

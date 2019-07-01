@@ -73,6 +73,8 @@ list(APPEND HEADER_FILES
     MeshSplittingEngine.inl
     MeshSubsetEngine.h
     MeshSubsetEngine.inl
+    NearestPointROI.h
+    NearestPointROI.inl
     NormEngine.h
     NormEngine.inl
     NormalsFromPoints.h
@@ -153,6 +155,7 @@ list(APPEND SOURCE_FILES
     MeshSampler.cpp
     MeshSplittingEngine.cpp
     MeshSubsetEngine.cpp
+    NearestPointROI.cpp
     NormEngine.cpp
     NormalsFromPoints.cpp
     PairBoxRoi.cpp
@@ -185,4 +188,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC SofaMeshCollision SofaGeneralMeshCo
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_GENERAL_ENGINE")
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 
-sofa_install_targets(SofaGeneral ${PROJECT_NAME} ${PROJECT_NAME})
+sofa_install_targets(SofaGeneral ${PROJECT_NAME} "SofaGeneral/${PROJECT_NAME}")

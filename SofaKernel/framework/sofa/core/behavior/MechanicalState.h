@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -77,10 +77,10 @@ public:
     /// Sparse matrix containing derivative values (constraints)
     typedef typename DataTypes::MatrixDeriv MatrixDeriv;
 protected:
-    virtual ~MechanicalState() {}
+    ~MechanicalState() override {}
 public:
-    virtual size_t getCoordDimension() const override { return defaulttype::DataTypeInfo<Coord>::size(); }
-    virtual size_t getDerivDimension() const override { return defaulttype::DataTypeInfo<Deriv>::size(); }
+    size_t getCoordDimension() const override { return defaulttype::DataTypeInfo<Coord>::size(); }
+    size_t getDerivDimension() const override { return defaulttype::DataTypeInfo<Deriv>::size(); }
 
     /// Get the indices of the particles located in the given bounding box
     virtual void getIndicesInSpace(sofa::helper::vector<unsigned>& /*indices*/, Real /*xmin*/, Real /*xmax*/,Real /*ymin*/, Real /*ymax*/, Real /*zmin*/, Real /*zmax*/) const=0;
@@ -104,7 +104,7 @@ public:
         return name;
     }
 
-	virtual void copyToBuffer(SReal* dst, ConstVecId src, unsigned n) const override {
+	void copyToBuffer(SReal* dst, ConstVecId src, unsigned n) const override {
 		const size_t size = this->getSize();
 		
 		switch(src.type) {
@@ -140,7 +140,7 @@ public:
 		(void) n;
 	}
 
-	virtual void copyFromBuffer(VecId dst, const SReal* src, unsigned n) override {
+	void copyFromBuffer(VecId dst, const SReal* src, unsigned n) override {
 		const size_t size = this->getSize();
 		
 		switch(dst.type) {
@@ -176,7 +176,7 @@ public:
 		(void) n;
 	}
 
-    virtual void addFromBuffer(VecId dst, const SReal* src, unsigned n) override {
+    void addFromBuffer(VecId dst, const SReal* src, unsigned n) override {
         const size_t size = this->getSize();
 
         switch(dst.type) {
@@ -221,25 +221,14 @@ public:
 };
 
 #if  !defined(SOFA_CORE_BEHAVIOR_MECHANICALSTATE_CPP)
-#ifndef SOFA_FLOAT
 extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec3dTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec2dTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec1dTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec6dTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Rigid3dTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Rigid2dTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::ExtVec3dTypes>;
-#endif
+extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec2Types>;
+extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec1Types>;
+extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec6Types>;
+extern template class SOFA_CORE_API MechanicalState<defaulttype::Rigid3Types>;
+extern template class SOFA_CORE_API MechanicalState<defaulttype::Rigid2Types>;
+extern template class SOFA_CORE_API MechanicalState<defaulttype::ExtVec3Types>;
 
-#ifndef SOFA_DOUBLE
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec3fTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec2fTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec1fTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Vec6fTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Rigid3fTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::Rigid2fTypes>;
-extern template class SOFA_CORE_API MechanicalState<defaulttype::ExtVec3fTypes>;
-#endif
 
 #endif
 

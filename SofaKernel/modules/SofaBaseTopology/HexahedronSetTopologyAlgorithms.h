@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -57,7 +57,7 @@ protected:
 
     virtual ~HexahedronSetTopologyAlgorithms() {}
 public:
-    virtual void init() override;
+    void init() override;
 
 private:
     HexahedronSetTopologyContainer*						m_container;
@@ -66,21 +66,13 @@ private:
 };
 
 #if  !defined(SOFA_COMPONENT_TOPOLOGY_HEXAHEDRONSETTOPOLOGYALGORITHMS_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec3dTypes>;
-extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec2dTypes>;
-extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec1dTypes>;
-//extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Rigid3dTypes>;
-//extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Rigid2dTypes>;
-#endif
+extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec3Types>;
+extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec2Types>;
+extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec1Types>;
+//extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Rigid3Types>;
+//extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Rigid2Types>;
 
-#ifndef SOFA_DOUBLE
-extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec3fTypes>;
-extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec2fTypes>;
-extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Vec1fTypes>;
-//extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Rigid3fTypes>;
-//extern template class SOFA_BASE_TOPOLOGY_API HexahedronSetTopologyAlgorithms<defaulttype::Rigid2fTypes>;
-#endif
+
 #endif
 
 } // namespace topology

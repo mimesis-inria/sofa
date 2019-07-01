@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -37,20 +37,12 @@ namespace forcefield
 
       // Register in the Factory
       int ClosestPointRegistrationForceFieldClass = core::RegisterObject("Compute forces based on closest points from/to a target surface/point set")
-    #ifndef SOFA_FLOAT
-        .add< ClosestPointRegistrationForceField<Vec3dTypes> >()
-    #endif
-    #ifndef SOFA_DOUBLE
-        .add< ClosestPointRegistrationForceField<Vec3fTypes> >()
-    #endif
+            .add< ClosestPointRegistrationForceField<Vec3Types> >()
+    
     ;
 
-    #ifndef SOFA_FLOAT
-      template class SOFA_REGISTRATION_API ClosestPointRegistrationForceField<Vec3dTypes>;
-    #endif
-    #ifndef SOFA_DOUBLE
-      template class SOFA_REGISTRATION_API ClosestPointRegistrationForceField<Vec3fTypes>;
-    #endif
+          template class SOFA_REGISTRATION_API ClosestPointRegistrationForceField<Vec3Types>;
+    
 
 
             

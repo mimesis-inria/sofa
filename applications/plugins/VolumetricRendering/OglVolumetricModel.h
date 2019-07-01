@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -29,7 +29,7 @@
 #include <SofaBaseVisual/VisualModelImpl.h>
 #include <sofa/core/topology/BaseMeshTopology.h>
 #include <sofa/core/behavior/MechanicalState.h>
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 #include <SofaOpenglVisual/OglVariable.h>
 #include <SofaOpenglVisual/OglAttribute.h>
 
@@ -46,10 +46,10 @@ namespace visualmodel
  *
  */
 
-class SOFA_VOLUMETRICRENDERING_API OglVolumetricModel : public core::visual::VisualModel, public ExtVec3fState
+class SOFA_VOLUMETRICRENDERING_API OglVolumetricModel : public core::visual::VisualModel, public ExtVec3State
 {
 public:
-    SOFA_CLASS2(OglVolumetricModel, core::visual::VisualModel, ExtVec3fState);
+    SOFA_CLASS2(OglVolumetricModel, core::visual::VisualModel, ExtVec3State);
 
     typedef sofa::core::topology::Tetrahedron Tetrahedron;
     typedef sofa::core::topology::Hexahedron Hexahedron;
@@ -64,7 +64,7 @@ public:
     Data<bool> d_blending; ///< Set Blending
     Data<defaulttype::Vec4f> d_defaultColor; ///< Color for each volume (if the attribute a_vertexColor is not detected)
 
-    virtual ~OglVolumetricModel();
+    ~OglVolumetricModel() override;
 
 protected:
     OglVolumetricModel();
@@ -98,18 +98,18 @@ private:
     sofa::helper::vector<Coord> m_hexaBarycenters;
 
 public:
-    void init();
-    void initVisual();
-    void drawTransparent(const core::visual::VisualParams* vparams);
-    void computeBBox(const core::ExecParams *, bool onlyVisible=false);
+    void init() override;
+    void initVisual() override;
+    void drawTransparent(const core::visual::VisualParams* vparams) override;
+    void computeBBox(const core::ExecParams *, bool onlyVisible=false) override;
 
-    void handleTopologyChange();
+    void handleTopologyChange() override;
 
-    void updateVisual();
+    void updateVisual() override;
     void computeMeshFromTopology();
 
-    bool insertInNode(core::objectmodel::BaseNode* node) { Inherit1::insertInNode(node); Inherit2::insertInNode(node); return true; }
-    bool removeInNode(core::objectmodel::BaseNode* node) { Inherit1::removeInNode(node); Inherit2::removeInNode(node); return true; }
+    bool insertInNode(core::objectmodel::BaseNode* node) override { Inherit1::insertInNode(node); Inherit2::insertInNode(node); return true; }
+    bool removeInNode(core::objectmodel::BaseNode* node) override { Inherit1::removeInNode(node); Inherit2::removeInNode(node); return true; }
 
 };
 

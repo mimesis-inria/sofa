@@ -1,5 +1,6 @@
 <!-- RegularGrid examples -->
 <Node name="root" dt="0.02">
+    <RequiredPlugin name="SofaOpenglVisual"/>
     <VisualStyle displayFlags="showBehaviorModels showForceFields showVisual" />
     <CollisionPipeline verbose="0" />
     <BruteForceDetection name="N2" />
@@ -20,7 +21,7 @@
         <Node name="Collision Surface">
 	    <SphereLoader filename="mesh/liver.sph" />
             <MechanicalObject position="@[-1].position" translation="-5 0 0" />
-            <Sphere name="Surf" listRadius="@[-2].listRadius" />
+            <SphereCollisionModel name="Surf" listRadius="@[-2].listRadius" />
             <BarycentricMapping input="@.." output="@." />
         </Node>
     </Node>
@@ -39,7 +40,7 @@
         <Node name="Collision Surface">
 	    <SphereLoader filename="mesh/liver.sph" />
             <MechanicalObject position="@[-1].position" translation="5 0 0" />
-            <Sphere name="Surf" listRadius="@[-2].listRadius" />
+            <SphereCollisionModel name="Surf" listRadius="@[-2].listRadius" />
             <BarycentricMapping input="@.." output="@." />
        </Node>
     </Node>

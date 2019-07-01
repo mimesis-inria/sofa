@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -461,7 +461,7 @@ bool invertMatrix(MatSym<S,real>& dest, const MatSym<S,real>& from)
 
         if (pivot <= (real) MIN_DETERMINANT)
         {
-            msg_error("MatSym") << "invertMatrix finds too small determinant, matrix = "<<from;
+            msg_error("MatSym") << "invertMatrix (general case) finds too small determinant: " << pivot << " for matrix = " << from;
             return false;
         }
 
@@ -516,7 +516,7 @@ bool invertMatrix(MatSym<3,real>& dest, const MatSym<3,real>& from)
 
     if ( -(real) MIN_DETERMINANT<=det && det<=(real) MIN_DETERMINANT)
     {
-        msg_error("MatSym") << "invertMatrix finds too small determinant, matrix = "<<from;
+        msg_error("MatSym") << "invertMatrix (special case 3x3) finds too small determinant: " << det << " for matrix = " << from;
         return false;
     }
 
@@ -538,7 +538,7 @@ bool invertMatrix(MatSym<2,real>& dest, const MatSym<2,real>& from)
 
     if ( -(real) MIN_DETERMINANT<=det && det<=(real) MIN_DETERMINANT)
     {
-        msg_error("MatSym") << "invertMatrix finds too small determinant, matrix = "<<from;
+        msg_error("MatSym") << "invertMatrix (special case 2x2) finds too small determinant: " << det << " for matrix = " << from;
         return false;
     }
 
@@ -550,30 +550,7 @@ bool invertMatrix(MatSym<2,real>& dest, const MatSym<2,real>& from)
     return true;
 }
 #undef MIN_DETERMINANT
-/*
-typedef Mat<2,2,float> Mat2x2f;
-typedef Mat<2,2,double> Mat2x2d;
 
-typedef Mat<3,3,float> Mat3x3f;
-typedef Mat<3,3,double> Mat3x3d;
-
-typedef Mat<3,4,float> Mat3x4f;
-typedef Mat<3,4,double> Mat3x4d;
-
-typedef Mat<4,4,float> Mat4x4f;
-typedef Mat<4,4,double> Mat4x4d;
-
-#ifdef SOFA_FLOAT
-typedef Mat2x2f Matrix2;
-typedef Mat3x3f Matrix3;
-typedef Mat4x4f Matrix4;
-#else
-typedef Mat2x2d Matrix2;
-typedef Mat3x3d Matrix3;
-typedef Mat4x4d Matrix4;
-#endif
-//////////////////////////////////////////////////////////
-*/
 template<int D,class real>
 std::ostream& operator<<(std::ostream& o, const MatSym<D,real>& m)
 {

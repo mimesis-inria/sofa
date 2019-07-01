@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -45,14 +45,14 @@ public:
     SOFA_CLASS(GenerateRigidMass,core::DataEngine);
 
     GenerateRigidMass();
-    ~GenerateRigidMass();
+    ~GenerateRigidMass() override;
 
     /// Initialization method called at graph modification, during bottom-up traversal.
-    virtual void init() override;
+    void init() override;
     /// Update method called when variables used in precomputation are modified.
-    virtual void reinit() override;
+    void reinit() override;
     /// Update the output values
-    virtual void doUpdate() override;
+    void doUpdate() override;
 
 protected:
 
@@ -110,12 +110,8 @@ public:
 };
 
 #if  !defined(SOFA_COMPONENT_ENGINE_GENERATERIGIDMASS_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API GenerateRigidMass<defaulttype::Rigid3dTypes, defaulttype::Rigid3dMass>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API GenerateRigidMass<defaulttype::Rigid3fTypes, defaulttype::Rigid3fMass>;
-#endif
+extern template class SOFA_GENERAL_ENGINE_API GenerateRigidMass<defaulttype::Rigid3Types, defaulttype::Rigid3Mass>;
+
 #endif
 
 } // namespace engine

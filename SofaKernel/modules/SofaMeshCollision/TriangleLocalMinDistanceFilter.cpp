@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -37,6 +37,11 @@ namespace collision
 {
 
 using namespace sofa::defaulttype;
+
+TriangleInfo::TriangleInfo(LocalMinDistanceFilter *lmdFilters)
+    : InfoFilter(lmdFilters)
+{
+}
 
 void TriangleInfo::buildFilter(unsigned int tri_index)
 {
@@ -92,16 +97,18 @@ TriangleLocalMinDistanceFilter::~TriangleLocalMinDistanceFilter()
 void TriangleLocalMinDistanceFilter::init()
 {
     bmt = getContext()->getMeshTopology();
-    std::cout<<"Mesh Topology found :"<<bmt->getName()<<std::endl;
+    msg_info() << "Mesh Topology found :" << bmt->getName();
     component::container::MechanicalObject<sofa::defaulttype::Vec3Types>*  mstateVec3d= dynamic_cast<component::container::MechanicalObject<Vec3Types>*>(getContext()->getMechanicalState());
 
 
     if(mstateVec3d == NULL)
     {
-        serr<<"WARNING: init failed for TriangleLocalMinDistanceFilter no mstateVec3d found"<<sendl;
+        msg_error() << "Init failed for TriangleLocalMinDistanceFilter no mstateVec3d found.";
+        this->m_componentstate = sofa::core::objectmodel::ComponentState::Invalid;
+        return;
     }
 
-    if (bmt != 0)
+    if (bmt != nullptr)
     {
 
         pointInfoHandler = new PointInfoHandler(this,&m_pointInfo);
@@ -111,8 +118,7 @@ void TriangleLocalMinDistanceFilter::init()
 
         helper::vector< PointInfo >& pInfo = *(m_pointInfo.beginEdit());
         pInfo.resize(bmt->getNbPoints());
-        int i;
-        for (i=0; i<bmt->getNbPoints(); i++)
+        for (int i=0; i<bmt->getNbPoints(); i++)
         {
             pInfo[i].setLMDFilters(this);
             pInfo[i].setBaseMeshTopology(bmt);
@@ -126,7 +132,7 @@ void TriangleLocalMinDistanceFilter::init()
 
         helper::vector< LineInfo >& lInfo = *(m_lineInfo.beginEdit());
         lInfo.resize(bmt->getNbEdges());
-        for (i=0; i<bmt->getNbEdges(); i++)
+        for (unsigned int i=0; i<bmt->getNbEdges(); i++)
         {
             lInfo[i].setLMDFilters(this);
             lInfo[i].setBaseMeshTopology(bmt);
@@ -140,19 +146,18 @@ void TriangleLocalMinDistanceFilter::init()
 
         helper::vector< TriangleInfo >& tInfo = *(m_triangleInfo.beginEdit());
         tInfo.resize(bmt->getNbTriangles());
-        for (i=0; i<bmt->getNbTriangles(); i++)
+        for (sofa::core::topology::Topology::TriangleID i=0; i<bmt->getNbTriangles(); i++)
         {
             tInfo[i].setLMDFilters(this);
             tInfo[i].setBaseMeshTopology(bmt);
             tInfo[i].setPositionFiltering(&mstateVec3d->read(core::ConstVecCoordId::position())->getValue());
         }
         m_triangleInfo.endEdit();
-        std::cout<<"create m_pointInfo, m_lineInfo, m_triangleInfo" <<std::endl;
     }
 
     if(this->isRigid())
     {
-        std::cout<<"++++++ Is rigid Found in init "<<std::endl;
+        msg_info() << "++++++ Is rigid Found in init ";
         // Precomputation of the filters in the rigid case
         //triangles:
         helper::vector< TriangleInfo >& tInfo = *(m_triangleInfo.beginEdit());
@@ -191,7 +196,7 @@ void TriangleLocalMinDistanceFilter::handleTopologyChange()
 {
     if(this->isRigid())
     {
-        serr<<"WARNING: filters optimization needed for topological change on rigid collision model"<<sendl;
+        msg_error() << "Filters optimization needed for topological change on rigid collision model";
         this->invalidate(); // all the filters will be recomputed, not only those involved in the topological change
     }
 }

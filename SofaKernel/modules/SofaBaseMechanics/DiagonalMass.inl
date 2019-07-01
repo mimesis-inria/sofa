@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -24,7 +24,7 @@
 
 #include <SofaBaseMechanics/DiagonalMass.h>
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/helper/io/MassSpringLoader.h>
+#include <sofa/helper/io/XspLoader.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/defaulttype/DataTypeInfo.h>
 #include <SofaBaseTopology/TopologyData.inl>
@@ -43,7 +43,7 @@ namespace mass
 {
 
 using sofa::core::objectmodel::ComponentState;
-
+using namespace sofa::core::topology;
 
 template <class DataTypes, class MassType>
 DiagonalMass<DataTypes, MassType>::DiagonalMass()
@@ -56,11 +56,11 @@ DiagonalMass<DataTypes, MassType>::DiagonalMass()
                                                                   "If unspecified or wrongly set, the default value is used: totalMass = 1.0"))
     , d_showCenterOfGravity( initData(&d_showCenterOfGravity, false, "showGravityCenter", "Display the center of gravity of the system" ) )
     , d_showAxisSize( initData(&d_showAxisSize, 1.0f, "showAxisSizeFactor", "Factor length of the axis displayed (only used for rigids)" ) )
-    , d_fileMass( initData(&d_fileMass,  "fileMass", "Xsp3.0 file to specify the mass parameters" ) )
+    , d_fileMass( initData(&d_fileMass,  "filename", "Xsp3.0 file to specify the mass parameters" ) )
     , m_pointHandler(NULL)
     , m_topologyType(TOPOLOGY_UNKNOWN)
 {
-    this->addAlias(&d_fileMass,"filename");
+    this->addAlias(&d_fileMass,"fileMass");
 }
 
 template <class DataTypes, class MassType>
@@ -815,7 +815,7 @@ void DiagonalMass<DataTypes, MassType>::computeMass()
             Real mass=(Real)0;
             Real total_mass=(Real)0;
 
-            for (int i=0; i<_topology->getNbHexahedra(); ++i)
+            for (Topology::HexahedronID i=0; i<_topology->getNbHexahedra(); ++i)
             {
                 const Hexahedron &h=_topology->getHexahedron(i);
                 if (hexaGeo)
@@ -854,9 +854,8 @@ void DiagonalMass<DataTypes, MassType>::computeMass()
             Real mass=(Real)0;
             Real total_mass=(Real)0;
 
-            for (int i=0; i<_topology->getNbTetrahedra(); ++i)
+            for (Topology::TetrahedronID i=0; i<_topology->getNbTetrahedra(); ++i)
             {
-
                 const Tetrahedron &t=_topology->getTetrahedron(i);
                 if(tetraGeo)
                 {
@@ -889,7 +888,7 @@ void DiagonalMass<DataTypes, MassType>::computeMass()
             Real mass=(Real)0;
             Real total_mass=(Real)0;
 
-            for (int i=0; i<_topology->getNbQuads(); ++i)
+            for (Topology::QuadID i=0; i<_topology->getNbQuads(); ++i)
             {
                 const Quad &t=_topology->getQuad(i);
                 if(quadGeo)
@@ -924,7 +923,7 @@ void DiagonalMass<DataTypes, MassType>::computeMass()
             Real mass=(Real)0;
             Real total_mass=(Real)0;
 
-            for (int i=0; i<_topology->getNbTriangles(); ++i)
+            for (Topology::TriangleID i=0; i<_topology->getNbTriangles(); ++i)
             {
                 const Triangle &t=_topology->getTriangle(i);
                 if(triangleGeo)
@@ -960,7 +959,7 @@ void DiagonalMass<DataTypes, MassType>::computeMass()
             Real mass=(Real)0;
             Real total_mass=(Real)0;
 
-            for (int i=0; i<_topology->getNbEdges(); ++i)
+            for (Topology::EdgeID i=0; i<_topology->getNbEdges(); ++i)
             {
                 const Edge &e=_topology->getEdge(i);
                 if(edgeGeo)
@@ -1091,14 +1090,15 @@ void DiagonalMass<DataTypes, MassType>::initFromMassDensity()
 {
     msg_info() << "massDensity information is used";
 
+    // Compute Mass per vertex using mesh topology
     computeMass();
 
-    const MassVector &vertexMass = d_vertexMass.getValue();
+    // Sum the mass per vertex to obtain total mass
+    const MassVector &vertexMass = d_vertexMass.getValue();    
     Real sumMass = 0.0;
-    for (size_t i=0; i<(size_t)_topology->getNbPoints(); i++)
-    {
-        sumMass += vertexMass[i];
-    }
+    for (auto vMass : vertexMass)
+        sumMass += vMass;
+
     d_totalMass.setValue(sumMass);
 }
 
@@ -1113,13 +1113,13 @@ void DiagonalMass<DataTypes, MassType>::initFromTotalMass()
     Real sumMass = 0.0;
     setMassDensity(1.0);
 
+    // Compute Mass per vertex using mesh topology
     computeMass();
 
+    // Sum the mass per vertex to obtain total mass
     const MassVector &vertexMass = d_vertexMass.getValue();
-    for (size_t i=0; i<(size_t)_topology->getNbPoints(); i++)
-    {
-        sumMass += vertexMass[i];
-    }
+    for (auto vMass : vertexMass)
+        sumMass += vMass;
 
     setMassDensity((Real)totalMassTemp/sumMass);
 
@@ -1320,12 +1320,12 @@ void DiagonalMass<DataTypes, MassType>::draw(const core::visual::VisualParams* v
 }
 
 template <class DataTypes, class MassType>
-class DiagonalMass<DataTypes, MassType>::Loader : public helper::io::MassSpringLoader
+class DiagonalMass<DataTypes, MassType>::Loader : public helper::io::XspLoaderDataHook
 {
 public:
     DiagonalMass<DataTypes, MassType>* dest;
     Loader(DiagonalMass<DataTypes, MassType>* dest) : dest(dest) {}
-    virtual void addMass(SReal /*px*/, SReal /*py*/, SReal /*pz*/, SReal /*vx*/, SReal /*vy*/, SReal /*vz*/, SReal mass, SReal /*elastic*/, bool /*fixed*/, bool /*surface*/)
+    void addMass(SReal /*px*/, SReal /*py*/, SReal /*pz*/, SReal /*vx*/, SReal /*vy*/, SReal /*vz*/, SReal mass, SReal /*elastic*/, bool /*fixed*/, bool /*surface*/) override
     {
         dest->addMass(MassType((Real)mass));
     }
@@ -1338,7 +1338,7 @@ bool DiagonalMass<DataTypes, MassType>::load(const char *filename)
     if (filename!=NULL && filename[0]!='\0')
     {
         Loader loader(this);
-        return loader.load(filename);
+        return helper::io::XspLoader::Load(filename, loader);
     }
     return false;
 }

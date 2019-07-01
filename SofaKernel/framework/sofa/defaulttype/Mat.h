@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -866,7 +866,7 @@ bool invertMatrix(Mat<S,S,real>& dest, const Mat<S,S,real>& from)
 
         if (pivot <= (real) MIN_DETERMINANT)
         {
-            msg_error("Mat") << "invertMatrix finds too small determinant, matrix = "<<from;
+            msg_error("Mat") << "invertMatrix (general case) finds too small determinant: " << pivot << " for matrix = " << from;
             return false;
         }
 
@@ -908,7 +908,7 @@ bool invertMatrix(Mat<3,3,real>& dest, const Mat<3,3,real>& from)
 
     if ( -(real) MIN_DETERMINANT<=det && det<=(real) MIN_DETERMINANT)
     {
-        msg_error("Mat") << "invertMatrix finds too small determinant, matrix = "<<from;
+        msg_error("Mat") << "invertMatrix (special case 3x3) finds too small determinant: " << det << " for matrix = " << from;
         return false;
     }
 
@@ -933,7 +933,7 @@ bool invertMatrix(Mat<2,2,real>& dest, const Mat<2,2,real>& from)
 
     if ( -(real) MIN_DETERMINANT<=det && det<=(real) MIN_DETERMINANT)
     {
-        msg_error("Mat") << "invertMatrix finds too small determinant, matrix = "<<from;
+        msg_error("Mat") << "invertMatrix (special case 2x2) finds too small determinant: " << det << " for matrix = " << from;
         return false;
     }
 
@@ -982,16 +982,13 @@ typedef Mat<3,4,double> Mat3x4d;
 typedef Mat<4,4,float> Mat4x4f;
 typedef Mat<4,4,double> Mat4x4d;
 
-#ifdef SOFA_FLOAT
-typedef Mat2x2f Matrix2;
-typedef Mat3x3f Matrix3;
-typedef Mat4x4f Matrix4;
-#else
-typedef Mat2x2d Matrix2;
-typedef Mat3x3d Matrix3;
-typedef Mat4x4d Matrix4;
-#endif
+typedef Mat<2,2,SReal> Mat2x2;
+typedef Mat<3,3,SReal> Mat3x3;
+typedef Mat<4,4,SReal> Mat4x4;
 
+typedef Mat<2,2,SReal> Matrix2;
+typedef Mat<3,3,SReal> Matrix3;
+typedef Mat<4,4,SReal> Matrix4;
 
 template <int L, int C, typename real>
 std::ostream& operator<<(std::ostream& o, const Mat<L,C,real>& m)
@@ -1025,11 +1022,13 @@ std::istream& operator>>(std::istream& in, sofa::defaulttype::Mat<L,C,real>& m)
         }
         in >> m[i];
     }
+    if(in.eof()) return in;
     c = in.peek();
     while (c==' ' || c=='\n' || c==']')
     {
         in.get();
         if( c==']' ) break;
+        if(in.eof()) break;
         c = in.peek();
     }
     return in;

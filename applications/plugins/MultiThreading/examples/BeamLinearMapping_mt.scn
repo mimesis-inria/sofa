@@ -1,5 +1,6 @@
 <!-- BeamFEMForceField example -->
 <Node name="root" dt="0.01">
+    <RequiredPlugin name="SofaOpenglVisual"/>
     <RequiredPlugin pluginName="MultiThreading" />
     <VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
     <CollisionPipeline depth="6" verbose="0" draw="0" />
@@ -34,7 +35,7 @@
         <!--
       <Node name="Collision">
         <MechanicalObject/>
-        <Sphere radius=".2" position="0 0 0 0 0 0" />
+        <SphereCollisionModel radius=".2" position="0 0 0 0 0 0" />
         <RigidMapping index="7" />
       </Node>
 -->
@@ -43,7 +44,7 @@
             <CubeTopology nx="256" ny="8" nz="8" min="0 -0.1 -0.1" max="31 0.1 0.1" />
             <MechanicalObject />
             <BeamLinearMapping_mt granularity="512" isMechanical="true" />
-            <Triangle />
+            <TriangleCollisionModel />
             <!--        <OglModel /> -->
         </Node>
     </Node>

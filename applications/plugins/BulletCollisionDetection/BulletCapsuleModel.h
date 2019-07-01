@@ -34,7 +34,7 @@ template<class TDataTypes>
 class TBulletCapsuleModel : public TCapsuleModel<TDataTypes>,public BulletCollisionModel
 {
 public:
-    //SOFA_CLASS2(SOFA_TEMPLATE(TBulletCapsuleModel, TDataTypes),SOFA_TEMPLATE(sofa::component::collision::TTriangleModel, TDataTypes),BulletCollisionModel);
+    //SOFA_CLASS2(SOFA_TEMPLATE(TBulletCapsuleModel, TDataTypes),SOFA_TEMPLATE(sofa::component::collision::TriangleCollisionModel, TDataTypes),BulletCollisionModel);
     SOFA_CLASS(SOFA_TEMPLATE(TBulletCapsuleModel, TDataTypes),SOFA_TEMPLATE(TCapsuleModel, TDataTypes));
 
     //typedef typename GCapsuleModel::DataTypes DataTypes;
@@ -83,14 +83,9 @@ typedef TBulletCapsuleModel<defaulttype::Vec3Types> BulletCapsuleModel;
 typedef TBulletCapsuleModel<defaulttype::RigidTypes> BulletRigidCapsuleModel;
 
 #if  !defined(SOFA_BUILD_BULLETCOLLISIONDETECTION)
-#ifndef SOFA_FLOAT
-extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletCapsuleModel<defaulttype::Vec3dTypes>;
-extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletCapsuleModel<defaulttype::Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletCapsuleModel<defaulttype::Vec3fTypes>;
-extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletCapsuleModel<defaulttype::Rigid3fTypes>;
-#endif
+extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletCapsuleModel<defaulttype::Vec3Types>;
+extern template class SOFA_BULLETCOLLISIONDETECTION_API TBulletCapsuleModel<defaulttype::Rigid3Types>;
+
 #endif
 
 }}}

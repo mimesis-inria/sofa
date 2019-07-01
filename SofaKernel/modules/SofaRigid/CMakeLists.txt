@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.1)
 project(SofaRigid)
 
 set(HEADER_FILES
+    JointSpring.h
+    JointSpring.inl
     JointSpringForceField.h
     JointSpringForceField.inl
     RigidMapping.h
@@ -13,6 +15,7 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+    JointSpring.cpp
     JointSpringForceField.cpp
     RigidMapping.cpp
     RigidRigidMapping.cpp
@@ -24,4 +27,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC SofaBaseMechanics)
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_RIGID")
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 
-sofa_install_targets(SofaCommon ${PROJECT_NAME} ${PROJECT_NAME})
+sofa_install_targets(SofaCommon ${PROJECT_NAME} "SofaCommon/${PROJECT_NAME}")

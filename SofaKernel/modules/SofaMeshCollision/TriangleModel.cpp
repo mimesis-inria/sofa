@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -32,13 +32,10 @@ namespace component
 namespace collision
 {
 
-int TriangleModelClass = core::RegisterObject("collision model using a triangular mesh, as described in BaseMeshTopology")
-#ifndef SOFA_FLOAT
-        .add< TTriangleModel<defaulttype::Vec3dTypes> >()
-#endif
-#ifndef SOFA_DOUBLE
-        .add< TTriangleModel<defaulttype::Vec3fTypes> >()
-#endif
+int TriangleCollisionModelClass = core::RegisterObject("collision model using a triangular mesh, as described in BaseMeshTopology")
+        .add< TriangleCollisionModel<defaulttype::Vec3Types> >()
+
+        .addAlias("TTriangleModel")
         .addAlias("TriangleModel")
         .addAlias("TriangleMeshModel")
         .addAlias("TriangleSetModel")
@@ -47,12 +44,8 @@ int TriangleModelClass = core::RegisterObject("collision model using a triangula
         .addAlias("Triangle")
         ;
 
-#ifndef SOFA_FLOAT
-template class SOFA_MESH_COLLISION_API TTriangleModel<defaulttype::Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class SOFA_MESH_COLLISION_API TTriangleModel<defaulttype::Vec3fTypes>;
-#endif
+template class SOFA_MESH_COLLISION_API TriangleCollisionModel<defaulttype::Vec3Types>;
+
 
 } // namespace collision
 

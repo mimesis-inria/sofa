@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU General Public License as published by the Free  *
@@ -28,10 +28,6 @@
 #include <sstream>
 #include <string>
 
-#include <sofa/core/objectmodel/IdleEvent.h>
-#include <sofa/simulation/Node.h>
-
-
 namespace sofa
 {
 
@@ -43,7 +39,6 @@ signed int BatchGUI::nbIter = BatchGUI::DEFAULT_NUMBER_OF_ITERATIONS;
 std::string BatchGUI::nbIterInp="";
 BatchGUI::BatchGUI()
     : groot(NULL)
-	, m_animated(false)
 {
 }
 
@@ -64,13 +59,6 @@ int BatchGUI::mainLoop()
             msg_info("BatchGUI") << "Computing infinite iterations." << msgendl;
         }
 
-		//using namespace std::literals;
-		//// Execute lambda asyncronously.
-		//auto f = std::async(std::launch::async, [] {
-		//	auto s = ""s;
-		//	if (std::cin >> s) return s;
-		//});
-
         sofa::helper::AdvancedTimer::begin("Animate");
         sofa::simulation::getSimulation()->animate(groot.get());
         msg_info("BatchGUI") << "Processing." << sofa::helper::AdvancedTimer::end("Animate", groot.get()) << msgendl;
@@ -78,24 +66,14 @@ int BatchGUI::mainLoop()
         sofa::simulation::Visitor::ctime_t tfreq = sofa::helper::system::thread::CTime::getTicksPerSec();
         sofa::simulation::Visitor::ctime_t rt = sofa::helper::system::thread::CTime::getRefTime();
         sofa::simulation::Visitor::ctime_t t = sofa::helper::system::thread::CTime::getFastTime();
-
+          
         signed int i = 1; //one simulatin step is animated above  
        
         while (i <= nbIter || nbIter == -1)
         {
-
-			sofa::core::objectmodel::IdleEvent hb;
-			if (groot)
-			{
-				groot->propagateEvent(core::ExecParams::defaultInstance(), &hb);
-			}
-
-			if (!m_animated)
-				continue;
-			
-			if (i != nbIter)
+            if (i != nbIter)
             {
-                sofa::helper::AdvancedTimer::begin("Animate");
+                sofa::helper::ScopedAdvancedTimer("Animate");
                 sofa::simulation::getSimulation()->animate(groot.get());
             }
 
@@ -136,18 +114,6 @@ void BatchGUI::setScene(sofa::simulation::Node::SPtr groot, const char* filename
     this->filename = (filename?filename:"");
 
     resetScene();
-}
-
-void BatchGUI::playpauseGUI(bool value)
-{
-	if (groot)
-		groot->getContext()->setAnimate(value);
-	m_animated = value;
-}
-
-void BatchGUI::switchPlaypauseGUI()
-{
-	playpauseGUI(!m_animated);
 }
 
 

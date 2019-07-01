@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -41,9 +41,9 @@
 #include <limits>
 
 #ifdef DEBUG_TRIANGLEFEM
-    #define DEBUG_TRIANGLEFEM_MSG true
+#define DEBUG_TRIANGLEFEM_MSG true
 #else
-    #define DEBUG_TRIANGLEFEM_MSG false
+#define DEBUG_TRIANGLEFEM_MSG false
 #endif
 
 
@@ -56,6 +56,8 @@ namespace component
 
 namespace forcefield
 {
+
+using namespace sofa::core::topology;
 
 // --------------------------------------------------------------------------------------
 // ---  Topology Creation/Destruction functions
@@ -98,8 +100,8 @@ TriangularFEMForceField<DataTypes>::TriangularFEMForceField()
     , _topology(NULL)
     , method(LARGE)
     , f_method(initData(&f_method,std::string("large"),"method","large: large displacements, small: small displacements"))
-//, f_poisson(initData(&f_poisson,(Real)0.3,"poissonRatio","Poisson ratio in Hooke's law"))
-//, f_young(initData(&f_young,(Real)1000.,"youngModulus","Young modulus in Hooke's law"))
+    //, f_poisson(initData(&f_poisson,(Real)0.3,"poissonRatio","Poisson ratio in Hooke's law"))
+    //, f_young(initData(&f_young,(Real)1000.,"youngModulus","Young modulus in Hooke's law"))
     , f_poisson(initData(&f_poisson,helper::vector<Real>(1,static_cast<Real>(0.45)),"poissonRatio","Poisson ratio in Hooke's law (vector)"))
     , f_young(initData(&f_young,helper::vector<Real>(1,static_cast<Real>(1000.0)),"youngModulus","Young modulus in Hooke's law (vector)"))
     , f_damping(initData(&f_damping,(Real)0.,"damping","Ratio damping/stiffness"))
@@ -112,12 +114,12 @@ TriangularFEMForceField<DataTypes>::TriangularFEMForceField()
     , showStressVector(initData(&showStressVector,false,"showStressVector","Flag activating rendering of stress directions within each triangle"))
     , showFracturableTriangles(initData(&showFracturableTriangles,false,"showFracturableTriangles","Flag activating rendering of triangles to fracture"))
     , f_computePrincipalStress(initData(&f_computePrincipalStress,false,"computePrincipalStress","Compute principal stress for each triangle"))
-#ifdef PLOT_CURVE
+    #ifdef PLOT_CURVE
     , elementID( initData(&elementID, (Real)0, "id","element id to follow for fracture criteria") )
     , f_graphStress( initData(&f_graphStress,"graphMaxStress","Graph of max stress corresponding to the element id") )
     , f_graphCriteria( initData(&f_graphCriteria,"graphCriteria","Graph of the fracture criteria corresponding to the element id") )
     , f_graphOrientation( initData(&f_graphOrientation,"graphOrientation","Graph of the orientation of the principal stress direction corresponding to the element id"))
-#endif
+    #endif
 {
     _anisotropicMaterial = false;
     triangleHandler = new TRQSTriangleHandler(this, &triangleInfo);
@@ -253,7 +255,7 @@ void TriangularFEMForceField<DataTypes>::initLarge(int i, Index&a, Index&b, Inde
         // third vector orthogonal to first and second
         Transformation R_0_1;
 
-         VecCoord initialPoints = (this->mstate->read(core::ConstVecCoordId::restPosition())->getValue());
+        VecCoord initialPoints = (this->mstate->read(core::ConstVecCoordId::restPosition())->getValue());
 
         computeRotationLarge( R_0_1, (initialPoints), a, b, c );
 
@@ -263,13 +265,13 @@ void TriangularFEMForceField<DataTypes>::initLarge(int i, Index&a, Index&b, Inde
         {
             std::stringstream tmp;
             tmp << "Try to access an element which indices bigger than the size of the vector: a=" <<a <<
-                    " b=" << b << " and c=" << c << " and size=" << (initialPoints).size() << msgendl;
+                   " b=" << b << " and c=" << c << " and size=" << (initialPoints).size() << msgendl;
 
             //reset initialPoints in case of a new pointer of the initial points of the mechanical state
             initialPoints = this->mstate->read(core::ConstVecCoordId::restPosition())->getValue();
 
             tmp << "Now it's: a=" <<a <<
-                    " b=" << b << " and c=" << c << " and size=" << (initialPoints).size() ;
+                   " b=" << b << " and c=" << c << " and size=" << (initialPoints).size() ;
 
             msg_error() << tmp.str() ;
         }
@@ -313,7 +315,7 @@ void TriangularFEMForceField<DataTypes>::reinit()
     vertexInfo.endEdit();
 
 
-    for (int i=0; i<_topology->getNbTriangles(); ++i)
+    for (Topology::TriangleID i=0; i<_topology->getNbTriangles(); ++i)
     {
         triangleHandler->applyCreateFunction(i, triangleInf[i],  _topology->getTriangle(i),  (const sofa::helper::vector< unsigned int > )0, (const sofa::helper::vector< double >)0);
     }
@@ -470,6 +472,19 @@ void TriangularFEMForceField<DataTypes>::getRotations()
 }
 
 
+template <class DataTypes>
+void TriangularFEMForceField<DataTypes>::setMethod(const std::string& methodName)
+{
+    if (methodName == "small")
+        this->setMethod(SMALL);
+    else
+    {
+        msg_warning_when(methodName != "large") << "unknown method: large method will be used. Remark: Available method are \"small\", \"large\" "<<sendl;
+        this->setMethod(LARGE);
+    }
+}
+
+
 // --------------------------------------------------------------------------------------
 // --- Get Fracture Criteria
 // --------------------------------------------------------------------------------------
@@ -543,7 +558,7 @@ void TriangularFEMForceField<DataTypes>::computeRotationLarge( Transformation &r
     if (a >= p.size() || b >= p.size() || c >= p.size())
     {
         msg_error() <<  "Indices given in parameters are wrong>> a=" << a << " b=" << b << " and c=" << c <<
-                " whereas the size of the vector p is " << p.size() ;
+                        " whereas the size of the vector p is " << p.size() ;
         return;
     }
 
@@ -894,70 +909,6 @@ void TriangularFEMForceField<DataTypes>::computePrincipalStress(Index elementInd
         averageVector2 /=  triangleInf[elementIndex].lastNStressDirection.size();
 
     triangleInf[elementIndex].principalStressDirection = averageVector2;
-
-#ifdef PLOT_CURVE
-    Coord direction2((Real)V(1,D.Ncols() +1 - biggestIndex), (Real)V(2,D.Ncols() +1 - biggestIndex), 0.0);
-    direction2.normalize();
-
-    Coord principalStressDir2 = triangleInf[elementIndex].rotation * direction2;//need to rotate to be in global frame instead of local
-    principalStressDir2 *= fabs((Real)D(D.Ncols() +1 - biggestIndex,D.Ncols() +1 - biggestIndex))/100.0;
-
-    //compute an angle between the principal stress direction and the x-axis
-    Real orientation2 = dot( averageVector2, Coord(1.0, 0.0, 0.0));
-    Real orientation1 = dot( averageVector1, Coord(1.0, 0.0, 0.0));
-    Real orientation0 = dot( principalStressDir, Coord(1.0, 0.0, 0.0));
-    Real orientationSecond = dot( principalStressDir2, Coord(1.0, 0.0, 0.0));
-
-    /* store the values which are plot*/
-    if (allGraphStress.size() <= elementIndex)
-        allGraphStress.resize(elementIndex+1);
-    if (allGraphCriteria.size() <= elementIndex)
-        allGraphCriteria.resize(elementIndex+1);
-    if (allGraphOrientation.size() <= elementIndex)
-        allGraphOrientation.resize(elementIndex+1);
-
-    std::map<std::string, sofa::helper::vector<double> > &stressMap = allGraphStress[elementIndex];
-    std::map<std::string, sofa::helper::vector<double> > &criteriaMap = allGraphCriteria[elementIndex];
-    std::map<std::string, sofa::helper::vector<double> > &orientationMap = allGraphOrientation[elementIndex];
-
-    stressMap["first stress eigenvalue"].push_back((double)(triangleInf[elementIndex].maxStress));
-    stressMap["second stress eigenvalue"].push_back((double)(fabs(D(1,1))));
-
-    criteriaMap["fracture criteria"].push_back((double)(triangleInf[elementIndex].differenceToCriteria));
-
-    orientationMap["principal stress direction orientation with 30-average"].push_back((double)(acos(orientation2) * 180 / 3.14159265));
-    orientationMap["principal stress direction orientation with 10-average"].push_back((double)(acos(orientation1) * 180 / 3.14159265));
-    orientationMap["principal stress direction orientation with no-average"].push_back((double)(acos(orientation0) * 180 / 3.14159265));
-    orientationMap["second stress direction orientation with no-average"].push_back((double)(acos(orientationSecond) * 180 / 3.14159265));
-
-
-    //save values in graphs
-    if (elementIndex == elementID.getValue())
-    {
-        std::map < std::string, sofa::helper::vector<double> >& graphStress = *f_graphStress.beginEdit();
-        sofa::helper::vector<double>& graph_maxStress1 = graphStress["first stress eigenvalue"];
-        graph_maxStress1.push_back((double)(triangleInf[elementIndex].maxStress));
-        sofa::helper::vector<double>& graph_maxStress2 = graphStress["second stress eigenvalue"];
-        graph_maxStress2.push_back((double)(fabs(D(1,1))));
-        f_graphStress.endEdit();
-
-        std::map < std::string, sofa::helper::vector<double> >& graphCriteria = *f_graphCriteria.beginEdit();
-        sofa::helper::vector<double>& graph_criteria = graphCriteria["fracture criteria"];
-        graph_criteria.push_back((double)(triangleInf[elementIndex].differenceToCriteria));
-        f_graphCriteria.endEdit();
-
-        std::map < std::string, sofa::helper::vector<double> >& graphOrientation = *f_graphOrientation.beginEdit();
-        sofa::helper::vector<double>& graph_orientation2 = graphOrientation["principal stress direction orientation with 30-average"];
-        graph_orientation2.push_back((double)(acos(orientation2) * 180 / 3.14159265));
-        sofa::helper::vector<double>& graph_orientation1 = graphOrientation["principal stress direction orientation with 10-average"];
-        graph_orientation1.push_back((double)(acos(orientation1) * 180 / 3.14159265));
-        sofa::helper::vector<double>& graph_orientation0 = graphOrientation["principal stress direction orientation with no-average"];
-        graph_orientation0.push_back((double)(acos(orientation0) * 180 / 3.14159265));
-        sofa::helper::vector<double>& graph_orientationSecond = graphOrientation["second stress direction orientation with no-average"];
-        graph_orientationSecond.push_back((double)(acos(orientationSecond) * 180 / 3.14159265));
-        f_graphOrientation.endEdit();
-    }
-#endif
 
     triangleInfo.endEdit();
 }
@@ -1334,9 +1285,8 @@ template <class DataTypes>
 void TriangularFEMForceField<DataTypes>::accumulateForceSmall( VecCoord &f, const VecCoord &p, Index elementIndex )
 {
 
-#ifdef DEBUG_TRIANGLEFEM
-    sout << "TriangularFEMForceField::accumulateForceSmall"<<sendl;
-#endif
+    if(DEBUG_TRIANGLEFEM_MSG)
+        dmsg_info() << "TriangularFEMForceField::accumulateForceSmall" ;
 
     Displacement F;
 
@@ -1453,207 +1403,6 @@ void TriangularFEMForceField<DataTypes>::addForce(const core::MechanicalParams* 
             computePrincipalStress(i, triangleInf[i].stress);
         triangleInfo.endEdit();
     }
-
-    //TODO(dmarchal 2017-05-03) I will remove this code soon !!!
-    /*	if (f_fracturable.getValue())
-    {
-    // First Pass - Vertices Pass
-    unsigned int nbPoints=_topology->getNbPoints();
-
-    for( unsigned int i=0; i<nbPoints; i++ )
-    {
-    const sofa::helper::vector< unsigned int >& triangleNeighbors = _topology->getTrianglesAroundVertex(i);
-
-    sofa::helper::vector< unsigned int >::const_iterator it = triangleNeighbors.begin();
-    sofa::helper::vector< unsigned int >::const_iterator itEnd = triangleNeighbors.end();
-    Coord meanStrainDirection, refStrainDirection;
-    meanStrainDirection.clear();
-    refStrainDirection.clear();
-
-    bool b(true);
-
-    while (it != itEnd)
-    {
-    if (b)
-    {
-    refStrainDirection = triangleInfo[*it].principalStrainDirection;
-    if (refStrainDirection.norm() != 0.0)
-    b=false;
-    }
-
-    (triangleInfo[*it].principalStrainDirection * refStrainDirection < 0)?
-    meanStrainDirection -= triangleInfo[*it].principalStrainDirection : meanStrainDirection += triangleInfo[*it].principalStrainDirection;
-
-    vertexInfo[i].sumEigenValues += triangleInfo[*it].eigenValue;
-
-    ++it;
-    }
-
-    //meanStrainDirection.normalize();
-
-    vertexInfo[i].meanStrainDirection = meanStrainDirection / (double)triangleNeighbors.size();
-    vertexInfo[i].sumEigenValues = (double)vertexInfo[i].sumEigenValues / (double)triangleNeighbors.size();
-    }
-
-
-    // Second Pass - Edges Pass
-
-    for(int i=0; i<_topology->getNbEdges(); i++ )
-    edgeInfo[i].fracturable = false;
-
-    if (nbPoints > 0)
-    {
-    double max = 0; //vertexInfo[0].sumEigenValues;
-    int mostDeformableVertexIndex = -1; //0;
-
-    for( unsigned int i=0; i<nbPoints; i++ )
-    {
-    bool vertexOnBorder = _topology->getTrianglesAroundVertex(i).size() < _topology->getEdgesAroundVertex(i).size() && _topology->getTrianglesAroundVertex(i).size() > 1;
-
-    if (vertexOnBorder && vertexInfo[i].sumEigenValues > max)
-    {
-    mostDeformableVertexIndex = i;
-    max = vertexInfo[i].sumEigenValues;
-    }
-    }
-
-    //			std::vector< std::pair< double, unsigned int > > mostDeformableVertexIndexA(nbPoints);
-    //			for( unsigned int i=0; i<nbPoints; i++ )
-    //			{
-    //				mostDeformableVertexIndexA[i].first = vertexInfo[i].sumEigenValues;
-    //				mostDeformableVertexIndexA[i].second = i;
-    //			}
-
-    //			std::sort( mostDeformableVertexIndexA.begin(), mostDeformableVertexIndexA.end() );
-    //		for( unsigned int i=0; i<nbPoints; i++ )
-    //			{
-    //				sout << mostDeformableVertexIndexA[i].first << " ";
-    //			}
-    //			sout << ""<<sendl;
-
-
-    //			bool vertexOnBorder(false);
-    //			int curIndex = nbPoints-1;
-
-    //			while ((!vertexOnBorder)&&(curIndex>=0))
-    //			{
-    //				mostDeformableVertexIndex = mostDeformableVertexIndexA[curIndex].second;
-    //				max=mostDeformableVertexIndexA[curIndex].first;
-    // Check if the Vertex is on the border
-    //				curIndex--;
-    //			}
-
-    // if (vertexOnBorder && (max > 0.05))
-
-    const double THRESHOLD = 0.2;
-
-    if ((mostDeformableVertexIndex!=-1) && (max > THRESHOLD))
-    {
-    //sout << "max=" << max << sendl;
-    double minDotProduct = 1000.0;
-    unsigned int fracturableIndex = 0;
-    bool fracture(false);
-
-    const sofa::helper::vector< unsigned int >& edgeNeighbors = _topology->getEdgesAroundVertex(mostDeformableVertexIndex);
-
-    sofa::helper::vector< unsigned int >::const_iterator it = edgeNeighbors.begin();
-    sofa::helper::vector< unsigned int >::const_iterator itEnd = edgeNeighbors.end();
-
-    Index a;
-    Index b;
-
-    Coord n = vertexInfo[mostDeformableVertexIndex].meanStrainDirection;
-    n.normalize();
-
-    while (it != itEnd)
-    {
-    a = _topology->getEdge(*it)[0];
-    b = _topology->getEdge(*it)[1];
-
-    if (vertexInfo[mostDeformableVertexIndex].meanStrainDirection.norm() != 0.0)
-    {
-    Coord d = x[b]-x[a];
-    d.normalize();
-    if (fabs(n * d) < minDotProduct)
-    {
-    sofa::helper::vector< unsigned int > trianglesAroundEdge = _topology->getTrianglesAroundEdge(*it);
-    if (trianglesAroundEdge.size() != 1)
-    {
-
-    //	bool bb(false);
-    //	sofa::helper::vector< unsigned int >::iterator _it = trianglesAroundEdge.begin();
-    //	sofa::helper::vector< unsigned int >::iterator _itEnd = trianglesAroundEdge.end();
-    //	while (_it != _itEnd)
-    //	{
-    //		helper::fixed_array<unsigned int,3> edges = _topology->getEdgesInTriangle(*_it);
-
-    //		int cptTest=0;
-    //		for (int i=0; i<3; i++)
-    //		{
-    //			if (_topology->getTrianglesAroundEdge(edges[i]).size() < 2)
-    //			{
-    //				cptTest++;
-    //			}
-    //		}
-
-    //		if (cptTest > 2)
-    //		{
-    //			if (max < 5 * THRESHOLD)
-    //			{
-    //				bb = true;
-    //				break;
-    //			}
-    //		}
-
-    //		++_it;
-    //	}
-
-    //	if (!bb)
-
-    {
-    minDotProduct = fabs(n * d);
-    fracturableIndex = *it;
-    fracture = true;
-    }
-    }
-    }
-    }
-
-    ++it;
-    }
-
-    if (fracture) {
-    //sout << "fracture at edge "<<fracturableIndex<<sendl;
-    edgeInfo[fracturableIndex].fracturable = true;
-    lastFracturedEdgeIndex = fracturableIndex;
-    }
-    }
-    }
-    }
-    */
-
-    //	sout << "EOF AddForce"<<sendl;
-    /*	int nodeIdx=88;
-    Transformation r,rt,I;
-    getRotation(r,nodeIdx);
-    rt.transpose(r);
-    I=rt*r;
-
-    serr << "rotation Matrix"<< r <<sendl;
-    serr << "rotation Matrix"<< rt <<sendl;
-    serr << "rotation Matrix"<< I <<sendl;*/
-
-    /*	helper::vector<TriangleInformation>& triangleInf = *(triangleInfo.beginEdit());
-    int numNeiTri=_topology->getTrianglesAroundVertex(nodeIdx).size();
-    for(int i=0;i<numNeiTri;i++)
-    {
-    int triIdx=_topology->getTrianglesAroundVertex(nodeIdx)[i];
-    TriangleInformation *tinfo = &triangleInf[triIdx];
-    Transformation r01,r21;
-    r01=tinfo->initialTransformation;
-    r21=tinfo->rotation*r01;
-    serr << "rotation Matrix of"<< i << "triangle"<< r21 <<sendl;
-    }*/
 }
 
 // --------------------------------------------------------------------------------------

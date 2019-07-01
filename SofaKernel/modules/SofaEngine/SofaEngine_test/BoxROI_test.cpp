@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -68,7 +68,7 @@ struct BoxROITest :  public ::testing::Test
     Node::SPtr m_node ;
     typename TheBoxROI::SPtr m_boxroi;
 
-    virtual void SetUp()
+    void SetUp() override
     {
         initBaseMechanics();
         setSimulation( m_simu = new DAGSimulation() );
@@ -79,7 +79,7 @@ struct BoxROITest :  public ::testing::Test
         m_node->addObject(m_boxroi) ;
     }
 
-    void TearDown()
+    void TearDown() override
     {
         if (m_root != NULL){
             m_simu->unload(m_root);
@@ -377,14 +377,9 @@ struct BoxROITest :  public ::testing::Test
 //Please fix this either the tests or the BoxROI implementation
 typedef Types<
     Vec3Types
-#ifdef SOFA_WITH_DOUBLE
     ,Vec3dTypes
     //,Rigid3dTypes
-#endif
-#ifdef SOFA_WITH_FLOAT
-    //,Vec3fTypes
-    //,Rigid3fTypes
-#endif
+
 > DataTypes;
 
 TYPED_TEST_CASE(BoxROITest, DataTypes);

@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -79,6 +79,16 @@ void EdgeSetTopologyContainer::init()
     }
 
     PointSetTopologyContainer::init();
+
+    // only init if edges are present at init.
+    if (!m_edge.empty())
+        initTopology();
+}
+
+void EdgeSetTopologyContainer::initTopology()
+{
+    // force computation of neighborhood elements
+    createEdgesAroundVertexArray();
 }
 
 void EdgeSetTopologyContainer::addEdge(int a, int b)
@@ -91,27 +101,28 @@ void EdgeSetTopologyContainer::addEdge(int a, int b)
 
 void EdgeSetTopologyContainer::createEdgesAroundVertexArray()
 {
-    if(!hasEdges())	// this method should only be called when edges exist
-    {
-		if(CHECK_TOPOLOGY)
-			msg_warning() << "Edge array is empty.";
-		
-        createEdgeSetArray();
-    }
+    // first clear potential previous buffer
+    clearEdgesAroundVertex();
 
-    if(hasEdgesAroundVertex())
-    {
-        clearEdgesAroundVertex();
-    }
+    if(!hasEdges())
+        createEdgeSetArray();
+
+    if (hasEdgesAroundVertex()) // created by upper topology
+        return;
 
     helper::ReadAccessor< Data< sofa::helper::vector<Edge> > > m_edge = d_edge;
+
+    if (m_edge.empty())
+    {
+        msg_warning() << "EdgesAroundVertex buffer can't be created as no edges are present in this topology.";
+        return;
+    }
 
     int nbPoints = getNbPoints();
     if (nbPoints == 0) // in case only Data have been copied and not going thourgh AddTriangle methods.
         this->setNbPoints(d_initPoints.getValue().size());
 
     m_edgesAroundVertex.resize(getNbPoints());
-
     for (unsigned int edge=0; edge<m_edge.size(); ++edge)
     {
         // adding edge in the edge shell of both points
@@ -127,6 +138,8 @@ void EdgeSetTopologyContainer::reinit()
 {
     PointSetTopologyContainer::reinit();
 
+    createEdgesAroundVertexArray();
+
     if (m_checkConnexity.getValue())
         this->checkConnexity();
 }
@@ -134,56 +147,54 @@ void EdgeSetTopologyContainer::reinit()
 void EdgeSetTopologyContainer::createEdgeSetArray()
 {
 	if(CHECK_TOPOLOGY)
-		msg_error() << "This method must be implemented by a child topology.";
+        msg_error() << "createEdgeSetArray method must be implemented by an higher level topology.";
+}
 
+
+const sofa::helper::vector<EdgeSetTopologyContainer::Edge> &EdgeSetTopologyContainer::getEdges()
+{
+    return getEdgeArray();
 }
 
 const sofa::helper::vector<EdgeSetTopologyContainer::Edge> &EdgeSetTopologyContainer::getEdgeArray()
 {
-    if(!hasEdges() && getNbPoints()>0)
-    {
-		if(CHECK_TOPOLOGY)
-			msg_info() << "Creating edge array.";
-
-        createEdgeSetArray();
-    }
+    if(CHECK_TOPOLOGY)
+        msg_warning_when(!hasEdges() && getNbPoints()>0) << "Edge array is empty with " << getNbPoints() << " vertices.";
 
     return d_edge.getValue();
 }
 
-int EdgeSetTopologyContainer::getEdgeIndex(PointID v1, PointID v2)
+EdgeSetTopologyContainer::EdgeID EdgeSetTopologyContainer::getEdgeIndex(PointID v1, PointID v2)
 {
-    if(!hasEdges()) // this method should only be called when edges exist
+    if (!hasEdges())
     {
-		if(CHECK_TOPOLOGY)
-			msg_warning() << "Edge array is empty.";
+        if(CHECK_TOPOLOGY)
+            msg_warning() << "Edge array is empty with " << getNbPoints() << " vertices.";
 
-        createEdgeSetArray();
+        return InvalidID;
     }
 
-    if(!hasEdgesAroundVertex())
-        createEdgesAroundVertexArray();
+    const sofa::helper::vector< EdgeID >& es1 = getEdgesAroundVertex(v1);
+    if (es1.empty())
+        return InvalidID;
 
-    const sofa::helper::vector< EdgeID > &es1 = getEdgesAroundVertex(v1) ;
     helper::ReadAccessor< Data< sofa::helper::vector<Edge> > > m_edge = d_edge;
 
-    int result = -1;
-    for(size_t i=0; (i < es1.size()) && (result == -1); ++i)
+    EdgeID result = InvalidID;
+    for(size_t i=0; (i < es1.size()) && (result == InvalidID); ++i)
     {
         const Edge &e = m_edge[ es1[i] ];
         if ((e[0] == v2) || (e[1] == v2))
-            result = (int) es1[i];
+            result = es1[i];
     }
+
     return result;
 }
 
 const EdgeSetTopologyContainer::Edge EdgeSetTopologyContainer::getEdge (EdgeID i)
 {
-    if(!hasEdges())
-        createEdgeSetArray();
-
     if ((size_t)i >= getNbEdges())
-        return Edge(-1, -1);
+        return InvalidEdge;
     else
         return (d_edge.getValue())[i];
 }
@@ -216,39 +227,35 @@ bool EdgeSetTopologyContainer::checkTopology() const
 	{
 		bool ret = true;
 
-		if (hasEdgesAroundVertex())
+        if (hasEdgesAroundVertex())
 		{
 			helper::ReadAccessor< Data< sofa::helper::vector<Edge> > > m_edge = d_edge;
 			std::set<int> edgeSet;
-			std::set<int>::iterator it;
 
-			for (size_t i = 0; i < m_edgesAroundVertex.size(); ++i)
+            // loop on all edges around vertex
+            for (size_t i = 0; i < m_edgesAroundVertex.size(); ++i)
 			{
 				const sofa::helper::vector<EdgeID> &es = m_edgesAroundVertex[i];
-
 				for (size_t j = 0; j < es.size(); ++j)
 				{
-					bool check_edge_vertex_shell = (m_edge[es[j]][0] == i) || (m_edge[es[j]][1] == i);
-					if (!check_edge_vertex_shell)
+                    const Edge& edge = m_edge[es[j]];
+                    if (!(edge[0] == i || edge[1] == i))
 					{
-						msg_warning() << "*** CHECK FAILED : check_edge_vertex_shell, i = " << i << " , j = " << j;
+                        msg_error() << "EdgeSetTopologyContainer::checkTopology() failed: edge " << es[j] << ": [" << edge << "] not around vertex: " << i;
 						ret = false;
 					}
 
-					it = edgeSet.find(es[j]);
-					if (it == edgeSet.end())
-					{
-						edgeSet.insert(es[j]);
-					}
+                    // count number of edge
+                    edgeSet.insert(es[j]);
 				}
 			}
 
 			if (edgeSet.size() != m_edge.size())
 			{
-				msg_warning() << "*** CHECK FAILED : check_edge_vertex_shell, edge are missing in m_edgesAroundVertex";
+                msg_error() << "EdgeSetTopologyContainer::checkTopology() failed: found " << edgeSet.size() << " edges in m_edgesAroundVertex out of " << m_edge.size();
 				ret = false;
-			}
-		}
+            }
+        }
 
 		return ret && PointSetTopologyContainer::checkTopology();
 	}
@@ -404,7 +411,11 @@ const EdgeSetTopologyContainer::VecEdgeID EdgeSetTopologyContainer::getElementAr
 
     for(size_t i = 0; i<2; ++i) // for each node of the edge
     {
-        EdgesAroundVertex edgeAV = this->getEdgesAroundVertex(the_edge[i]);
+        const EdgesAroundVertex& edgeAV = this->getEdgesAroundVertex(the_edge[i]);
+        if (edgeAV.empty()) {
+            msg_error() << "No edge found aroud of vertex id: " << the_edge[i] << ". Should at least found edge id: " << elem;
+            continue;
+        }
 
         for (size_t j = 0; j<edgeAV.size(); ++j) // for each edge around the node
         {
@@ -498,34 +509,20 @@ size_t EdgeSetTopologyContainer::getNumberOfElements() const
 
 const sofa::helper::vector< sofa::helper::vector<EdgeSetTopologyContainer::EdgeID> > &EdgeSetTopologyContainer::getEdgesAroundVertexArray()
 {
-    if(!hasEdgesAroundVertex())
-    {
-		if(CHECK_TOPOLOGY)
-			msg_warning() << "Edge vertex shell array is empty.";
-
-        createEdgesAroundVertexArray();
-    }
+    if(CHECK_TOPOLOGY)
+        msg_warning_when(m_edgesAroundVertex.empty()) << "EdgesAroundVertex shell array is empty.";
 
     return m_edgesAroundVertex;
 }
 
-const EdgeSetTopologyContainer::EdgesAroundVertex& EdgeSetTopologyContainer::getEdgesAroundVertex(PointID i)
+const EdgeSetTopologyContainer::EdgesAroundVertex& EdgeSetTopologyContainer::getEdgesAroundVertex(PointID id)
 {
-    if(!hasEdgesAroundVertex())	// this method should only be called when the shell array exists
-    {
-		if(CHECK_TOPOLOGY)
-			msg_warning() << "Edge vertex shell array is empty.";
+    if(id < m_edgesAroundVertex.size())
+        return m_edgesAroundVertex[id];
+    else if(CHECK_TOPOLOGY)
+        msg_error() << "EdgesAroundVertex array access out of bounds: " << id << " >= " << m_edgesAroundVertex.size();
 
-        createEdgesAroundVertexArray();
-    }
-
-		if(CHECK_TOPOLOGY)
-			if(m_edgesAroundVertex.size() <= i)
-				msg_error() << "Edge vertex shell array out of bounds: "
-						<< i << " >= " << m_edgesAroundVertex.size();
-
-
-    return m_edgesAroundVertex[i];
+    return InvalidSet;
 }
 
 sofa::helper::vector< EdgeSetTopologyContainer::EdgeID > &EdgeSetTopologyContainer::getEdgesAroundVertexForModification(const PointID i)
@@ -573,7 +570,37 @@ void EdgeSetTopologyContainer::clear()
 //    PointSetTopologyContainer::clear();
 }
 
+void EdgeSetTopologyContainer::setEdgeTopologyToDirty()
+{
+    // set this container to dirty
+    m_edgeTopologyDirty = true;
 
+    std::list<sofa::core::topology::TopologyEngine *>::iterator it;
+    for (it = m_enginesList.begin(); it!=m_enginesList.end(); ++it)
+    {
+        sofa::core::topology::TopologyEngine* topoEngine = (*it);
+        topoEngine->setDirtyValue();
+        if (CHECK_TOPOLOGY)
+            msg_info() << "Edge Topology Set dirty engine: " << topoEngine->name;
+    }
+}
+
+void EdgeSetTopologyContainer::cleanEdgeTopologyFromDirty()
+{
+    m_edgeTopologyDirty = false;
+
+    // security, clean all engines to avoid loops
+    std::list<sofa::core::topology::TopologyEngine *>::iterator it;
+    for ( it = m_enginesList.begin(); it!=m_enginesList.end(); ++it)
+    {
+        if ((*it)->isDirty())
+        {
+            if (CHECK_TOPOLOGY)
+                msg_warning() << "Edge Topology update did not clean engine: " << (*it)->name;
+            (*it)->cleanDirty();
+        }
+    }
+}
 
 void EdgeSetTopologyContainer::updateTopologyEngineGraph()
 {

@@ -1,7 +1,7 @@
  
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -50,7 +50,7 @@ public:
 
     SumEngine();
 
-    virtual ~SumEngine() {}
+    ~SumEngine() override {}
 
     void init() override;
 
@@ -77,14 +77,9 @@ protected:
 };
 
 #if  !defined(SOFA_COMPONENT_ENGINE_SumEngine_CPP)
-#ifndef SOFA_FLOAT
 extern template class SOFA_GENERAL_ENGINE_API SumEngine<defaulttype::Vec1d>;
 extern template class SOFA_GENERAL_ENGINE_API SumEngine<defaulttype::Vec3d>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API SumEngine<defaulttype::Vec1f>;
-extern template class SOFA_GENERAL_ENGINE_API SumEngine<defaulttype::Vec3f>;
-#endif
+
 #endif
 
 } // namespace engine

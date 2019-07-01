@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -140,10 +140,10 @@ public:
     void getFinalPositions (VecCoord& finalPos, DataVecCoord& xData); 
 
     // Implement projectMatrix for assembled solver of compliant
-    virtual void projectMatrix( sofa::defaulttype::BaseMatrix* /*M*/, unsigned /*offset*/ ) override;
+    void projectMatrix( sofa::defaulttype::BaseMatrix* /*M*/, unsigned /*offset*/ ) override;
 
     /// Draw the constrained points (= border mesh points)
-     virtual void draw(const core::visual::VisualParams* vparams) override;
+     void draw(const core::visual::VisualParams* vparams) override;
 
      class FCPointHandler : public component::topology::TopologySubsetDataHandler<core::topology::BaseMeshTopology::Point, SetIndexArray >
     {
@@ -187,14 +187,9 @@ private:
 };
 
 #if !defined(SOFABOUNDARYCONDITION_AFFINEMOVEMENT_CONSTRAINT_CPP)
-#ifdef SOFA_WITH_DOUBLE
-extern template class SOFA_BOUNDARY_CONDITION_API AffineMovementConstraint<defaulttype::Vec3dTypes>;
-extern template class SOFA_BOUNDARY_CONDITION_API AffineMovementConstraint<defaulttype::Rigid3dTypes>;
-#endif //SOFA_WITH_DOUBLE
-#ifdef SOFA_WITH_FLOAT
-extern template class SOFA_BOUNDARY_CONDITION_API AffineMovementConstraint<defaulttype::Vec3fTypes>;
-extern template class SOFA_BOUNDARY_CONDITION_API AffineMovementConstraint<defaulttype::Rigid3fTypes>;
-#endif //SOFA_WITH_FLOAT
+extern template class SOFA_BOUNDARY_CONDITION_API AffineMovementConstraint<defaulttype::Vec3Types>;
+extern template class SOFA_BOUNDARY_CONDITION_API AffineMovementConstraint<defaulttype::Rigid3Types>;
+ 
 #endif //SOFABOUNDARYCONDITION_AFFINEMOVEMENT_CONSTRAINT_CPP
 
 

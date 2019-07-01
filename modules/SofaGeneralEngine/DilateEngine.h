@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -30,7 +30,7 @@
 #include <sofa/core/topology/BaseMeshTopology.h>
 
 #include <sofa/defaulttype/Quat.h>
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 
 namespace sofa
@@ -62,12 +62,12 @@ public:
 
     DilateEngine();
 
-    virtual ~DilateEngine() {}
+    ~DilateEngine() override {}
 
-    virtual void init() override;
-    virtual void bwdInit() override;
-    virtual void reinit() override;
-    virtual void doUpdate() override;
+    void init() override;
+    void bwdInit() override;
+    void reinit() override;
+    void doUpdate() override;
 
     virtual std::string getTemplateName() const override
     {
@@ -91,9 +91,8 @@ protected:
 };
 
 #if  !defined(SOFA_COMPONENT_ENGINE_DILATEENGINE_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API DilateEngine<defaulttype::Vec3dTypes>;
-#endif
+extern template class SOFA_GENERAL_ENGINE_API DilateEngine<defaulttype::Vec3Types>;
+
 #endif
 
 } // namespace engine

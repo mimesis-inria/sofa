@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -72,10 +72,10 @@ protected:
     virtual ~EvalSurfaceDistance();
 public:
     /// Compute the error metric between two surfaces
-    virtual SReal  eval() override;
+    SReal  eval() override;
     /// Init the computation
-    virtual void init() override;
-    virtual void draw(const core::visual::VisualParams* vparams) override;
+    void init() override;
+    void draw(const core::visual::VisualParams* vparams) override;
 
 protected:
 
@@ -94,12 +94,8 @@ protected:
 };
 
 #if  !defined(SOFA_COMPONENT_MISC_EVALSURFACEDISTANCE_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_VALIDATION_API EvalSurfaceDistance<defaulttype::Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_VALIDATION_API EvalSurfaceDistance<defaulttype::Vec3fTypes>;
-#endif
+extern template class SOFA_VALIDATION_API EvalSurfaceDistance<defaulttype::Vec3Types>;
+
 #endif
 
 } // namespace misc

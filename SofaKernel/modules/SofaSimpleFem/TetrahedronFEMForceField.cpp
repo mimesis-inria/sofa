@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -21,7 +21,7 @@
 ******************************************************************************/
 #define SOFA_COMPONENT_FORCEFIELD_TETRAHEDRONFEMFORCEFIELD_CPP
 #include "TetrahedronFEMForceField.inl"
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 #include <sofa/core/ObjectFactory.h>
 
 
@@ -39,20 +39,12 @@ using namespace sofa::defaulttype;
 
 // Register in the Factory
 int TetrahedronFEMForceFieldClass = core::RegisterObject("Tetrahedral finite elements")
-#ifndef SOFA_FLOAT
-        .add< TetrahedronFEMForceField<Vec3dTypes> >()
-#endif
-#ifndef SOFA_DOUBLE
-        .add< TetrahedronFEMForceField<Vec3fTypes> >()
-#endif
+        .add< TetrahedronFEMForceField<Vec3Types> >()
+
         ;
 
-#ifndef SOFA_FLOAT
-template class SOFA_SIMPLE_FEM_API TetrahedronFEMForceField<Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class SOFA_SIMPLE_FEM_API TetrahedronFEMForceField<Vec3fTypes>;
-#endif
+template class SOFA_SIMPLE_FEM_API TetrahedronFEMForceField<Vec3Types>;
+
 
 } // namespace forcefield
 

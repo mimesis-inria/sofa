@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -60,14 +60,14 @@ public:
     typedef core::objectmodel::Data<VecDeriv>		DataVecDeriv;
     typedef core::objectmodel::Data<MatrixDeriv>    DataMatrixDeriv;
 protected:
-    PairInteractionConstraint(MechanicalState<DataTypes> *mm1 = NULL, MechanicalState<DataTypes> *mm2 = NULL);
+    PairInteractionConstraint(MechanicalState<DataTypes> *mm1 = nullptr, MechanicalState<DataTypes> *mm2 = nullptr);
 
-    virtual ~PairInteractionConstraint();
+    ~PairInteractionConstraint() override;
 public:
     Data<SReal> endTime;  ///< Time when the constraint becomes inactive (-1 for infinitely active)
     virtual bool isActive() const; ///< if false, the constraint does nothing
 
-    virtual void init() override;
+    void init() override;
 
     /// Retrieve the associated MechanicalState
     MechanicalState<DataTypes>* getMState1() { return mstate1; }
@@ -82,7 +82,7 @@ public:
     ///
     /// \param v is the result vector that contains the whole constraints violations
     /// \param cParams defines the state vectors to use for positions and velocities. Also defines the order of the constraint (POS, VEL, ACC)
-    virtual void getConstraintViolation(const ConstraintParams* cParams, defaulttype::BaseVector *v) override;
+    void getConstraintViolation(const ConstraintParams* cParams, defaulttype::BaseVector *v) override;
 
     /// Construct the Constraint violations vector of each constraint
     ///
@@ -100,7 +100,7 @@ public:
     /// \param cId is the result constraint sparse matrix Id
     /// \param cIndex is the index of the next constraint equation: when building the constraint matrix, you have to use this index, and then update it
     /// \param cParams defines the state vectors to use for positions and velocities. Also defines the order of the constraint (POS, VEL, ACC)
-    virtual void buildConstraintMatrix(const ConstraintParams* cParams, MultiMatrixDerivId cId, unsigned int &cIndex) override;
+    void buildConstraintMatrix(const ConstraintParams* cParams, MultiMatrixDerivId cId, unsigned int &cIndex) override;
 
     /// Construct the Jacobian Matrix
     ///
@@ -178,28 +178,20 @@ protected:
     ///
     /// That way, we can optimize the time spent to transfer quantities through the mechanical mappings.
     /// Every Dofs are inserted by default. The Constraint using only a subset of dofs should only insert these dofs in the mask.
-    virtual void updateForceMask() override;
+    void updateForceMask() override;
 
     void storeLambda(const ConstraintParams* cParams, Data<VecDeriv>& res1, Data<VecDeriv>& res2, const Data<MatrixDeriv>& j1, const Data<MatrixDeriv>& j2,
                                const sofa::defaulttype::BaseVector* lambda);
 };
 
 #if  !defined(SOFA_CORE_BEHAVIOR_PAIRINTERACTIONCONSTRAINT_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec3dTypes>;
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec2dTypes>;
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec1dTypes>;
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Rigid3dTypes>;
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Rigid2dTypes>;
-#endif
+extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec3Types>;
+extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec2Types>;
+extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec1Types>;
+extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Rigid3Types>;
+extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Rigid2Types>;
 
-#ifndef SOFA_DOUBLE
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec3fTypes>;
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec2fTypes>;
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Vec1fTypes>;
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Rigid3fTypes>;
-extern template class SOFA_CORE_API PairInteractionConstraint<defaulttype::Rigid2fTypes>;
-#endif
+
 #endif
 
 } // namespace behavior

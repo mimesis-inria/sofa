@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -67,10 +67,10 @@ public:
 
     MeshSampler();
 
-    virtual ~MeshSampler() {}
+    ~MeshSampler() override {}
 
-    virtual void reinit()    override { update();  }
-    virtual void init() override;
+    void reinit()    override { update();  }
+    void init() override;
     void doUpdate() override;
 
     void draw(const core::visual::VisualParams* vparams) override;
@@ -102,12 +102,8 @@ private:
 };
 
 #if  !defined(SOFA_COMPONENT_ENGINE_MESHSAMPLER_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API MeshSampler<defaulttype::Vec3dTypes>;
-#endif //SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API MeshSampler<defaulttype::Vec3fTypes>;
-#endif //SOFA_DOUBLE
+extern template class SOFA_GENERAL_ENGINE_API MeshSampler<defaulttype::Vec3Types>;
+ 
 #endif
 
 } // namespace engine

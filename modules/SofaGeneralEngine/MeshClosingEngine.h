@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -26,7 +26,7 @@
 #include <sofa/core/DataEngine.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/defaulttype/Vec.h>
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 #include <sofa/core/topology/BaseMeshTopology.h>
 #include <sofa/helper/SVector.h>
 
@@ -95,10 +95,10 @@ protected:
     {
     }
 
-    virtual ~MeshClosingEngine() {}
+    ~MeshClosingEngine() override {}
 
 public:
-    virtual void init() override
+    void init() override
     {
         addInput(&inputPosition);
         addInput(&inputTriangles);
@@ -112,17 +112,13 @@ public:
         setDirtyValue();
     }
 
-    virtual void reinit()    override { update();  }
+    void reinit()    override { update();  }
     void doUpdate() override;
 };
 
 #if  !defined(SOFA_COMPONENT_ENGINE_MeshClosingEngine_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API MeshClosingEngine<defaulttype::Vec3dTypes>;
-#endif //SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API MeshClosingEngine<defaulttype::Vec3fTypes>;
-#endif //SOFA_DOUBLE
+extern template class SOFA_GENERAL_ENGINE_API MeshClosingEngine<defaulttype::Vec3Types>;
+ 
 #endif
 
 } // namespace engine

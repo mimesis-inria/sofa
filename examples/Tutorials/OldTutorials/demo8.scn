@@ -1,5 +1,6 @@
 <!-- Collision Response Stress Test -->
 <Node name="root" dt="0.005">
+    <RequiredPlugin name="SofaOpenglVisual"/>
     <VisualStyle displayFlags="showForceFields" />
     <CollisionPipeline verbose="0" />
     <BruteForceDetection name="N2" />
@@ -21,7 +22,7 @@
         <Node name="Surf">
             <MechanicalObject dz="-21.0" />
             <SphereLoader filename="mesh/smCube27b.sph" />
-            <Sphere listRadius="@[-1].listRadius" />
+            <SphereCollisionModel listRadius="@[-1].listRadius" />
             <BarycentricMapping />
         </Node>
     </Node>
@@ -37,7 +38,7 @@
         <Node name="Surf">
             <MechanicalObject />
             <SphereLoader filename="mesh/smCube27b.sph" />
-            <Sphere listRadius="@[-1].listRadius" />
+            <SphereCollisionModel listRadius="@[-1].listRadius" />
             <RigidMapping />
         </Node>
         <Node name="Visu">
@@ -60,7 +61,7 @@
         <Node name="Surf">
             <MechanicalObject />
             <SphereLoader filename="mesh/smCube27b.sph" />
-            <Sphere listRadius="@[-1].listRadius" />
+            <SphereCollisionModel listRadius="@[-1].listRadius" />
             <BarycentricMapping />
         </Node>
     </Node>
@@ -80,7 +81,7 @@
         <Node name="Surf">
             <MechanicalObject />
             <SphereLoader filename="mesh/smCube27b.sph" />
-            <Sphere listRadius="@[-1].listRadius" />
+            <SphereCollisionModel listRadius="@[-1].listRadius" />
             <RigidMapping />
         </Node>
     </Node>
@@ -99,7 +100,7 @@
         <Node name="Surf">
             <MechanicalObject dz="21" />
             <SphereLoader filename="mesh/smCube27b.sph" />
-            <Sphere listRadius="@[-1].listRadius" />
+            <SphereCollisionModel listRadius="@[-1].listRadius" />
             <BarycentricMapping />
         </Node>
     </Node>
@@ -119,12 +120,12 @@
         <Node name="Surf">
             <MechanicalObject />
             <SphereLoader filename="mesh/dragon.sph" />
-            <Sphere listRadius="@[-1].listRadius" />
+            <SphereCollisionModel listRadius="@[-1].listRadius" />
             <RigidMapping />
         </Node>
     </Node>
     <MechanicalObject dy="-20" />
     <SphereLoader filename="mesh/floor.sph"/>
-    <Sphere listRadius="@[-1].listRadius"  simulated="0" moving="0" />
+    <SphereCollisionModel listRadius="@[-1].listRadius"  simulated="0" moving="0" />
     <OglModel name="FloorV" filename="mesh/floor.obj" texturename="textures/floor.bmp" dy="-20" />
 </Node>

@@ -9,6 +9,7 @@ set(SOURCE_FILES
     core/objectmodel/BaseLink_test.cpp
     core/objectmodel/BaseObjectDescription_test.cpp
     core/objectmodel/DataFileName_test.cpp
+    core/objectmodel/DataCallback_test.cpp
     core/DataEngine_test.cpp
     defaulttype/MapMapSparseMatrixEigenUtils_test.cpp
     defaulttype/MatTypes_test.cpp
@@ -20,8 +21,8 @@ set(SOURCE_FILES
     helper/Quater_test.cpp
     helper/SVector_test.cpp
     helper/vector_test.cpp
-    helper/gl/GLSLShader_test.cpp
     helper/io/MeshOBJ_test.cpp
+    helper/io/XspLoader_test.cpp
     helper/system/FileMonitor_test.cpp
     helper/system/FileRepository_test.cpp
     helper/system/FileSystem_test.cpp
@@ -34,6 +35,12 @@ set(SOURCE_FILES
     simulation/TaskSchedulerTestTasks.cpp
     main.cpp
 )
+
+if(NOT SOFA_NO_OPENGL)
+    list(APPEND SOURCE_FILES
+        helper/gl/GLSLShader_test.cpp
+    )
+endif(NOT SOFA_NO_OPENGL)
 
 #Plugin tests
 #add_subdirectory(plugin-system) ## TODO: check if deprecated or... ?

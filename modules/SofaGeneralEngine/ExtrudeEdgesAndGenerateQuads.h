@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -30,7 +30,7 @@
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/behavior/MechanicalState.h>
 #include <sofa/core/topology/BaseMeshTopology.h>
-#include <sofa/defaulttype/Vec3Types.h>
+#include <sofa/defaulttype/VecTypes.h>
 
 namespace sofa
 {
@@ -59,13 +59,13 @@ protected:
 
     ExtrudeEdgesAndGenerateQuads();
 
-    virtual ~ExtrudeEdgesAndGenerateQuads() {}
+    ~ExtrudeEdgesAndGenerateQuads() override {}
 public:
 
-    virtual void init() override;
-    virtual void bwdInit() override;
-    virtual void reinit() override;
-    virtual void doUpdate() override;
+    void init() override;
+    void bwdInit() override;
+    void reinit() override;
+    void doUpdate() override;
 
     virtual std::string getTemplateName() const override
     {
@@ -95,12 +95,8 @@ protected:
 };
 
 #if  !defined(SOFA_COMPONENT_ENGINE_EXTRUDEEDGESANDGENERATEQUADS_CPP)
-#ifdef SOFA_WITH_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API ExtrudeEdgesAndGenerateQuads<defaulttype::Vec3dTypes>;
-#endif //SOFA_WITH_DOUBLE
-#ifdef SOFA_WITH_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API ExtrudeEdgesAndGenerateQuads<defaulttype::Vec3fTypes>;
-#endif //SOFA_WITH_FLOAT
+extern template class SOFA_GENERAL_ENGINE_API ExtrudeEdgesAndGenerateQuads<defaulttype::Vec3Types>;
+ 
 #endif
 
 } // namespace engine
