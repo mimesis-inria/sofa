@@ -28,6 +28,8 @@
 #include <sstream>
 #include <string>
 
+#include <sofa/core/objectmodel/IdleEvent.h>
+
 namespace sofa
 {
 
@@ -39,6 +41,7 @@ signed int BatchGUI::nbIter = BatchGUI::DEFAULT_NUMBER_OF_ITERATIONS;
 std::string BatchGUI::nbIterInp="";
 BatchGUI::BatchGUI()
     : groot(NULL)
+    , m_animated(false)
 {
 }
 
@@ -71,6 +74,16 @@ int BatchGUI::mainLoop()
        
         while (i <= nbIter || nbIter == -1)
         {
+            sofa::core::objectmodel::IdleEvent hb;
+            if (groot)
+            {
+                groot->propagateEvent(core::ExecParams::defaultInstance(), &hb);
+            }
+
+            if (!m_animated)
+                continue;
+
+			if (i != nbIter)
             if (i != nbIter)
             {
                 sofa::helper::ScopedAdvancedTimer("Animate");
@@ -116,6 +129,18 @@ void BatchGUI::setScene(sofa::simulation::Node::SPtr groot, const char* filename
     resetScene();
 }
 
+
+void BatchGUI::playpauseGUI(bool value)
+{
+	if (groot)
+		groot->getContext()->setAnimate(value);
+	m_animated = value;
+}
+
+void BatchGUI::switchPlaypauseGUI()
+{
+	playpauseGUI(!m_animated);
+}
 
 void BatchGUI::resetScene()
 {
