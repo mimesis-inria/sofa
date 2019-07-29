@@ -793,7 +793,7 @@ void BeamFEMForceField<DataTypes>::BeamInfo::init(double E, double L, double nu,
     _Iz = M_PI*(r*r*r*r - rInner*rInner*rInner*rInner)/4.0;
 
     _Iy = _Iz ;
-    _J = (_Iz+_Iy)*10.0;
+    _J = (_Iz+_Iy)*5.0;
     _A = M_PI*(r*r - rInner*rInner);
 
 

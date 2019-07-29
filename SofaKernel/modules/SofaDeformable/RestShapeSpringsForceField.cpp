@@ -83,7 +83,25 @@ void RestShapeSpringsForceField<Rigid3Types>::addForce(const core::MechanicalPar
         }
 
         // rotation
-        Quatd dq = p1[index].getOrientation() * p0[ext_index].getOrientation().inverse();
+		Quatd frAim;
+		if (d_partialAngularStiffness.getValue())
+		{
+			defaulttype::Mat3x3 mat, mat1;
+			p0[ext_index].getOrientation().toMatrix(mat);
+			p1[index].getOrientation().toMatrix(mat1);
+
+			Vec3d fakeFrameX = mat.col(0);
+			fakeFrameX.normalize();
+			Vec3d fakeFrameY = mat1.col(2).cross(fakeFrameX);
+			fakeFrameY.normalize();
+			Vec3d fakeFrameZ = fakeFrameX.cross(fakeFrameY);
+			fakeFrameZ.normalize();
+			frAim = Quatd::createQuaterFromFrame(fakeFrameX, fakeFrameY, fakeFrameZ);
+		}
+		else
+			frAim = p0[ext_index].getOrientation();
+
+		Quatd dq = p1[index].getOrientation() *frAim.inverse();
         Vec3d dir;
         double angle=0;
         dq.normalize();
@@ -93,10 +111,12 @@ void RestShapeSpringsForceField<Rigid3Types>::addForce(const core::MechanicalPar
             dq = dq * -1.0;
         }
 
+		//dq.
+
         if (dq[3] < 0.999999999999999)
             dq.quatToAxis(dir, angle);
 
-        getVOrientation(f1[index]) -= dir * angle * (i < k_a.size() ? k_a[i] : k_a[0]);
+       getVOrientation(f1[index]) -= dir * angle * (i < k_a.size() ? k_a[i] : k_a[0]);
     }
 }
 

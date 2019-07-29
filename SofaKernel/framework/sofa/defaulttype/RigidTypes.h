@@ -650,7 +650,7 @@ public:
             text << "Previous value was: " << v.orientation << msgendl ;
             v.orientation.normalize();
             text << "New value is: " << v.orientation;
-            msg_warning("Rigid") << text.str();
+            //msg_warning("Rigid") << text.str();
         }
         return in;
     }

@@ -86,6 +86,8 @@ public:
     Data< bool > drawSpring; ///< draw Spring
     Data< defaulttype::RGBAColor > springColor; ///< spring color. (default=[0.0,1.0,0.0,1.0])
 
+	Data< bool > d_partialAngularStiffness; ///< angular stiffness only on X (external) axis
+
     SingleLink<RestShapeSpringsForceField<DataTypes>, sofa::core::behavior::MechanicalState< DataTypes >, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> restMState;
     linearsolver::EigenBaseSparseMatrix<typename DataTypes::Real> matS;
 

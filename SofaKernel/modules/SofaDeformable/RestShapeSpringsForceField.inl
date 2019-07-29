@@ -63,6 +63,7 @@ RestShapeSpringsForceField<DataTypes>::RestShapeSpringsForceField()
     , drawSpring(initData(&drawSpring,false,"drawSpring","draw Spring"))
     , springColor(initData(&springColor, defaulttype::RGBAColor(0.0,1.0,0.0,1.0), "springColor","spring color. (default=[0.0,1.0,0.0,1.0])"))
     , restMState(initLink("external_rest_shape", "rest_shape can be defined by the position of an external Mechanical State"))
+	, d_partialAngularStiffness(initData(&d_partialAngularStiffness, false, "partialAngularStiffness", "angular stiffness only on X (external) axis [!only for Rigid3d!]"))
 {
 }
 
@@ -235,7 +236,7 @@ void RestShapeSpringsForceField<DataTypes>::recomputeIndices()
     }
     else
     {
-        msg_info() << "Indices successfully checked";
+        //msg_info() << "Indices successfully checked";
     }
 }
 
