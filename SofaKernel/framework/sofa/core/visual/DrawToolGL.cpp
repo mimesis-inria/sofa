@@ -146,7 +146,7 @@ void DrawToolGL::drawLines(const std::vector<Vector3> &points, float size, const
 {
     if (points.size() != colors.size()*2)
     {
-        msg_warning("DrawToolGL") << "Sizes mismatch between points.size() and colors.size().";
+        //msg_warning("DrawToolGL") << "Sizes mismatch between points.size() and colors.size().";
         return drawLines(points, size, RGBAColor::red());
     }
 

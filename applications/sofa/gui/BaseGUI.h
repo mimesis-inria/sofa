@@ -73,6 +73,8 @@ public:
 #endif
     virtual void setRecordPath(const std::string & /*path*/) {}
     virtual void setGnuplotPath(const std::string & /*path*/) {}
+    virtual const std::string getHelpText() { return std::string(); }
+    virtual void setHelpText(const std::string& text) {}
 
     virtual void initViewer(BaseViewer* /*viewer*/) {}
     virtual void setViewerConfiguration(sofa::component::configurationsetting::ViewerSetting* /*viewerConf*/) {}

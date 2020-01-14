@@ -675,11 +675,11 @@ void DiagonalMass<DataTypes, MassType>::init()
         m_dataTrackerDensity.trackData(d_massDensity);
         m_dataTrackerTotal.trackData(d_totalMass);
 
-        if(!checkTopology())
-        {
-            m_componentstate = ComponentState::Invalid;
-            return;
-        }
+        //if(!checkTopology())
+        //{
+        //    m_componentstate = ComponentState::Invalid;
+        //    return;
+        //}
         Inherited::init();
         initTopologyHandlers();
 

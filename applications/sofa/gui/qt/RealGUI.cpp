@@ -1706,7 +1706,7 @@ void RealGUI::initViewer(BaseViewer* _viewer)
                 );
 
         // setGUI
-        textEdit1->setText ( qtViewer->helpString() );
+        setHelpText(qtViewer->helpString().toStdString());
         connect ( this, SIGNAL( newStep()), qtViewer->getQWidget(), SLOT( update()));
 
         qtViewer->getQWidget()->setFocus();
@@ -1724,6 +1724,16 @@ void RealGUI::initViewer(BaseViewer* _viewer)
     connect ( sizeW, SIGNAL ( valueChanged ( int ) ), this, SLOT ( setSizeW ( int ) ) );
     connect ( sizeH, SIGNAL ( valueChanged ( int ) ), this, SLOT ( setSizeH ( int ) ) );
 
+}
+
+const std::string RealGUI::getHelpText()
+{
+    return textEdit1->toHtml().toStdString();
+}
+
+void RealGUI::setHelpText(const std::string& helpString)
+{
+    textEdit1->setText(QString(helpString.c_str()));
 }
 
 //------------------------------------

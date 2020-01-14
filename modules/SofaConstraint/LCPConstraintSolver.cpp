@@ -1084,10 +1084,11 @@ int LCPConstraintSolver::nlcp_gaussseidel_unbuilt(double *dfree, double *f, std:
 
     msg_info_when( displayTime.getValue() ) <<" GAUSS_SEIDEL iterations  "
                                            << ( (double) timer.getTime() - time)*timeScale<<" ms" ;
-
-    msg_warning() << "No convergence in  unbuilt nlcp gaussseidel function : error ="
-                <<error <<" after"<< it<<" iterations";
-
+    if(f_printLog.getValue())
+    {
+        msg_warning() << "No convergence in  unbuilt nlcp gaussseidel function : error ="
+                    <<error <<" after"<< it<<" iterations";
+    }
     return 0;
 }
 

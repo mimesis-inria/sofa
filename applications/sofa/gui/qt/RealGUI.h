@@ -266,6 +266,8 @@ public:
     void setExportState(bool) override;
     virtual void setRecordPath(const std::string & path) override;
     virtual void setGnuplotPath(const std::string & path) override;
+    const std::string getHelpText() override;
+    void setHelpText(const std::string& text) override;
 
     /// create a viewer according to the argument key
     /// \note the viewerMap have to be initialize at least once before

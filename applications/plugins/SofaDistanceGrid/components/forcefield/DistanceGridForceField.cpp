@@ -41,6 +41,7 @@ int DistanceGridForceFieldClass = core::RegisterObject("Force applied by a dista
 
         ;
 template class SOFA_SOFADISTANCEGRID_API DistanceGridForceField<Vec3Types>;
+template class SOFA_SOFADISTANCEGRID_API DistanceGridForceField<Rigid3Types>;
 
 
 } // namespace forcefield
