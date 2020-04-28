@@ -46,18 +46,18 @@ namespace visualmodel
  *
  */
 
-class SOFA_VOLUMETRICRENDERING_API OglVolumetricModel : public core::visual::VisualModel, public ExtVec3State
+class SOFA_VOLUMETRICRENDERING_API OglVolumetricModel : public core::visual::VisualModel, public Vec3State
 {
 public:
-    SOFA_CLASS2(OglVolumetricModel, core::visual::VisualModel, ExtVec3State);
+    SOFA_CLASS2(OglVolumetricModel, core::visual::VisualModel, Vec3State);
 
     typedef sofa::core::topology::Tetrahedron Tetrahedron;
     typedef sofa::core::topology::Hexahedron Hexahedron;
     typedef sofa::core::topology::BaseMeshTopology::SeqTetrahedra SeqTetrahedra;
     typedef sofa::core::topology::BaseMeshTopology::SeqHexahedra SeqHexahedra;
 
-    Data< sofa::defaulttype::ResizableExtVector<Tetrahedron> > d_tetrahedra; ///< Tetrahedra to draw
-    Data< sofa::defaulttype::ResizableExtVector<Hexahedron> > d_hexahedra; ///< Hexahedra to draw
+    Data< sofa::helper::vector<Tetrahedron> > d_tetrahedra; ///< Tetrahedra to draw
+    Data< sofa::helper::vector<Hexahedron> > d_hexahedra; ///< Hexahedra to draw
 
     Data<float> d_volumeScale; ///< Scale for each volumetric primitive
     Data<bool> d_depthTest; ///< Set Depth Test
@@ -92,7 +92,7 @@ private:
     //Attributes
     sofa::component::visualmodel::OglFloat4Attribute::SPtr m_vertexColors;
 
-    sofa::defaulttype::ResizableExtVector<Tetrahedron> m_hexaToTetrahedra;
+    sofa::helper::vector<Tetrahedron> m_hexaToTetrahedra;
 
     sofa::helper::vector<Coord> m_tetraBarycenters;
     sofa::helper::vector<Coord> m_hexaBarycenters;

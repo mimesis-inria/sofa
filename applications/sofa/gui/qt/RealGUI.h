@@ -27,7 +27,7 @@
 
 #include <SofaGui/config.h>
 #include <ui_GUI.h>
-#include <sofa/gui/qt/SofaGUIQt.h>
+#include <sofa/gui/qt/SofaGuiQt.h>
 #include "GraphListenerQListView.h"
 #include "QMenuFilesRecentlyOpened.h"
 #include "PickHandlerCallBacks.h"
@@ -97,8 +97,12 @@ class GraphVisitor;
 
 class SofaMouseManager;
 
-#ifdef SOFAGUIQT_HAS_QTCHARTS
+#if SOFAGUIQT_HAVE_QT5_CHARTS
 class SofaWindowProfiler;
+#endif
+
+#if SOFAGUIQT_HAVE_NODEEDITOR
+class SofaWindowDataGraph;
 #endif
 
 namespace viewer
@@ -113,7 +117,7 @@ class SOFA_SOFAGUIQT_API RealGUI : public QMainWindow, public Ui::GUI, public so
 
 //-----------------STATIC METHODS------------------------{
 public:
-    static BaseGUI* CreateGUI(const char* name, sofa::simulation::Node::SPtr groot = NULL, const char* filename = nullptr);
+    static BaseGUI* CreateGUI(const char* name, sofa::simulation::Node::SPtr groot = nullptr, const char* filename = nullptr);
 
     static void SetPixmap(std::string pixmap_filename, QPushButton* b);
 
@@ -166,8 +170,12 @@ private:
     GraphVisitor* handleTraceVisitor;
 #endif
     SofaMouseManager* m_sofaMouseManager;
-#ifdef SOFAGUIQT_HAS_QTCHARTS
+#if SOFAGUIQT_HAVE_QT5_CHARTS
     SofaWindowProfiler* m_windowTimerProfiler;
+#endif
+
+#if SOFAGUIQT_HAVE_NODEEDITOR
+    SofaWindowDataGraph* m_sofaWindowDataGraph;
 #endif
 //-----------------OPTIONS DEFINITIONS------------------------}
 
@@ -333,6 +341,7 @@ private:
     void parseOptions();
 
     void createPluginManager();
+    void createSofaWindowDataGraph();
 
     /// configure Recently Opened Menu
     void createRecentFilesMenu();
@@ -397,6 +406,7 @@ public slots:
     virtual void showPluginManager();
     virtual void showMouseManager();
     virtual void showVideoRecorderManager();
+    virtual void showWindowDataGraph();
     virtual void toolsDockMoved();
 
 protected slots:

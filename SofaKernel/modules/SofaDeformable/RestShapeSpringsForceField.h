@@ -110,7 +110,7 @@ public:
         SOFA_UNUSED(mparams);
         SOFA_UNUSED(x);
 
-        msg_error() << "Get potentialEnergy not implemented";
+        msg_warning() << "Method getPotentialEnergy not implemented yet.";
         return 0.0;
     }
 

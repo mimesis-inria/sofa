@@ -56,7 +56,7 @@ SparseGridRamificationTopology::~SparseGridRamificationTopology()
             if (_connexions[i][j])
             {
                 delete _connexions[i][j];
-                _connexions[i][j] = NULL;
+                _connexions[i][j] = nullptr;
             }
         }
 }
@@ -72,8 +72,6 @@ void SparseGridRamificationTopology::init()
 
 void SparseGridRamificationTopology::buildAsFinest()
 {
-// 				serr<<"SparseGridRamificationTopology::buildAsFinest()"<<sendl;
-
     SparseGridTopology::buildAsFinest();
 
 
@@ -97,7 +95,7 @@ void SparseGridRamificationTopology::findConnexionsAtFinestLevel()
     for( unsigned i=0; i<_connexions.size(); ++i)
         _connexions[i].push_back( new Connexion() ); // at the finest level, each hexa corresponds exatly to one connexion
 
-    helper::io::Mesh* mesh = NULL;
+    helper::io::Mesh* mesh = nullptr;
 
     // Finest level is asked
     if (_finestConnectivity.getValue())
@@ -108,13 +106,13 @@ void SparseGridRamificationTopology::findConnexionsAtFinestLevel()
             mesh = helper::io::Mesh::Create(filename.c_str());
             if (!mesh)
             {
-                serr<<"Warning: SparseGridRamificationTopology::findConnexionsAtFinestLevel Can't create mesh from file=\""<< fileTopology.getValue()<<"\" is valid)"<<sendl;
+                msg_warning() << "FindConnexionsAtFinestLevel Can't create mesh from file=\"" << fileTopology.getValue() << "\" is valid)";
                 return;
             }
         }
         if(filename.empty() && seqPoints.getValue().empty()) // No vertices buffer set, nor mesh file => impossible to create mesh
         {
-            serr<<"Warning: SparseGridRamificationTopology::findConnexionsAtFinestLevel -- mesh is NULL (check if fileTopology=\""<< fileTopology.getValue()<<"\" is valid)"<<sendl;
+            msg_warning() << "FindConnexionsAtFinestLevel -- mesh is nullptr (check if fileTopology=\"" << fileTopology.getValue() << "\" is valid)";
             return;
         }
         else if(filename.empty() && !seqPoints.getValue().empty()) // no file given but vertex buffer. We can rebuild the mesh
@@ -224,7 +222,7 @@ void SparseGridRamificationTopology::findConnexionsAtFinestLevel()
 
 bool SparseGridRamificationTopology::sharingTriangle(helper::io::Mesh* mesh, int cubeIdx, int neighborIdx, unsigned where )
 {
-    if(!_finestConnectivity.getValue() || mesh==NULL )
+    if(!_finestConnectivity.getValue() || mesh==nullptr )
         return true;
 
     // it is not necessary to analyse connectivity between non-boundary cells
@@ -624,12 +622,10 @@ void SparseGridRamificationTopology::buildFromFiner()
                                 Connexion* coarseConnexion2 = fineConnexion2->_parent;
                                 int coarseHexa2 = coarseConnexion2->_tmp;
 
-// 											serr<<"coarseHexa : "<<coarseHexa1<<" "<<coarseHexa2<<sendl;
-
 // 											if( coarseConnexion1 != coarseConnexion2 )
                                 if( coarseHexa1 != coarseHexa2 ) // the both fine hexahedra are not in the same coarse hexa
                                 {
-                                    // 											sout<<"coarseConnexion1 : "<<coarseConnexion1<<"   "<<(coarseConnexion1==NULL?"NULL":"not")<<sendl;
+                                    // 											sout<<"coarseConnexion1 : "<<coarseConnexion1<<"   "<<(coarseConnexion1==nullptr?"nullptr":"not")<<sendl;
                                     coarseConnexion1->_neighbors[i].insert( coarseConnexion2 );
                                     coarseConnexion2->_neighbors[ !(i%2)?i+1:i-1 ].insert( coarseConnexion1 );
                                 }
@@ -952,7 +948,7 @@ void SparseGridRamificationTopology::findCoarsestParents()
                         for( helper::vector<Connexion*>::iterator it = finestSGRT->_connexions[cubeIdx].begin(); it != finestSGRT->_connexions[cubeIdx].end() ; ++it)
                         {
                             Connexion * finestConnexion = *it;
-                            while( finestConnexion->_parent != NULL )
+                            while( finestConnexion->_parent != nullptr )
                                 finestConnexion = finestConnexion->_parent;
 
                             (*it)->_coarsestParent = finestConnexion->_hexaIdx;
@@ -1011,7 +1007,7 @@ void SparseGridRamificationTopology::changeIndices(unsigned oldidx, unsigned new
 void SparseGridRamificationTopology::printNeighborhood()
 {
     // 				// print draw neighbors
-    serr<<sendl<<sendl;
+    sout <<sendl<<sendl;
     for(int z=0; z<getNz()-1; ++z)
     {
         for(int y=getNy()-2; y>=0; --y)
@@ -1124,11 +1120,11 @@ void SparseGridRamificationTopology::printNbConnexions()
 
 void SparseGridRamificationTopology::printParents()
 {
-    serr<<"\n\nPARENTS\n"<<sendl;
+    sout <<"\n\nPARENTS\n"<<sendl;
 
     for( unsigned i=0; i<_virtualFinerLevels.size(); ++i)
     {
-        serr<<"level "<<i<<" :"<<sendl;
+        sout <<"level "<<i<<" :"<<sendl;
 
         SparseGridRamificationTopology* finestSGRT = dynamic_cast<SparseGridRamificationTopology*>(_virtualFinerLevels[i].get());
 

@@ -72,8 +72,8 @@ void MechanicalStateController<DataTypes>::init()
 {
     using core::behavior::MechanicalState;
     mState = dynamic_cast<MechanicalState<DataTypes> *> (this->getContext()->getMechanicalState());
-    if (!mState)
-        serr << "MechanicalStateController has no binding MechanicalState" << sendl;
+    
+    msg_error_when(!mState) << "MechanicalStateController has no binding MechanicalState";
     device = false;
 }
 
@@ -194,10 +194,9 @@ void MechanicalStateController<DataTypes>::applyController()
 //template <class DataTypes>
 //void MechanicalStateController<DataTypes>::onHapticDeviceEvent(core::objectmodel::HapticDeviceEvent *oev)
 //{
-//	//sout << "void MechanicalStateController<DataTypes>::onHapticDeviceEvent()"<<sendl;
 //	//if (oev->getButton())
 //	//{
-//	//		sout<<" Button1 pressed"<<sendl;
+//	//		msg_info()<<" Button1 pressed";
 //
 //	//}
 //

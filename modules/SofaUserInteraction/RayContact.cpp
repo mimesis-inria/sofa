@@ -37,23 +37,23 @@ namespace collision
 
 using namespace sofa::defaulttype;
 
-Creator<core::collision::Contact::Factory, RayContact<SphereModel> > RaySphereContactClass("ray",true);
+Creator<core::collision::Contact::Factory, RayContact<SphereCollisionModel<sofa::defaulttype::Vec3Types>> > RaySphereContactClass("ray",true);
 Creator<core::collision::Contact::Factory, RayContact<RigidSphereModel> > RayRigidSphereContactClass("ray",true);
-Creator<core::collision::Contact::Factory, RayContact<TriangleModel> > RayTriangleContactClass("ray",true);
-Creator<core::collision::Contact::Factory, RayContact<OBBModel> > RayRigidBoxContactClass("ray", true); //cast not wroking
+Creator<core::collision::Contact::Factory, RayContact<TriangleCollisionModel<sofa::defaulttype::Vec3Types>> > RayTriangleContactClass("ray",true);
+Creator<core::collision::Contact::Factory, RayContact<OBBCollisionModel<sofa::defaulttype::Rigid3Types>> > RayRigidBoxContactClass("ray", true); //cast not wroking
 
 
 
 BaseRayContact::BaseRayContact(CollisionModel1* model1, core::collision::Intersection* /*instersectionMethod*/)
     : model1(model1)
 {
-    if (model1!=NULL)
+    if (model1!=nullptr)
         model1->addContact(this);
 }
 
 BaseRayContact::~BaseRayContact()
 {
-    if (model1!=NULL)
+    if (model1!=nullptr)
         model1->removeContact(this);
 }
 

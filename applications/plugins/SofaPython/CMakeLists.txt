@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.1)
 project(SofaPython VERSION 0.1)
 
+set(CMAKE_CXX_STANDARD 11) # Python 2.7 is not compatible with C++17 and later
+
 if(UNIX)
   list(APPEND PYTHON_LIBRARIES dl)
 endif()
 
-set(SOFA_HAVE_PYTHON 1)
-
 set(HEADER_FILES
+    config.h.in
     Binding.h
     Binding_Base.h
     Binding_BaseContext.h
@@ -38,8 +39,6 @@ set(HEADER_FILES
     Binding_MeshTopology.h
     Binding_MultiMapping.h
     Binding_Node.h
-    Binding_OBJExporter.h
-    Binding_STLExporter.h
     Binding_PythonScriptController.h
     Binding_PythonScriptDataEngine.h
     Binding_RegularGridTopology.h
@@ -100,8 +99,6 @@ set(SOURCE_FILES
     Binding_MeshTopology.cpp
     Binding_MultiMapping.cpp
     Binding_Node.cpp
-    Binding_OBJExporter.cpp
-    Binding_STLExporter.cpp
     Binding_PythonScriptController.cpp
     Binding_PythonScriptDataEngine.cpp
     Binding_RegularGridTopology.cpp
@@ -151,19 +148,7 @@ find_package(PythonLibs 2.7 REQUIRED)
 find_package(SofaGui REQUIRED)
 find_package(SofaGeneral REQUIRED)
 find_package(SofaMisc REQUIRED)
-find_package(SofaExporter)
-
-if(SofaExporter_FOUND)
-    list(APPEND SOURCE_FILES
-        Binding_OBJExporter.cpp
-        Binding_STLExporter.cpp
-        )
-
-    list(APPEND HEADER_FILES
-        Binding_OBJExporter.h
-        Binding_STLExporter.h
-        )
-endif()
+find_package(Eigen3 REQUIRED)
 
 GET_FILENAME_COMPONENT(LIBRARY_NAME ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX} NAME_WE)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -193,8 +178,9 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC "$<INSTALL_INTERFACE:include>"
     )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC SofaSimulationCommon SofaUserInteraction SofaGuiCommon SofaComponentMisc SofaComponentGeneral ${PYTHON_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} PRIVATE SofaExporter)
+target_link_libraries(${PROJECT_NAME} PUBLIC SofaSimulationCommon SofaUserInteraction SofaGuiCommon SofaMisc SofaGeneral ${PYTHON_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
+
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
     # dlopen() is used on Linux for a workaround (see PythonEnvironnement.cpp)
     target_link_libraries(${PROJECT_NAME} PRIVATE dl)

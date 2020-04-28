@@ -21,7 +21,7 @@
 ******************************************************************************/
 #ifndef SOFA_SIMULATION_RayTriangleVisitor_H
 #define SOFA_SIMULATION_RayTriangleVisitor_H
-#include "config.h"
+#include <SofaMiscCollision/config.h>
 
 #include <sofa/simulation/Visitor.h>
 #include <SofaMeshCollision/TriangleModel.h>
@@ -50,12 +50,12 @@ public:
     defaulttype::Vec3d origin;    ///< Ray starting point
     defaulttype::Vec3d direction; ///< Ray direction
 
-    /// Return the embedding model. In case of nested hierarchy, return the smallest (deepest). NULL if no embedding model.
+    /// Return the embedding model. In case of nested hierarchy, return the smallest (deepest). nullptr if no embedding model.
     core::objectmodel::BaseObject* embeddingModel();
 
     // generic
     RayTriangleVisitor(const core::ExecParams* params = core::ExecParams::defaultInstance());
-    virtual void processTriangleModel(simulation::Node* node, component::collision::TriangleModel* obj);
+    virtual void processTriangleModel(simulation::Node* node, component::collision::TriangleCollisionModel<sofa::defaulttype::Vec3Types>* obj);
     virtual void processVisualModel(simulation::Node* node, component::visualmodel::VisualModelImpl* obj);
     Result processNodeTopDown(simulation::Node* node) override;
     bool isThreadSafe() const override { return true; }

@@ -164,6 +164,7 @@ public:
         data[i] = (Real)v;
     }
 
+    using BaseMatrix::add;
     void add(Index i, double v)
     {
         data[i] += (Real)v;
@@ -403,7 +404,7 @@ public:
     Bloc* wbloc(Index i, Index j)
     {
         if (i != j)
-            return NULL;
+            return nullptr;
         else
             return wbloc(i);
     }

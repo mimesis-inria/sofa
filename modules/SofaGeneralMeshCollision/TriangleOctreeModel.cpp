@@ -58,7 +58,7 @@ TriangleOctreeModel::TriangleOctreeModel ()
 void TriangleOctreeModel::draw (const core::visual::VisualParams* vparams)
 {
 #ifndef SOFA_NO_OPENGL
-    TriangleModel::draw(vparams);
+    TriangleCollisionModel<sofa::defaulttype::Vec3Types>::draw(vparams);
     if (isActive () && vparams->displayFlags().getShowCollisionModels ())
     {
         if (vparams->displayFlags().getShowWireFrame ())
@@ -88,10 +88,10 @@ void TriangleOctreeModel::computeBoundingTree(int maxDepth)
     if(octreeRoot)
     {
         delete octreeRoot;
-        octreeRoot=NULL;
+        octreeRoot=nullptr;
     }
 
-    CubeModel* cubeModel = createPrevious<CubeModel>();
+    CubeCollisionModel* cubeModel = createPrevious<CubeCollisionModel>();
     updateFromTopology();
 
     if (!isMoving() && !cubeModel->empty()) return; // No need to recompute BBox if immobile

@@ -22,6 +22,7 @@
 #ifndef SOFA_SIMULATION_SCENELOADERPHP_H
 #define SOFA_SIMULATION_SCENELOADERPHP_H
 
+#include <SofaSimulationCommon/common.h>
 #include <sofa/simulation/SceneLoaderFactory.h>
 
 namespace sofa
@@ -37,7 +38,7 @@ public:
     bool canLoadFileExtension(const char *extension) override;
 
     /// load the file
-    virtual sofa::simulation::Node::SPtr doLoad(const char *filename) override;
+    virtual sofa::simulation::Node::SPtr doLoad(const std::string& filename, const std::vector<std::string>& sceneArgs) override;
 
     /// get the file type description
     virtual std::string getFileTypeDesc() override;

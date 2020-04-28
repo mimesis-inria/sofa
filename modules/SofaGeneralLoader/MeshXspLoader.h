@@ -21,7 +21,7 @@
 ******************************************************************************/
 #ifndef SOFA_COMPONENT_LOADER_MESHXSPLOADER_H
 #define SOFA_COMPONENT_LOADER_MESHXSPLOADER_H
-#include "config.h"
+#include <SofaGeneralLoader/config.h>
 
 #include <sofa/core/loader/MeshLoader.h>
 
@@ -41,13 +41,6 @@ public:
 
     /// Inherited from MeshLoader
     bool load() override;
-
-    template <class T>
-    static bool canCreate ( T*& obj, core::objectmodel::BaseContext* context,
-                                     core::objectmodel::BaseObjectDescription* arg )
-    {
-        return BaseLoader::canCreate (obj, context, arg);
-    }
 
 protected:
     MeshXspLoader();

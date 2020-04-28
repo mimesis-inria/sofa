@@ -109,7 +109,7 @@ public:
 
     void applyJT( const sofa::core::ConstraintParams* /*cparams*/, InDataMatrixDeriv& /*out*/, const OutDataMatrixDeriv& /*in*/) override
     {
-        serr << "applyJT(constraint) not implemented" << sendl;
+        msg_warning() << "This object only support Direct Solving but an Indirect Solver in the scene is calling method applyJT(constraint) which is not implemented. This will produce un-expected behavior.";
     }
 
     //void applyJT( typename In::MatrixDeriv& out, const typename Out::MatrixDeriv& in );
@@ -152,7 +152,6 @@ protected :
 };
 
 #if  !defined(SOFA_COMPONENT_MAPPING_HEXAHEDRONCOMPOSITEFEMMAPPING_CPP)
-extern template class HexahedronCompositeFEMMapping< core::Mapping< defaulttype::Vec3dTypes, defaulttype::ExtVec3Types > >;
 extern template class HexahedronCompositeFEMMapping< core::Mapping< defaulttype::Vec3dTypes, defaulttype::Vec3dTypes > >;
 
 

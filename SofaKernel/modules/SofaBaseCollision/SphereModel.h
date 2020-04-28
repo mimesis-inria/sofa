@@ -19,8 +19,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_COMPONENT_COLLISION_SPHEREMODEL_H
-#define SOFA_COMPONENT_COLLISION_SPHEREMODEL_H
+#ifndef SOFA_COMPONENT_COLLISION_SPHERECOLLISIONMODEL_H
+#define SOFA_COMPONENT_COLLISION_SPHERECOLLISIONMODEL_H
 #include "config.h"
 
 #include <sofa/core/CollisionModel.h>
@@ -76,7 +76,6 @@ public:
     {
         return surfacePoint;
     }
-
 };
 
 // Specializations
@@ -134,8 +133,12 @@ public:
     template<class T>
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
-        if (dynamic_cast<core::behavior::MechanicalState<TDataTypes>*>(context->getMechanicalState()) == NULL && context->getMechanicalState() != NULL)
+        if (dynamic_cast<core::behavior::MechanicalState<TDataTypes>*>(context->getMechanicalState()) == nullptr && context->getMechanicalState() != nullptr)
+        {
+            arg->logError(std::string("No mechanical state with the datatype '") + DataTypes::Name() +
+                          "' found in the context node.");
             return false;
+        }
 
         return BaseObject::canCreate(obj, context, arg);
     }
@@ -144,7 +147,7 @@ public:
     static typename T::SPtr create(T*, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
         typename T::SPtr obj;
-        core::behavior::MechanicalState<TDataTypes>* _mstate = NULL;
+        core::behavior::MechanicalState<TDataTypes>* _mstate = nullptr;
 
         if( context)
         {
@@ -168,7 +171,7 @@ public:
         return templateName(this);
     }
 
-    static std::string templateName(const SphereCollisionModel<DataTypes>* = NULL)
+    static std::string templateName(const SphereCollisionModel<DataTypes>* = nullptr)
     {
         return DataTypes::Name();
     }
@@ -183,9 +186,8 @@ public:
 
 protected:
     core::behavior::MechanicalState<DataTypes>* mstate;
+    SingleLink<SphereCollisionModel<DataTypes>, sofa::core::topology::BaseMeshTopology, BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK> l_topology;
 };
-
-template <class TDataTypes> using TSphereModel [[deprecated("The TSphereModel is now deprecated please use SphereCollisionModel instead.")]] = SphereCollisionModel<TDataTypes>;
 
 template<class DataTypes>
 inline TSphere<DataTypes>::TSphere(ParentModel* model, int index)
@@ -223,13 +225,14 @@ template<class DataTypes>
 inline bool TSphere<DataTypes>::hasFreePosition() const { return this->model->mstate->read(core::ConstVecCoordId::freePosition())->isSet(); }
 
 
-typedef SphereCollisionModel<sofa::defaulttype::Vec3Types> SphereModel;
-typedef TSphere<sofa::defaulttype::Vec3Types> Sphere;
+template <class TDataTypes> using TSphereModel [[deprecated("The TSphereModel is now deprecated, please use SphereCollisionModel instead. Compatibility stops at v20.06")]] = SphereCollisionModel<TDataTypes>;
+using SphereModel [[deprecated("The SphereModel is now deprecated, please use SphereCollisionModel<sofa::defaulttype::Vec3Types> instead. Compatibility stops at v20.06")]] = SphereCollisionModel<sofa::defaulttype::Vec3Types>;
+using Sphere = TSphere<sofa::defaulttype::Vec3Types>;
 
 typedef SphereCollisionModel<sofa::defaulttype::Rigid3Types> RigidSphereModel;
 typedef TSphere<sofa::defaulttype::Rigid3Types> RigidSphere;
 
-#if  !defined(SOFA_COMPONENT_COLLISION_SPHEREMODEL_CPP)
+#if  !defined(SOFA_COMPONENT_COLLISION_SPHERECOLLISIONMODEL_CPP)
 extern template class SOFA_BASE_COLLISION_API TSphere<defaulttype::Vec3Types>;
 extern template class SOFA_BASE_COLLISION_API SphereCollisionModel<defaulttype::Vec3Types>;
 extern template class SOFA_BASE_COLLISION_API SphereCollisionModel<defaulttype::Rigid3Types>;

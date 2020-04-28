@@ -26,7 +26,6 @@ using sofa::core::VecId;
 #include <sofa/defaulttype/Vec.h>
 #include <sofa/defaulttype/VecTypes.h>
 using sofa::defaulttype::Vec3Types;
-using sofa::defaulttype::ExtVec3Types;
 using Coord3 = sofa::defaulttype::Vector3;
 using VecCoord3 = sofa::helper::vector<Coord3>;
 #include <sofa/gui/GUIManager.h>
@@ -34,16 +33,16 @@ using VecCoord3 = sofa::helper::vector<Coord3>;
 #include <sofa/helper/ArgumentParser.h>
 #include <sofa/helper/system/FileRepository.h>
 
-#include <SofaComponentAdvanced/initComponentAdvanced.h>
-#include <SofaComponentBase/initComponentBase.h>
-#include <SofaComponentCommon/initComponentCommon.h>
-#include <SofaComponentGeneral/initComponentGeneral.h>
-#include <SofaComponentMisc/initComponentMisc.h>
+#include <SofaAdvanced/initSofaAdvanced.h>
+#include <SofaBase/initSofaBase.h>
+#include <SofaCommon/initSofaCommon.h>
+#include <SofaGeneral/initSofaGeneral.h>
+#include <SofaMisc/initSofaMisc.h>
 
 #include <SofaBaseLinearSolver/CGLinearSolver.h>
 using CGLinearSolver = sofa::component::linearsolver::CGLinearSolver<sofa::component::linearsolver::GraphScatteredMatrix, sofa::component::linearsolver::GraphScatteredVector>;
 #include <SofaBaseMechanics/BarycentricMapping.h>
-using BarycentricMapping3_to_Ext3 = sofa::component::mapping::BarycentricMapping<Vec3Types, ExtVec3Types>;
+using BarycentricMapping3 = sofa::component::mapping::BarycentricMapping<Vec3Types, Vec3Types>;
 #include <SofaBaseMechanics/MechanicalObject.h>
 using MechanicalObject3 = sofa::component::container::MechanicalObject<Vec3Types>;
 #include <SofaBaseMechanics/UniformMass.h>
@@ -86,11 +85,11 @@ int main(int argc, char** argv)
     sofa::gui::initMain();
     sofa::gui::GUIManager::Init(argv[0]);
 
-    sofa::component::initComponentBase();
-    sofa::component::initComponentCommon();
-    sofa::component::initComponentGeneral();
-    sofa::component::initComponentAdvanced();
-    sofa::component::initComponentMisc();
+    sofa::component::initSofaBase();
+    sofa::component::initSofaCommon();
+    sofa::component::initSofaGeneral();
+    sofa::component::initSofaAdvanced();
+    sofa::component::initSofaMisc();
 
     // The graph root node : gravity already exists in a GNode by default
     sofa::simulation::setSimulation(new sofa::simulation::tree::TreeSimulation());
@@ -162,7 +161,7 @@ int main(int argc, char** argv)
     skin->addObject(visual);
 
     // The mapping between the tetrahedron (DOF) and the liver (visual)
-    BarycentricMapping3_to_Ext3::SPtr mapping = sofa::core::objectmodel::New<BarycentricMapping3_to_Ext3>();
+    BarycentricMapping3::SPtr mapping = sofa::core::objectmodel::New<BarycentricMapping3>();
     mapping->setModels(DOF.get(), visual.get());
     mapping->setName( "mapping" );
     skin->addObject(mapping);

@@ -21,10 +21,12 @@
 ******************************************************************************/
 #ifndef SOFA_COMPONENT_COLLISION_SPATIALGRIDPOINTMODEL_H
 #define SOFA_COMPONENT_COLLISION_SPATIALGRIDPOINTMODEL_H
-#include "config.h"
+#include <SofaMiscCollision/config.h>
 
 #include <SofaMeshCollision/PointModel.h>
+#if SOFAMISCCOLLISION_HAVE_SOFASPHFLUID
 #include <SofaSphFluid/SpatialGridContainer.h>
+#endif // SOFAMISCCOLLISION_HAVE_SOFASPHFLUID
 #include <sofa/defaulttype/VecTypes.h>
 #include <vector>
 
@@ -38,10 +40,10 @@ namespace collision
 {
 
 
-class SOFA_MISC_COLLISION_API SpatialGridPointModel : public PointModel
+class SOFA_MISC_COLLISION_API SpatialGridPointModel : public PointCollisionModel<sofa::defaulttype::Vec3Types>
 {
 public:
-    SOFA_CLASS(SpatialGridPointModel, PointModel);
+    SOFA_CLASS(SpatialGridPointModel, PointCollisionModel<sofa::defaulttype::Vec3Types>);
 
     typedef container::SpatialGridContainer<defaulttype::Vec3Types> GridContainer;
     typedef GridContainer::Grid Grid;

@@ -21,7 +21,7 @@
 ******************************************************************************/
 #ifndef SOFA_COMPONENT_LOADER_StringMeshCreator_H
 #define SOFA_COMPONENT_LOADER_StringMeshCreator_H
-#include "config.h"
+#include <SofaGeneralLoader/config.h>
 
 #include <sofa/core/loader/MeshLoader.h>
 
@@ -48,9 +48,6 @@ public:
     virtual std::string type() { return "This object is procedurally created"; }
     bool canLoad() override { return true; }
     bool load() override; ///< create the string
-
-    template <class T>
-    static bool canCreate ( T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg ) { return BaseLoader::canCreate (obj, context, arg); }
 
     Data< unsigned > resolution;  ///< Number of vertices (more than 1)
 

@@ -21,7 +21,7 @@
 ******************************************************************************/
 #ifndef SOFA_COMPONENT_LINEARSOLVER_JACOBIPRECONDITIONER_H
 #define SOFA_COMPONENT_LINEARSOLVER_JACOBIPRECONDITIONER_H
-#include "config.h"
+#include <SofaPreconditioner/config.h>
 
 #include <sofa/core/behavior/LinearSolver.h>
 #include <SofaBaseLinearSolver/MatrixLinearSolver.h>
@@ -57,20 +57,12 @@ public:
     void solve (Matrix& M, Vector& x, Vector& b) override;
     void invert(Matrix& M) override;
 
-    /// Pre-construction check method called by ObjectFactory.
-    /// Check that DataTypes matches the MechanicalState.
-    template<class T>
-    static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
-    {
-        return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
-    }
-
     virtual std::string getTemplateName() const override
     {
         return templateName(this);
     }
 
-    static std::string templateName(const JacobiPreconditioner<TMatrix,TVector>* = NULL)
+    static std::string templateName(const JacobiPreconditioner<TMatrix,TVector>* = nullptr)
     {
         return TMatrix::Name();
     }

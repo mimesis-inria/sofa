@@ -146,13 +146,15 @@ public:
     template<class T>
     static bool canCreate ( T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg )
     {
-        if ( arg->findObject ( arg->getAttribute ( "hexaContainerPath","../.." ) ) == NULL )
-            context->serr << "Cannot create "<<className ( obj ) <<" as the hexas container is missing."<<context->sendl;
-        if ( arg->findObject ( arg->getAttribute ( "targetPath",".." ) ) == NULL )
-            context->serr << "Cannot create "<<className ( obj ) <<" as the target point set is missing."<<context->sendl;
-        if ( dynamic_cast<sofa::component::topology::DynamicSparseGridTopologyContainer*> ( arg->findObject ( arg->getAttribute ( "hexaContainerPath","../.." ) ) ) == NULL )
+        if (arg->findObject(arg->getAttribute("hexaContainerPath", "../..")) == nullptr) {
+            msg_error(context) << "Cannot create " << className(obj) << " as the hexas container is missing.";
+        }
+        if (arg->findObject(arg->getAttribute("targetPath", "..")) == nullptr) {
+            msg_error(context) << "Cannot create " << className(obj) << " as the target point set is missing.";
+        }
+        if ( dynamic_cast<sofa::component::topology::DynamicSparseGridTopologyContainer*> ( arg->findObject ( arg->getAttribute ( "hexaContainerPath","../.." ) ) ) == nullptr )
             return false;
-        if ( dynamic_cast<core::behavior::MechanicalState<DataTypes>*> ( arg->findObject ( arg->getAttribute ( "targetPath",".." ) ) ) == NULL )
+        if ( dynamic_cast<core::behavior::MechanicalState<DataTypes>*> ( arg->findObject ( arg->getAttribute ( "targetPath",".." ) ) ) == nullptr )
             return false;
         return true;
     }
@@ -164,8 +166,8 @@ public:
     static typename T::SPtr create(T*, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg )
     {
         typename T::SPtr obj = sofa::core::objectmodel::New<T>(
-                ( arg?dynamic_cast<sofa::component::topology::DynamicSparseGridTopologyContainer*> ( arg->findObject ( arg->getAttribute ( "hexaContainerPath","../.." ) ) ) :NULL ),
-                ( arg?dynamic_cast<core::behavior::MechanicalState<DataTypes>*> ( arg->findObject ( arg->getAttribute ( "targetPath",".." ) ) ) :NULL ) );
+                ( arg?dynamic_cast<sofa::component::topology::DynamicSparseGridTopologyContainer*> ( arg->findObject ( arg->getAttribute ( "hexaContainerPath","../.." ) ) ) :nullptr ),
+                ( arg?dynamic_cast<core::behavior::MechanicalState<DataTypes>*> ( arg->findObject ( arg->getAttribute ( "targetPath",".." ) ) ) :nullptr ) );
 
         if ( context ) context->addObject ( obj );
 
@@ -190,7 +192,7 @@ public:
     {
         return templateName(this);
     }
-    static std::string templateName(const Distances<DataTypes>* = NULL)
+    static std::string templateName(const Distances<DataTypes>* = nullptr)
     {
         return DataTypes::Name();
     }

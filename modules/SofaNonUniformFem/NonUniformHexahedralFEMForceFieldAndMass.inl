@@ -53,17 +53,17 @@ void NonUniformHexahedralFEMForceFieldAndMass<DataTypes>::init()
 
     this->getContext()->get(this->_topology);
 
-    if(this->_topology == NULL)
+    if(this->_topology == nullptr)
     {
-        serr << "ERROR(NonUniformHexahedralFEMForceFieldAndMass): object must have a HexahedronSetTopology."<<sendl;
+        msg_error() << "Object must have a HexahedronSetTopology.";
         return;
     }
 
     _multilevelTopology = dynamic_cast<topology::MultilevelHexahedronSetTopologyContainer*>(this->_topology);
 
-    if(_multilevelTopology == NULL)
+    if(_multilevelTopology == nullptr)
     {
-        serr << "ERROR(NonUniformHexahedralFEMForceFieldAndMass): object must have a MultilevelHexahedronSetTopologyContainer";
+        msg_error() << "Object must have a MultilevelHexahedronSetTopologyContainer";
     }
 
     this->reinit();
@@ -94,7 +94,7 @@ void NonUniformHexahedralFEMForceFieldAndMass<T>::reinit()
 
     if (!this->_topology->getNbHexahedra())
     {
-        serr << "Topology is empty !" << sendl;
+        msg_error() << "Topology is empty !";
         return;
     }
 

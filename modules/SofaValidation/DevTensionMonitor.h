@@ -62,13 +62,18 @@ public:
     {
         if (arg->getAttribute("object"))
         {
-            if (dynamic_cast<core::behavior::MechanicalState<DataTypes>*>(arg->findObject(arg->getAttribute("object",".."))) == NULL)
+            if (dynamic_cast<core::behavior::MechanicalState<DataTypes>*>(arg->findObject(arg->getAttribute("object",".."))) == nullptr) {
+                arg->logError(std::string("Data attribute 'object' must point to a valid mechanical state of data type '") + DataTypes::Name() + "'.");
                 return false;
+            }
         }
         else
         {
-            if (dynamic_cast<core::behavior::MechanicalState<DataTypes>*>(context->getMechanicalState()) == NULL)
+            if (dynamic_cast<core::behavior::MechanicalState<DataTypes>*>(context->getMechanicalState()) == nullptr) {
+                arg->logError("No mechanical state with the datatype '" + std::string(DataTypes::Name()) +
+                              "' found in the context node and none specified in the data attribute 'object'.");
                 return false;
+            }
         }
         return core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
@@ -92,7 +97,7 @@ public:
         return templateName(this);
     }
 
-    static std::string templateName(const DevTensionMonitor<TDataTypes>* = NULL)
+    static std::string templateName(const DevTensionMonitor<TDataTypes>* = nullptr)
     {
         return TDataTypes::Name();
     }
