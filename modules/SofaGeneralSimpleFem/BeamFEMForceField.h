@@ -181,8 +181,18 @@ public:
     Data< BaseMeshTopology::SetIndex > d_listSegment; ///< apply the forcefield to a subset list of beam segments. If no segment defined, forcefield applies to the whole topology
     Data< bool> d_useSymmetricAssembly; ///< use symmetric assembly of the matrix K
 
+    Data<bool> d_alternativeBeamDescription;
+
     /// Link to be set to the topology container in the component graph.
     SingleLink<BeamFEMForceField<DataTypes>, sofa::core::topology::BaseMeshTopology, BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK> l_topology;
+
+    /// @name Plasticity such as "Interactive Virtual Materials", Muller & Gross, GI 2004
+/// @{
+    Data<Real> d_plasticMaxThreshold;
+    Data<Real> d_plasticYieldThreshold; ///< Plastic Yield Threshold (2-norm of the strain)
+    Data<Real> d_plasticCreep; ///< this parameters is different from the article, here it includes the multiplication by dt
+    /// @}
+    helper::vector<defaulttype::VecNoInit<6, Real> > m_plasticStrains; ///< one plastic strain per element
 
  protected:
     bool m_partialListSegment;
@@ -221,7 +231,6 @@ public:
     void initBeams(unsigned int size);
 
 protected:
-
     void drawElement(int i, std::vector< Vector3 >* points, const VecCoord& x);
     Real pseudoDeterminantForCoef ( const Mat<2, 3, Real>&  M );
     void computeStiffness(int i, Index a, Index b);

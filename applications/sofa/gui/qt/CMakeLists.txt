@@ -70,6 +70,8 @@ if (SOFAGUIQT_ENABLE_NODEGRAPH)
 endif()
 sofa_set_01(SOFAGUIQT_HAVE_NODEEDITOR VALUE ${SOFAGUIQT_ENABLE_NODEGRAPH} BOTH_SCOPES)
 
+sofa_find_package(TinyXML REQUIRED)
+
 # FFMPEG_exec
 sofa_find_package(FFMPEG_exec BOTH_SCOPES)
 
@@ -260,6 +262,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CUR
 
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaGuiCommon SofaBaseVisual SofaLoader SofaMiscForceField)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_TARGETS})
+target_link_libraries(${PROJECT_NAME} PRIVATE tinyxml)
 
 if(SOFAGUI_ENABLE_QWT)
     target_link_libraries(${PROJECT_NAME} PUBLIC qwt)

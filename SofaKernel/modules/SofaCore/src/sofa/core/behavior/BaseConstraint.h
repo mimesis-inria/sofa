@@ -42,7 +42,7 @@ namespace behavior
 class SOFA_CORE_API ConstraintResolution
 {
 public:
-    ConstraintResolution(unsigned int nbLines, double tolerance = 0.0);
+    ConstraintResolution(unsigned int nbLines = 3, double tolerance = 0.0);
 
     virtual ~ConstraintResolution() {}
 

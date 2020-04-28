@@ -701,8 +701,8 @@ void GenericConstraintProblem::gaussSeidel(double timeout, GenericConstraintSolv
             std::copy_n(&dfree[j], nb, &d[j]);
 
             //   (b) contribution of forces are added to d     => TODO => optimization (no computation when force= 0 !!)
-            for(k=0; k<dimension; k++)
-                for(l=0; l<nb; l++)
+            for(l=0; l<nb; l++)
+                for(k=0; k<dimension; k++)
                     d[j+l] += w[j+l][k] * force[k];
 
             //3. the specific resolution of the constraint(s) is called

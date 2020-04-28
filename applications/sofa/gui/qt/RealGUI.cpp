@@ -1966,7 +1966,8 @@ void RealGUI::ActivateNode(sofa::simulation::Node* node, bool activate)
             nodeToProcess.push_back(it->get());
     }
 
-    ActivationFunctor activator( activate, sofalistview->getListener() );
+	ActivationFunctor activator(activate, simulationGraph->getListener() );
+	//ActivationFunctor activator( activate, sofalistview->getListener() );
     std::for_each(nodeToChange.begin(),nodeToChange.end(),activator);
     nodeToChange.clear();
     Update();

@@ -56,6 +56,7 @@ public:
 	void playpauseGUI(bool value);
 	void switchPlaypauseGUI();
 
+
     static void setNumIterations(const std::string& nbIterInp) 
     {
         size_t inpLen= nbIterInp.length();

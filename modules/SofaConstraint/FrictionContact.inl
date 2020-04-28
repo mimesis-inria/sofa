@@ -56,6 +56,7 @@ FrictionContact<TCollisionModel1,TCollisionModel2,ResponseDataTypes>::FrictionCo
     , parent(nullptr)
     , mu (initData(&mu, 0.8, "mu", "friction coefficient (0 for frictionless contacts)"))
     , tol (initData(&tol, 0.0, "tol", "tolerance for the constraints resolution (0 for default tolerance)"))
+    , sort(initData(&sort, false, "sort", "sort constraint (increasing ids)"))
 {
     selfCollision = ((core::CollisionModel*)model1 == (core::CollisionModel*)model2);
     mapper1.setCollisionModel(model1);
@@ -97,10 +98,16 @@ void FrictionContact<TCollisionModel1,TCollisionModel2,ResponseDataTypes>::clean
 template < class TCollisionModel1, class TCollisionModel2, class ResponseDataTypes  >
 void FrictionContact<TCollisionModel1,TCollisionModel2,ResponseDataTypes>::setDetectionOutputs(OutputVector* o)
 {
-    TOutputVector& outputs = *static_cast<TOutputVector*>(o);
+    //TOutputVector& outputs = *static_cast<TOutputVector*>(o);
     // We need to remove duplicate contacts
     const double minDist2 = 0.00000001f;
 
+    std::vector<core::collision::DetectionOutput>& outputs = *dynamic_cast<std::vector<core::collision::DetectionOutput>*>(o);
+    if (sort.getValue())
+    {
+        std::sort(outputs.begin(), outputs.end());
+    }
+	
     contacts.clear();
 
     if (model1->getContactStiffness(0) == 0 || model2->getContactStiffness(0) == 0)

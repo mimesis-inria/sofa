@@ -474,6 +474,8 @@ void TriangleCollisionModel<DataTypes>::draw(const core::visual::VisualParams* v
 {
     if (vparams->displayFlags().getShowCollisionModels())
     {
+        if (!m_topology)
+            return;
         // In case topology has changed but drawing is called before the updateFromTopology has been computed, just exit to avoid computation in drawing thread.
         if (m_topology->getRevision() != m_topologyRevision)
             return;

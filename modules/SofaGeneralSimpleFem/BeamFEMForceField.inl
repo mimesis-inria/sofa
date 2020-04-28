@@ -67,6 +67,8 @@ BeamFEMForceField<DataTypes>::BeamFEMForceField()
     , d_radiusInner(initData(&d_radiusInner,(Real)0.0,"radiusInner","inner radius of the section for hollow beams"))
     , d_listSegment(initData(&d_listSegment,"listSegment", "apply the forcefield to a subset list of beam segments. If no segment defined, forcefield applies to the whole topology"))
     , d_useSymmetricAssembly(initData(&d_useSymmetricAssembly,false,"useSymmetricAssembly","use symmetric assembly of the matrix K"))
+    , l_topology(initLink("topology", "link to the topology container"))
+    , d_alternativeBeamDescription(initData(&d_alternativeBeamDescription, false, "alternativeBeamDescription", "another beam description (base on interpolated center of the beam instead of 1st extremity of the beam)"))
     , m_partialListSegment(false)
     , m_updateStiffnessMatrix(true)
     , m_assembling(false)
@@ -89,6 +91,7 @@ BeamFEMForceField<DataTypes>::BeamFEMForceField(Real poissonRatio, Real youngMod
     , d_listSegment(initData(&d_listSegment,"listSegment", "apply the forcefield to a subset list of beam segments. If no segment defined, forcefield applies to the whole topology"))
     , d_useSymmetricAssembly(initData(&d_useSymmetricAssembly,false,"useSymmetricAssembly","use symmetric assembly of the matrix K"))
     , l_topology(initLink("topology", "link to the topology container"))
+    , d_alternativeBeamDescription(initData(&d_alternativeBeamDescription, false, "alternativeBeamDescription", "another beam description (base on interpolated center of the beam instead of 1st extremity of the beam)"))
     , m_partialListSegment(false)
     , m_updateStiffnessMatrix(true)
     , m_assembling(false)
@@ -259,7 +262,7 @@ void BeamFEMForceField<DataTypes>::addForce(const sofa::core::MechanicalParams* 
             Element edge= (*m_indexedElements)[i];
             Index a = edge[0];
             Index b = edge[1];
-            initLarge(i,a,b);
+            //initLarge(i,a,b);
             accumulateForceLarge( f, p, i, a, b );
         }
     }
@@ -272,7 +275,7 @@ void BeamFEMForceField<DataTypes>::addForce(const sofa::core::MechanicalParams* 
             Index a = (*it)[0];
             Index b = (*it)[1];
 
-            initLarge(i,a,b);
+            //initLarge(i,a,b);
             accumulateForceLarge( f, p, i, a, b );
         }
     }
@@ -446,60 +449,182 @@ void BeamFEMForceField<DataTypes>::accumulateForceLarge( VecDeriv& f, const VecC
 {
     const VecCoord& x0 = this->mstate->read(core::ConstVecCoordId::restPosition())->getValue();
 
-    beamQuat(i)= x[a].getOrientation();
-    beamQuat(i).normalize();
+	// local displacement
+	Displacement depl;
+
+	if (d_alternativeBeamDescription.getValue())
+	{
+		Vec3 Pmiddle, Pmiddle_rest;
+		Vec3 P0, P1, P2, P3;
+		Real L = (x[b].getCenter() - x[a].getCenter()).norm();
+		P0 = x[a].getCenter();
+		P3 = x[b].getCenter();
+		P1 = P0 + x[a].getOrientation().rotate(Vec3(1.0, 0, 0)*(L / 3.0));
+		P2 = P3 + x[b].getOrientation().rotate(Vec3(-1.0, 0, 0)*(L / 3.0));
+		Pmiddle = 0.125 * (P0 + P3) + 0.375 * (P1 + P2);  //bezier curve interpolation
+
+		Pmiddle_rest = x0[a].getCenter() + (x0[b].getCenter() - x0[a].getCenter()) / 2.0; //assuming straight beam at rest position
+
+		beamQuat(i).slerp(x[a].getOrientation(), x[b].getOrientation(), (float)0.5, true);
+		beamQuat(i).normalize();
+
+		Vec3 u0, u3;
+
+		// translations //
+		Vec3 PmidP0, PmidP0_rest, PmidP3, PmidP3_rest;
+		PmidP0_rest = x0[a].getCenter() - Pmiddle_rest;
+		PmidP0_rest = x0[a].getOrientation().inverseRotate(PmidP0_rest);
+		PmidP0 = P0 - Pmiddle;
+		PmidP0 = beamQuat(i).inverseRotate(PmidP0);
+		u0 = PmidP0 - PmidP0_rest;
+
+		PmidP3_rest = x0[b].getCenter() - Pmiddle_rest;
+		PmidP3_rest = x0[a].getOrientation().inverseRotate(PmidP3_rest);
+		PmidP3 = P3 - Pmiddle;
+		PmidP3 = beamQuat(i).inverseRotate(PmidP3);
+		u3 = PmidP3 - PmidP3_rest;
+
+		depl[0] = u0[0]; depl[1] = u0[1]; depl[2] = u0[2];
+		depl[6] = u3[0]; depl[7] = u3[1]; depl[8] = u3[2];
+
+
+		// rotations //
+		Quat Qmiddle, Qmiddle_rest;
+		Qmiddle = beamQuat(i);
+		Qmiddle_rest = x0[a].getOrientation();  //assuming straight beam at rest position
+
+		Quat QmidQ0_rest, QmidQ0, QmidQ3_rest, QmidQ3;
+		QmidQ0_rest = qDiff(x0[a].getOrientation(), Qmiddle_rest);
+		QmidQ0_rest.normalize();
+		QmidQ0 = qDiff(x[a].getOrientation(), Qmiddle);
+		QmidQ0.normalize();
+		Quat dQQ_rest = qDiff(QmidQ0, QmidQ0_rest);
+		dQQ_rest.normalize();
+		u0 = dQQ_rest.quatToRotationVector();
+
+		QmidQ3_rest = qDiff(x0[b].getOrientation(), Qmiddle_rest);
+		QmidQ3_rest.normalize();
+		QmidQ3 = qDiff(Qmiddle, x[b].getOrientation());
+		QmidQ3.normalize();
+		dQQ_rest = qDiff(QmidQ3, QmidQ3_rest);
+		dQQ_rest.normalize();
+		dQQ_rest = dQQ_rest.inverse();
+		u3 = dQQ_rest.quatToRotationVector();
+
+		depl[3] = u0[0]; depl[ 4] = u0[1]; depl[ 5] = u0[2];
+		depl[9] = u3[0]; depl[10] = u3[1]; depl[11] = u3[2];
+
+        double Rot[4][4];
+        beamQuat(i).inverse().buildRotationMatrix(Rot);
+        defaulttype::Mat<6, 6, Real> J;
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                J[i][j] = Rot[i][j];
+                J[i + 3][j + 3] = Rot[i][j];
+                J[i][j + 3] = 0.0;// R_Origin[i][j];
+                J[i + 3][j] = 0.0;
+            }
+        }
+
+        defaulttype::VecNoInit<6, Real> JtD;
+        JtD[0] = J[0][0] * depl[0] +/*J[ 1][0]*depl[ 1]+  J[ 2][0]*depl[ 2]+*/
+            J[3][0] * depl[3] +/*J[ 4][0]*depl[ 4]+  J[ 5][0]*depl[ 5]+*/
+            J[0][0] * depl[6] +/*J[ 7][0]*depl[ 7]+  J[ 8][0]*depl[ 8]+*/
+            J[3][0] * depl[9] /*J[10][0]*depl[10]+  J[11][0]*depl[11]*/;
+        JtD[1] = /*J[ 0][1]*depl[ 0]+*/J[1][1] * depl[1] +/*J[ 2][1]*depl[ 2]+*/
+            /*J[ 3][1]*depl[ 3]+*/J[4][1] * depl[4] +/*J[ 5][1]*depl[ 5]+*/
+            /*J[ 6][1]*depl[ 6]+*/J[1][1] * depl[7] +/*J[ 8][1]*depl[ 8]+*/
+            /*J[ 9][1]*depl[ 9]+*/J[4][1] * depl[10] /*J[11][1]*depl[11]*/;
+        JtD[2] = /*J[ 0][2]*depl[ 0]+  J[ 1][2]*depl[ 1]+*/J[2][2] * depl[2] +
+            /*J[ 3][2]*depl[ 3]+  J[ 4][2]*depl[ 4]+*/J[5][2] * depl[5] +
+            /*J[ 6][2]*depl[ 6]+  J[ 7][2]*depl[ 7]+*/J[2][2] * depl[8] +
+            /*J[ 9][2]*depl[ 9]+  J[10][2]*depl[10]+*/J[5][2] * depl[11];
+        JtD[3] = J[0][3] * depl[0] + J[1][3] * depl[1] +/*J[ 2][3]*depl[ 2]+*/
+            J[3][3] * depl[3] + J[4][3] * depl[4] +/*J[ 5][3]*depl[ 5]+*/
+            J[0][3] * depl[6] + J[1][3] * depl[7] +/*J[ 8][3]*depl[ 8]+*/
+            J[3][3] * depl[9] + J[4][3] * depl[10] /*J[11][3]*depl[11]*/;
+        JtD[4] = /*J[ 0][4]*depl[ 0]+*/J[1][4] * depl[1] + J[2][4] * depl[2] +
+            /*J[ 3][4]*depl[ 3]+*/J[4][4] * depl[4] + J[5][4] * depl[5] +
+            /*J[ 6][4]*depl[ 6]+*/J[1][4] * depl[7] + J[2][4] * depl[8] +
+            /*J[ 9][4]*depl[ 9]+*/J[4][4] * depl[10] + J[5][4] * depl[11];
+        JtD[5] = J[0][5] * depl[0] +/*J[ 1][5]*depl[ 1]*/ J[2][5] * depl[2] +
+            J[3][5] * depl[3] +/*J[ 4][5]*depl[ 4]*/ J[5][5] * depl[5] +
+            J[0][5] * depl[6] +/*J[ 7][5]*depl[ 7]*/ J[2][5] * depl[8] +
+            J[3][5] * depl[9] +/*J[10][5]*depl[10]*/ J[5][5] * depl[11];
+
+        //std::cout << "norm jtd: " << JtD.norm() << std::endl;
+        // eventually remove a part of the strain to simulate plasticity
+        if (d_plasticMaxThreshold.getValue() > 0)
+        {
+            defaulttype::VecNoInit<6, Real> elasticStrain = JtD; // JtD is the total strain
+            elasticStrain -= m_plasticStrains[i]; // totalStrain = elasticStrain + plasticStrain
+
+            if (elasticStrain.norm2() > d_plasticYieldThreshold.getValue()*d_plasticYieldThreshold.getValue())
+                m_plasticStrains[i] += d_plasticCreep.getValue() * elasticStrain;
+
+            Real plasticStrainNorm2 = m_plasticStrains[i].norm2();
+            if (plasticStrainNorm2 > d_plasticMaxThreshold.getValue()*d_plasticMaxThreshold.getValue())
+                m_plasticStrains[i] *= d_plasticMaxThreshold.getValue() / helper::rsqrt(plasticStrainNorm2);
+
+            // remaining elasticStrain = totatStrain - plasticStrain
+            JtD -= m_plasticStrains[i];
+        }
+	}
+	else
+	{
+		beamQuat(i)= x[a].getOrientation();
+		beamQuat(i).normalize();
+
+		defaulttype::Vec<3, Real> u, P1P2, P1P2_0;
+
+		// translations //
+		P1P2_0 = x0[b].getCenter() - x0[a].getCenter();
+		P1P2_0 = x0[a].getOrientation().inverseRotate(P1P2_0);
+		P1P2 = x[b].getCenter() - x[a].getCenter();
+		P1P2 = beamQuat(i).inverseRotate(P1P2);
+		u = P1P2 - P1P2_0;
+
+		depl[0] = 0.0; 	depl[1] = 0.0; 	depl[2] = 0.0;
+		depl[6] = u[0]; depl[7] = u[1]; depl[8] = u[2];
+
+		// rotations //
+		defaulttype::Quat dQ0, dQ;
+
+		dQ0 = qDiff(x0[b].getOrientation(), x0[a].getOrientation());
+		dQ = qDiff(x[b].getOrientation(), x[a].getOrientation());
+
+		dQ0.normalize();
+		dQ.normalize();
+
+		defaulttype::Quat tmpQ = qDiff(dQ, dQ0);
+		tmpQ.normalize();
+
+		u = tmpQ.quatToRotationVector();	// Use of quatToRotationVector instead of toEulerVector:	    u = tmpQ.quatToRotationVector();
+	  // this is done to keep the old behavior (before the
+	  // correction of the toEulerVector  function). If the
+	  // purpose was to obtain the Eulerian vector and not the
+	  // rotation vector please use the following line instead
+	  // u = tmpQ.toEulerVector();
+
+
+		depl[3] = 0.0; 	depl[4] = 0.0; 	depl[5] = 0.0;
+		depl[9] = u[0]; depl[10] = u[1]; depl[11] = u[2];
+	}
 
     m_beamsData.endEdit();
-
-    defaulttype::Vec<3,Real> u, P1P2, P1P2_0;
-
-    // local displacement
-    Displacement depl;
-
-    // translations //
-    P1P2_0 = x0[b].getCenter() - x0[a].getCenter();
-    P1P2_0 = x0[a].getOrientation().inverseRotate(P1P2_0);
-    P1P2 = x[b].getCenter() - x[a].getCenter();
-    P1P2 = x[a].getOrientation().inverseRotate(P1P2);
-    u = P1P2 - P1P2_0;
-
-    depl[0] = 0.0; 	depl[1] = 0.0; 	depl[2] = 0.0;
-    depl[6] = u[0]; depl[7] = u[1]; depl[8] = u[2];
-
-    // rotations //
-    defaulttype::Quat dQ0, dQ;
-
-    dQ0 = qDiff(x0[b].getOrientation(), x0[a].getOrientation());
-    dQ =  qDiff(x[b].getOrientation(), x[a].getOrientation());
-
-    dQ0.normalize();
-    dQ.normalize();
-
-    defaulttype::Quat tmpQ = qDiff(dQ,dQ0);
-    tmpQ.normalize();
-
-    u = tmpQ.quatToRotationVector();// TODO(e.coevoet) remove before v20:
-                                    // Use of quatToRotationVector instead of toEulerVector:	    u = tmpQ.quatToRotationVector();
-                                    // this is done to keep the old behavior (before the
-                                    // correction of the toEulerVector  function). If the
-                                    // purpose was to obtain the Eulerian vector and not the
-                                    // rotation vector please use the following line instead
-                                    // u = tmpQ.toEulerVector();
-
-
-    depl[3] = 0.0; 	depl[4] = 0.0; 	depl[5] = 0.0;
-    depl[9] = u[0]; depl[10]= u[1]; depl[11]= u[2];
 
     // this computation can be optimised: (we know that half of "depl" is null)
     Displacement force = m_beamsData.getValue()[i]._k_loc * depl;
 
 
     // Apply lambda transpose (we use the rotation value of point a for the beam)
-    Vec3 fa1 = x[a].getOrientation().rotate(defaulttype::Vec3d(force[0],force[1],force[2]));
-    Vec3 fa2 = x[a].getOrientation().rotate(defaulttype::Vec3d(force[3],force[4],force[5]));
+    Vec3 fa1 = beamQuat(i).rotate(defaulttype::Vec3d(force[0],force[1],force[2]));
+    Vec3 fa2 = beamQuat(i).rotate(defaulttype::Vec3d(force[3],force[4],force[5]));
 
-    Vec3 fb1 = x[a].getOrientation().rotate(defaulttype::Vec3d(force[6],force[7],force[8]));
-    Vec3 fb2 = x[a].getOrientation().rotate(defaulttype::Vec3d(force[9],force[10],force[11]));
+    Vec3 fb1 = beamQuat(i).rotate(defaulttype::Vec3d(force[6],force[7],force[8]));
+    Vec3 fb2 = beamQuat(i).rotate(defaulttype::Vec3d(force[9],force[10],force[11]));
 
     f[a] += Deriv(-fa1, -fa2);
     f[b] += Deriv(-fb1, -fb2);

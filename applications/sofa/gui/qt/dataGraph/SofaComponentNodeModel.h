@@ -4,6 +4,8 @@
 
 #include <QtCore/QObject>
 
+#include <nodes/Node>
+
 #include <nodes/NodeData>
 #include <nodes/NodeDataModel>
 
