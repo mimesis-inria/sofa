@@ -811,10 +811,8 @@ void RealGUI::fileOpen ( std::string filename, bool temporaryFile, bool reload )
     }
     if(reload)
         setSceneWithoutMonitor(mSimulation, filename.c_str(), temporaryFile);
-    else{
+    else
         setScene(mSimulation, filename.c_str(), temporaryFile);
-        m_docbrowser->loadHtml( filename ) ;
-    }
 
     configureGUI(mSimulation.get());
 
@@ -1017,8 +1015,7 @@ void RealGUI::setScene(Node::SPtr root, const char* filename, bool temporaryFile
         FileMonitor::removeListener(m_filelistener);
         FileMonitor::addFile(filename, m_filelistener);
     }
-    setSceneWithoutMonitor(root, filename, temporaryFile) ;
-    m_docbrowser->loadHtml( filename ) ;
+    setSceneWithoutMonitor(root, filename, temporaryFile);
 }
 
 //------------------------------------
@@ -1966,8 +1963,7 @@ void RealGUI::ActivateNode(sofa::simulation::Node* node, bool activate)
             nodeToProcess.push_back(it->get());
     }
 
-	ActivationFunctor activator(activate, simulationGraph->getListener() );
-	//ActivationFunctor activator( activate, sofalistview->getListener() );
+    ActivationFunctor activator( activate, sofalistview->getListener() );
     std::for_each(nodeToChange.begin(),nodeToChange.end(),activator);
     nodeToChange.clear();
     Update();
