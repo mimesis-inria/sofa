@@ -123,8 +123,6 @@ namespace cgal
 		helper::ReadAccessor< Data< VecCoord > > seeds = d_seedPoints;
 		helper::ReadAccessor< Data< VecCoord > > regions = d_regionPoints;
 		helper::ReadAccessor< Data< SeqEdges > > edges = d_edges;
-		helper::ReadAccessor< Data< VecReal > > edgesData1 = d_edgesData1;
-		helper::ReadAccessor< Data< VecReal > > edgesData2 = d_edgesData2;
 		const bool useInteriorPoints = d_useInteriorPoints.getValue();
 		
 		helper::WriteAccessor< Data< VecCoord > > newPoints = d_newPoints;
