@@ -171,7 +171,7 @@ void BarycentricMapperRegularGridTopology<gpu::cuda::CudaVectorTypes<VecIn,VecIn
                 nout[index0+shift[j]]++;
         }
         for (unsigned int i=0; i<insize; i++)
-            if (nout[i] > maxNOut) maxNOut = nout[i];
+            if ((unsigned) nout[i] > maxNOut) maxNOut = nout[i];
         int nbloc = (insize+BSIZE-1)/BSIZE;
         std::cout << "CudaBarycentricMapping: mapT with "<<maxNOut<<" entries per DOF and "<<nbloc<<" blocs."<<std::endl;
         mapT.resize(nbloc*(BSIZE*maxNOut));

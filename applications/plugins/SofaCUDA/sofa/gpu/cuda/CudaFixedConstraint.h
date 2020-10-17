@@ -38,7 +38,7 @@ template<class TCoord, class TDeriv, class TReal>
 class FixedConstraintInternalData< gpu::cuda::CudaVectorTypes<TCoord,TDeriv,TReal> >
 {
 public:
-    using index_type = sofa::defaulttype::index_type;
+    using index_type = int;//sofa::defaulttype::index_type;
     typedef FixedConstraintInternalData< gpu::cuda::CudaVectorTypes<TCoord,TDeriv,TReal> > Data;
     typedef gpu::cuda::CudaVectorTypes<TCoord,TDeriv,TReal> DataTypes;
     typedef FixedConstraint<DataTypes> Main;
