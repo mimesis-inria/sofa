@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -29,7 +29,7 @@
 #include <SofaOpenglVisual/OglColorMap.h>
 #include <SofaBaseVisual/VisualModelImpl.h>
 
-#include <sofa/defaulttype/RGBAColor.h>
+#include <sofa/helper/types/RGBAColor.h>
 
 namespace sofa
 {
@@ -58,15 +58,19 @@ public:
     Data<VecCellData> f_quadData; ///< Data associated with quads
     Data<VecPointData> f_pointTriangleData; ///< Data associated with nodes per triangle
     Data<VecPointData> f_pointQuadData; ///< Data associated with nodes per quad
-    Data<defaulttype::RGBAColor> f_colorNaN; ///< Color for NaNs
+    Data<sofa::helper::types::RGBAColor> f_colorNaN; ///< Color for NaNs
     Data<defaulttype::Vec2f> d_userRange; ///< Clamp to this values (if max>min)
-    Data<float> d_currentMin; ///< Current min range
-    Data<float> d_currentMax; ///< Current max range
+    Data<Real> d_currentMin; ///< Current min range
+    Data<Real> d_currentMax; ///< Current max range
     Data<float> d_shininess; ///< Shininess for rendering point-based data [0,128].  <0 means no specularity
 
     visualmodel::OglColorMap *colorMap;
     core::State<DataTypes> *state;
-    core::topology::BaseMeshTopology* topology;
+    core::topology::BaseMeshTopology* m_topology;
+
+    /// Link to be set to the topology container in the component graph.
+    SingleLink <DataDisplay, sofa::core::topology::BaseMeshTopology, BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK> l_topology;
+
     Real oldMin, oldMax;
 
     void init() override;

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -21,7 +21,6 @@
 ******************************************************************************/
 #include <SofaMiscForceField/MeshMatrixMass.h>
 
-#include <SofaMiscForceField/initMiscForcefield.h>
 using sofa::core::ExecParams ;
 
 #include <SofaBaseMechanics/MechanicalObject.h>
@@ -88,7 +87,6 @@ public:
 
     virtual void SetUp()
     {
-        component::initMiscForcefield();
         simulation::setSimulation(simulation = new simulation::graph::DAGSimulation());
         root = simulation::getSimulation()->createNewGraph("root");
     }
@@ -625,13 +623,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' />                                                           "
@@ -670,13 +668,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' totalMass='2.0'/>                                            "
@@ -709,13 +707,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' massDensity='1.0' />                                         "
@@ -747,13 +745,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' lumping='1' vertexMass='1 1 1 1 1 1 1 1' />                  "
@@ -791,13 +789,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' massDensity='1.0' totalMass='2.0' />                         "
@@ -829,13 +827,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' lumping='1' vertexMass='1 1 1 1 1 1 1 1' totalMass='2.0'/>   "
@@ -868,13 +866,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' vertexMass='1 1 1 1 1 1 1 1' lumping='1' massDensity='1.0' />"
@@ -910,13 +908,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' totalMass='-2.0'/>                                           "
@@ -948,13 +946,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' massDensity='-1.0'/>                                         "
@@ -986,13 +984,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' massDensity='1.0 4.0'/>                                      "
@@ -1024,13 +1022,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' vertexMass='1 -1 1 1 1 1 1 1' lumping='1' />                 "
@@ -1062,13 +1060,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' vertexMass='1.0 2.0' lumping='1' />                          "
@@ -1101,13 +1099,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' massDensity='1.0' totalMass='-2.0' />                        "
@@ -1141,13 +1139,13 @@ public:
         string scene =
                 "<?xml version='1.0'?>                                                                              "
                 "<Node  name='Root' gravity='0 0 0' time='0' animate='0'   >                                        "
+                "    <RequiredPlugin name='SofaTopologyMapping'/>                                                   "
                 "    <MechanicalObject />                                                                           "
                 "    <RegularGridTopology name='grid' n='2 2 2' min='0 0 0' max='2 2 2' p0='0 0 0' />               "
                 "    <Node name='Tetra' >                                                                           "
                 "        <MechanicalObject src='@../grid'/>                                                         "
                 "        <TetrahedronSetTopologyContainer name='Container' />                                       "
                 "        <TetrahedronSetTopologyModifier name='Modifier' />                                         "
-                "        <TetrahedronSetTopologyAlgorithms template='Vec3d' name='TopoAlgo' />                      "
                 "        <TetrahedronSetGeometryAlgorithms template='Vec3d' name='GeomAlgo' />                      "
                 "        <Hexa2TetraTopologicalMapping name='default28' input='@../grid' output='@Container' />     "
                 "        <MeshMatrixMass name='m_mass' massDensity='1.0 1.0' totalMass='2.0' />                     "

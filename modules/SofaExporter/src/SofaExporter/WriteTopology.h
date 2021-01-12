@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -69,6 +69,9 @@ public:
     Data < helper::vector<double> > f_time; ///< set time to write outputs
     Data < double > f_period; ///< period between outputs
 
+    /// Link to be set to the topology container in the component graph.
+    SingleLink<WriteTopology, sofa::core::topology::BaseMeshTopology, BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK> l_topology;
+
 protected:
     core::topology::BaseMeshTopology* m_topology;
     std::ofstream* outfile;
@@ -92,8 +95,11 @@ public:
     template<class T>
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
-        if (context->getMeshTopology() == nullptr)
+        if (context->getMeshTopology() == nullptr) {
+            arg->logError("No mesh topology found in the context node.");
             return false;
+        }
+
         return BaseObject::canCreate(obj, context, arg);
     }
 

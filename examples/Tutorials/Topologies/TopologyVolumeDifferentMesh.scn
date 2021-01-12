@@ -2,6 +2,7 @@
 <!-- See https://wiki.sofa-framework.org/wiki/TutorialTopologyVolumeMesh -->
 <Node name="root" gravity="0 -9.86 0" dt="0.05">
     <RequiredPlugin name="SofaOpenglVisual"/>
+    <RequiredPlugin pluginName='SofaMiscCollision'/>
     <!-- Basic Components to perform the collision detection -->
     <VisualStyle displayFlags="showBehaviorModels showVisual showWireframe" />
     <DefaultPipeline name="DefaultCollisionPipeline" verbose="0" />
@@ -20,7 +21,7 @@
         <MeshTopology name="Static Mesh" src="@meshLoader0" />
         <MeshSpringForceField name="FEM-Bend" template="Vec3d" stiffness="100" damping="1" />
         <TetrahedronFEMForceField name="FEM" template="Vec3d" method="polar" poissonRatio="0.3" youngModulus="1116" assembling="0" />
-        <TetrahedronModel name="Models" />
+        <TetrahedronCollisionModel name="Models" />
         <Node >
           <OglModel name="Visual" color="red" />
           <IdentityMapping input="@.." output="@Visual" />
@@ -50,11 +51,10 @@
         <MeshGmshLoader name="meshLoader1" filename="mesh/cylinder.msh" />
         <TetrahedronSetTopologyContainer name="Topology Container" src="@meshLoader1" />
         <TetrahedronSetTopologyModifier name="Topology Modifier" />
-        <TetrahedronSetTopologyAlgorithms name="Topology Algorithms" template="Vec3d" />
         <TetrahedronSetGeometryAlgorithms name="Geometry Algorithms" template="Vec3d" />
         <MeshSpringForceField name="FEM-Bend" template="Vec3d" stiffness="100" damping="1" />
         <TetrahedronFEMForceField name="FEM" template="Vec3d" method="polar" poissonRatio="0.3" youngModulus="1116" assembling="0" />
-        <TetrahedronModel name="Models" />
+        <TetrahedronCollisionModel name="Models" />
         <Node >
           <OglModel name="Visual" color="green" />
           <IdentityMapping input="@.." output="@Visual" />

@@ -1,29 +1,38 @@
-cmake_minimum_required(VERSION 3.1)
-project(SofaGeneralAnimationLoop)
+cmake_minimum_required(VERSION 3.12)
+project(SofaGeneralAnimationLoop LANGUAGES CXX)
+
+set(SOFAGENERALANIMATIONLOOP_SRC "src/${PROJECT_NAME}")
 
 set(HEADER_FILES
-    config.h
-    initGeneralAnimationLoop.h
+    ${SOFAGENERALANIMATIONLOOP_SRC}/config.h.in
+    ${SOFAGENERALANIMATIONLOOP_SRC}/initSofaGeneralAnimationLoop.h
     )
 
 set(SOURCE_FILES
-    initGeneralAnimationLoop.cpp
+    ${SOFAGENERALANIMATIONLOOP_SRC}/initSofaGeneralAnimationLoop.cpp
     )
 
 list(APPEND HEADER_FILES
-    MultiStepAnimationLoop.h
-    MultiTagAnimationLoop.h
-    MechanicalMatrixMapper.h
-    MechanicalMatrixMapper.inl)
+    ${SOFAGENERALANIMATIONLOOP_SRC}/MultiStepAnimationLoop.h
+    ${SOFAGENERALANIMATIONLOOP_SRC}/MultiTagAnimationLoop.h
+    ${SOFAGENERALANIMATIONLOOP_SRC}/MechanicalMatrixMapper.h
+    ${SOFAGENERALANIMATIONLOOP_SRC}/MechanicalMatrixMapper.inl)
 
 list(APPEND SOURCE_FILES
-    MultiStepAnimationLoop.cpp
-    MultiTagAnimationLoop.cpp
-    MechanicalMatrixMapper.cpp)
+    ${SOFAGENERALANIMATIONLOOP_SRC}/MultiStepAnimationLoop.cpp
+    ${SOFAGENERALANIMATIONLOOP_SRC}/MultiTagAnimationLoop.cpp
+    ${SOFAGENERALANIMATIONLOOP_SRC}/MechanicalMatrixMapper.cpp)
+
+find_package(SofaBase REQUIRED) # SofaBaseLinearSolver
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaSimulationCommon SofaBaseLinearSolver)
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_GENERAL_ANIMATION_LOOP")
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 
-sofa_install_targets(SofaGeneral ${PROJECT_NAME} "SofaGeneral/${PROJECT_NAME}")
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${Sofa_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
+    INCLUDE_INSTALL_DIR "${PROJECT_NAME}"
+    RELOCATABLE "plugins"
+)

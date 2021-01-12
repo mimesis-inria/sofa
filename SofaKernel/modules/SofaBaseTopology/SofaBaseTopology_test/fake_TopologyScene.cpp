@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -29,7 +29,7 @@ using namespace sofa::simpleapi;
 using namespace sofa::simpleapi::components;
 using namespace sofa::core::topology;
 
-fake_TopologyScene::fake_TopologyScene(const std::string& filename, TopologyObjectType topoType, bool staticTopo)
+fake_TopologyScene::fake_TopologyScene(const std::string& filename, TopologyElementType topoType, bool staticTopo)
     : m_topoType(topoType)
     , m_filename(filename)
     , m_staticTopology(staticTopo)
@@ -44,8 +44,11 @@ bool fake_TopologyScene::loadMeshFile()
     m_simu = createSimulation("DAG");
     m_root = createRootNode(m_simu, "root");
 
+    createObject(m_root, "RequiredPlugin", {
+        { "name", "SofaLoader" } });
+
     std::string loaderType = "MeshObjLoader";
-    if (m_topoType == TopologyObjectType::TETRAHEDRON || m_topoType == TopologyObjectType::HEXAHEDRON)
+    if (m_topoType == TopologyElementType::TETRAHEDRON || m_topoType == TopologyElementType::HEXAHEDRON)
         loaderType = "MeshGmshLoader";
 
 
@@ -53,29 +56,45 @@ bool fake_TopologyScene::loadMeshFile()
         { "name","loader" },
         { "filename", sofa::helper::system::DataRepository.getFile(m_filename) } });
 
-    // could do better but will work for now
-    std::string topoConType = "";
+    auto meca = createObject(m_root, "MechanicalObject", {
+        { "name", "dof" },
+        { "position", "@loader.position"} });
+       
+   
     if (m_staticTopology)
-        topoConType = "MeshTopology";
-    else if (m_topoType == TopologyObjectType::POINT)
-        topoConType = "PointSetTopologyContainer";
-    else if (m_topoType == TopologyObjectType::EDGE)
-        topoConType = "EdgeSetTopologyContainer";
-    else if (m_topoType == TopologyObjectType::TRIANGLE)
-        topoConType = "TriangleSetTopologyContainer";
-    else if (m_topoType == TopologyObjectType::QUAD)
-        topoConType = "QuadSetTopologyContainer";
-    else if (m_topoType == TopologyObjectType::TETRAHEDRON)
-        topoConType = "TetrahedronSetTopologyContainer";
-    else if (m_topoType == TopologyObjectType::HEXAHEDRON)
-        topoConType = "HexahedronSetTopologyContainer";
+    {
+        auto topo = createObject(m_root, "MeshTopology", {
+            { "name", "topoCon" },
+            { "src", "@loader" }
+        });        
+    }
+    else
+    {
+        std::string topoType = "";
+        if (m_topoType == TopologyElementType::POINT)
+            topoType = "Point";
+        else if (m_topoType == TopologyElementType::EDGE)
+            topoType = "Edge";
+        else if (m_topoType == TopologyElementType::TRIANGLE)
+            topoType = "Triangle";
+        else if (m_topoType == TopologyElementType::QUAD)
+            topoType = "Quad";
+        else if (m_topoType == TopologyElementType::TETRAHEDRON)
+            topoType = "Tetrahedron";
+        else if (m_topoType == TopologyElementType::HEXAHEDRON)
+            topoType = "Hexahedron";
 
+        // create topology components
+        auto topo = createObject(m_root, topoType+"SetTopologyContainer", {
+            { "name", "topoCon" },
+            { "src", "@loader" }
+        });
+        
+        createObject(m_root, topoType + "SetTopologyModifier", {{ "name", "topoMod" }});
+        createObject(m_root, topoType + "SetGeometryAlgorithms", { { "name", "topoGeo" } });
+    }
 
-    auto topo = createObject(m_root, topoConType, {
-        { "name", "topoCon" },
-        { "src", "@loader" }
-    });
-    topo->init();
+    m_simu->init(m_root.get());
    
     return true;
 }

@@ -2,6 +2,8 @@
 <Node name="root" dt="0.03" gravity="0 -9.810 0">
     <RequiredPlugin name="SofaOpenglVisual"/>
 	<RequiredPlugin name="SofaMiscCollision"/>
+    <RequiredPlugin name='SofaLoader'/>
+    
     <VisualStyle displayFlags="showVisual showBehaviorModels" />
     <LCPConstraintSolver maxIt="1000" tolerance="1e-6" initial_guess="false" build_lcp="true" multi_grid="false" printLog="0" mu="0.000000000000000001"/>
     <FreeMotionAnimationLoop />
@@ -13,7 +15,7 @@
         <EulerImplicitSolver name="cg_odesolver" printLog="false"  rayleighStiffness="0.1" rayleighMass="0.1" />
         <CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
         <Node name="TORUS">
-            <MechanicalObject template="Rigid" scale="1.0" dx="0.0" dy="0.0" dz="0.0" />
+            <MechanicalObject template="Rigid3d" scale="1.0" dx="0.0" dy="0.0" dz="0.0" />
             <UniformMass totalMass="40.0" />
             <UncoupledConstraintCorrection />
             <Node name="Visu">
@@ -23,7 +25,7 @@
             </Node>
             <Node name="Surf2">
                 <MeshObjLoader name="loader" filename="mesh/torus_for_collision.obj" triangulate="true" />
-                <Mesh src="@loader"/>
+                <MeshTopology src="@loader"/>
                 <MechanicalObject src="@loader" scale="1.0" />
                 <TriangleCollisionModel />
                 <LineCollisionModel />
@@ -33,8 +35,8 @@
         </Node>
         <!--
 		<Node name="MAN">
-			<EulerSolver/>
-			<MechanicalObject template="Rigid"  dx="0.0" dy="0.0" dz="0.0"/>
+			<EulerExplicitSolver/>
+			<MechanicalObject template="Rigid3d"  dx="0.0" dy="0.0" dz="0.0"/>
 			<UniformMass totalmass="100.0"/>
 			<UncoupledConstraintCorrection/>
 			<Node name="Visu">
@@ -54,7 +56,7 @@
 		</Node>
 -->
         <Node name="CUBE">
-            <MechanicalObject template="Rigid" scale="0.3" dx="-2.0" dy="-3.5" dz="-0.5" rx="10" />
+            <MechanicalObject template="Rigid3d" scale="0.3" dx="-2.0" dy="-3.5" dz="-0.5" rx="10" />
             <UniformMass totalMass="100.0" />
             <UncoupledConstraintCorrection />
             <Node name="Visu">
@@ -64,7 +66,7 @@
             </Node>
             <Node name="Surf2">
                 <MeshObjLoader name="loader" filename="mesh/smCube27.obj" triangulate="true" />
-                <Mesh src="@loader"/>
+                <MeshTopology src="@loader"/>
                 <MechanicalObject src="@loader" scale="0.3" />
                 <TriangleCollisionModel />
                 <LineCollisionModel />
@@ -74,8 +76,8 @@
         </Node>
         <!--
 		<Node name="DRAGON1">
-			<EulerSolver/>
-			<MechanicalObject template="Rigid" scale="10.0"  dx="0.0" dy="2.5" dz="0.0"/>
+			<EulerExplicitSolver/>
+			<MechanicalObject template="Rigid3d" scale="10.0"  dx="0.0" dy="2.5" dz="0.0"/>
 			<UniformMass totalmass="100.0"/>
 			<UncoupledConstraintCorrection/>
 			<Node name="Visu">
@@ -96,7 +98,7 @@
 -->
         <Node name="BOX">
             <MeshObjLoader name="loader" filename="mesh/box_inside.obj" triangulate="true" />
-            <Mesh src="@loader"/>
+            <MeshTopology src="@loader"/>
             <MechanicalObject src="@loader" />
             <TriangleCollisionModel simulated="0" moving="0" />
             <LineCollisionModel simulated="0" moving="0" />

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,13 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-/*
- * OglShaderVisualModel.cpp
- *
- *  Created on: 9 févr. 2009
- *      Author: froy
- */
-
 #include <SofaOpenglVisual/OglShaderVisualModel.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/core/ObjectFactory.h>
@@ -171,7 +164,7 @@ void OglShaderVisualModel::computeRestPositions()
     //Get the position of the new point (should be the rest position to avoid artefact !
     if (restpositions.size()!=positions.size()) {
         VecCoord& restVertices = *(m_restPositions.beginEdit());
-        for (unsigned int i=restVertices.size(); i<positions.size(); i++) {
+        for (size_t i=restVertices.size(); i<positions.size(); i++) {
             restVertices.push_back(positions[i]);
         }
         m_restPositions.endEdit();

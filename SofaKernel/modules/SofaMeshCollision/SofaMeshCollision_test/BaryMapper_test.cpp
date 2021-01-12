@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -31,7 +31,7 @@ using core::objectmodel::New;
 
 typedef sofa::component::topology::MeshTopology MeshTopology;
 typedef sofa::simulation::Node::SPtr NodePtr;
-typedef sofa::component::collision::TriangleModel TriangleModel;
+typedef sofa::component::collision::TriangleCollisionModel<sofa::defaulttype::Vec3Types> TriangleModel;
 typedef sofa::defaulttype::Vec3Types DataTypes;
 typedef DataTypes::VecCoord VecCoord;
 

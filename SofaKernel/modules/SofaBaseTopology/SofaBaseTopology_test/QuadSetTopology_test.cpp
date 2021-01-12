@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -68,7 +68,7 @@ bool QuadSetTopology_test::testEmptyContainer()
 
 bool QuadSetTopology_test::testQuadBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1_quads.obj", sofa::core::topology::TopologyObjectType::QUAD);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1_quads.obj", sofa::core::topology::TopologyElementType::QUAD);
     QuadSetTopologyContainer* topoCon = dynamic_cast<QuadSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -125,7 +125,7 @@ bool QuadSetTopology_test::testQuadBuffers()
 
     const QuadSetTopologyContainer::Quad& elem2 = topoCon->getQuad(1000);
     for (int i = 0; i<elemSize; ++i)
-        EXPECT_EQ(elem2[i], -1);
+        EXPECT_EQ(elem2[i], sofa::InvalidID);
 
 
     if(scene != nullptr)
@@ -137,7 +137,7 @@ bool QuadSetTopology_test::testQuadBuffers()
 
 bool QuadSetTopology_test::testEdgeBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1_quads.obj", sofa::core::topology::TopologyObjectType::QUAD);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1_quads.obj", sofa::core::topology::TopologyElementType::QUAD);
     QuadSetTopologyContainer* topoCon = dynamic_cast<QuadSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -232,7 +232,7 @@ bool QuadSetTopology_test::testEdgeBuffers()
 
 bool QuadSetTopology_test::testVertexBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1_quads.obj", sofa::core::topology::TopologyObjectType::QUAD);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1_quads.obj", sofa::core::topology::TopologyElementType::QUAD);
     QuadSetTopologyContainer* topoCon = dynamic_cast<QuadSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -279,7 +279,7 @@ bool QuadSetTopology_test::testVertexBuffers()
 
 bool QuadSetTopology_test::checkTopology()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1_quads.obj", sofa::core::topology::TopologyObjectType::QUAD);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1_quads.obj", sofa::core::topology::TopologyElementType::QUAD);
     QuadSetTopologyContainer* topoCon = dynamic_cast<QuadSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)

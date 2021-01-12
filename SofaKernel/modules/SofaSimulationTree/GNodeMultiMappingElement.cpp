@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -49,11 +49,13 @@ void GNodeMultiMappingElement::updateSceneGraph(
 {
 
     helper::vector<simulation::Node*>::const_iterator it;
+    std::stringstream tmpStr;
     for( it = otherInputs.begin(); it != otherInputs.end(); ++it)
     {
-        multiMapping->sout << "Node " << (*it)->getName() << " does not belong to "
-                << multiMapping->getContext()->getName() << " ancestors" << multiMapping->sendl;
+        tmpStr << "Node " << (*it)->getName() << " does not belong to "
+                << multiMapping->getContext()->getName() << " ancestors";
     }
+    msg_info("GnodeMultiMapping") << tmpStr.str();
 }
 
 

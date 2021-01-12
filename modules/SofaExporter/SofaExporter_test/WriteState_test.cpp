@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -24,8 +24,9 @@
 #include <iterator>
 #include <algorithm>
 
-#include <SofaTest/Sofa_test.h>
-#include <SofaTest/TestMessageHandler.h>
+#include <sofa/helper/testing/BaseTest.h>
+using sofa::helper::testing::BaseTest;
+
 #include <SofaSimulationGraph/DAGSimulation.h>
 
 #include <SofaImplicitOdeSolver/EulerImplicitSolver.h>
@@ -35,6 +36,8 @@
 #include <SofaBaseMechanics/UniformMass.h>
 #include <SofaExporter/WriteState.h>
 
+#include <SofaBase/initSofaBase.h>
+
 namespace sofa {
 
     using namespace component;
@@ -43,7 +46,7 @@ namespace sofa {
 
 
     template <typename _DataTypes>
-    struct WriteState_test : public Sofa_test<typename _DataTypes::Real>
+    struct WriteState_test : public BaseTest
     {
         typedef _DataTypes DataTypes;
         typedef typename DataTypes::CPos CPos;
@@ -71,6 +74,7 @@ namespace sofa {
         /// Create the context for the scene
         void SetUp()
         {
+            sofa::component::initSofaBase();
             // Init simulation
             sofa::simulation::setSimulation(simulation = new sofa::simulation::graph::DAGSimulation());
             root = simulation::getSimulation()->createNewGraph("root");
@@ -200,7 +204,6 @@ namespace sofa {
                 std::cout<<"Problem opening file "+referenceFile<<std::endl;
                 return false;
             }
-
             if (f1.tellg() != f2.tellg())
             {
                 std::cout<<"File size mismatch "<<std::endl;

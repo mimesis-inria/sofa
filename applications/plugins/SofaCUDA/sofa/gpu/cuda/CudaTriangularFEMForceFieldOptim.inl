@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -70,7 +70,7 @@ void TriangularFEMForceFieldOptim<gpu::cuda::CudaVec3fTypes>::addForce(const cor
 
     VecTriangleState& triState = *d_triangleState.beginEdit();
     const VecTriangleInfo& triInfo = d_triangleInfo.getValue();
-    const unsigned int nbTriangles = _topology->getNbTriangles();
+    const unsigned int nbTriangles = m_topology->getNbTriangles();
     const InternalData::VecGPUTriangleInfo& gpuTriangleInfo = data.gpuTriangleInfo;
     const Real gamma = this->gamma;
     const Real mu = this->mu;
@@ -97,7 +97,7 @@ void TriangularFEMForceFieldOptim<gpu::cuda::CudaVec3fTypes>::addDForce(const co
 
     const VecTriangleState& triState = d_triangleState.getValue();
     const VecTriangleInfo& triInfo = d_triangleInfo.getValue();
-    const unsigned int nbTriangles = _topology->getNbTriangles();
+    const unsigned int nbTriangles = m_topology->getNbTriangles();
     const InternalData::VecGPUTriangleInfo& gpuTriangleInfo = data.gpuTriangleInfo;
     const Real gamma = this->gamma;
     const Real mu = this->mu;

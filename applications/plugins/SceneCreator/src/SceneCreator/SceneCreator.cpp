@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU General Public License as published by the Free  *
@@ -20,7 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #include "SceneCreator.h"
-#include <SofaGeneral/config.h>
+#include <SceneCreator/config.h>
 
 #include <sofa/simulation/Simulation.h>
 #include <SofaSimulationGraph/DAGSimulation.h>
@@ -107,7 +107,7 @@ Node::SPtr  createEulerSolverNode(Node::SPtr parent, const std::string& name, co
 
     if (scheme == "Implicit_SparseLDL")
     {
-        if(SCENECREATOR_HAVE_METIS)
+        if(SCENECREATOR_HAVE_SOFASPARSESOLVER)
         {
             simpleapi::createObject(node, "EulerImplicitSolver", {{"name","Euler Implicit"},
                                                                   {"rayleighStiffness","0.01"},
@@ -150,25 +150,25 @@ Node::SPtr createObstacle(Node::SPtr  parent, const std::string &filenameCollisi
                                 {"rotation", str(rotation)}
                             });
 
-    simpleapi::createObject(nodeFixed, "TriangleModel", {
+    simpleapi::createObject(nodeFixed, "TriangleCollisionModel", {
                                 {"name", "Collision Fixed"},
                                 {"simulated", "false"},
                                 {"moving", "false"},
                             });
 
-    simpleapi::createObject(nodeFixed, "LineModel", {
+    simpleapi::createObject(nodeFixed, "LineCollisionModel", {
                                 {"name", "Collision Fixed"},
                                 {"simulated", "false"},
                                 {"moving", "false"},
                             });
 
-    simpleapi::createObject(nodeFixed, "PointModel", {
+    simpleapi::createObject(nodeFixed, "PointCollisionModel", {
                                 {"name", "Collision Fixed"},
                                 {"simulated", "false"},
                                 {"moving", "false"},
                             });
 
-    simpleapi::createObject(nodeFixed, "LineModel", {
+    simpleapi::createObject(nodeFixed, "LineCollisionModel", {
                                 {"name", "Collision Fixed"},
                                 {"simulated", "false"},
                                 {"moving", "false"},
@@ -249,7 +249,7 @@ simulation::Node::SPtr createVisualNodeVec3(simulation::Node::SPtr  parent,
 
     simpleapi::createObject(node, mappingType, {
                                 {"name", nameVisual},
-                                {"template", "Vec3,ExtVec3"},
+                                {"template", "Vec3,Vec3"},
                                 {"input", refDof},
                                 {"output", refVisual}});
 
@@ -321,12 +321,12 @@ Node::SPtr createVisualNodeRigid(Node::SPtr  parent, BaseObject::SPtr  dofRigid,
 void addCollisionModels(Node::SPtr parent, const std::vector<std::string> &elements)
 {
     std::map<std::string, std::string> alias = {
-        {"Triangle", "TriangleModel"},
-        {"Line", "LineModel"},
-        {"Point", "PointModel"},
-        {"Sphere", "SphereModel"},
-        {"Capsule", "CapsuleModel"},
-        {"OBB", "OBBModel"}};
+        {"Triangle", "TriangleCollisionModel"},
+        {"Line", "LineCollisionModel"},
+        {"Point", "PointCollisionModel"},
+        {"Sphere", "SphereCollisionModel"},
+        {"Capsule", "CapsuleCollisionModel"},
+        {"OBB", "OBBCollisionModel"}};
 
     for (auto& element : elements)
     {

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -107,7 +107,11 @@ void ClosestPointRegistrationForceField<DataTypes>::init()
     if(!sourceTriangles.getValue().size()) {
         sofa::component::loader::MeshObjLoader *meshobjLoader;
         this->getContext()->get( meshobjLoader, core::objectmodel::BaseContext::Local);
-        if (meshobjLoader) {sourceTriangles.virtualSetLink(meshobjLoader->d_triangles); sout<<"imported triangles from "<<meshobjLoader->getName()<<sendl;}
+        if (meshobjLoader)
+        {
+            sourceTriangles.virtualSetLink(meshobjLoader->d_triangles);
+            msg_info()<<"imported triangles from "<<meshobjLoader->getName();
+        }
     }
     // Get source normals
     if(!sourceNormals.getValue().size()) serr<<"normals of the source model not found"<<sendl;

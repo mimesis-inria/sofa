@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -112,10 +112,9 @@ void ManifoldTetrahedronSetTopologyContainer::createTetrahedraAroundEdgeArray ()
     for (unsigned int edgeIndex =0; edgeIndex<edges.size(); edgeIndex++)
     {
 
-        sofa::helper::vector <unsigned int> &shell = getTetrahedraAroundEdgeForModification (edgeIndex);
-        sofa::helper::vector <unsigned int>::iterator it;
-        sofa::helper::vector < sofa::helper::vector <unsigned int> > vertexTofind;
-        sofa::helper::vector <unsigned int> goodShell;
+        auto &shell = getTetrahedraAroundEdgeForModification (edgeIndex);
+        sofa::helper::vector < sofa::helper::vector <Index> > vertexTofind;
+        sofa::helper::vector <Index> goodShell;
         unsigned int firstVertex =0;
         unsigned int secondVertex =0;
         unsigned int cpt = 0;
@@ -253,16 +252,13 @@ void ManifoldTetrahedronSetTopologyContainer::createTetrahedraAroundTriangleArra
 
     for (unsigned int triangleIndex = 0; triangleIndex < m_tetrahedraAroundTriangle.size(); triangleIndex++)
     {
-        sofa::helper::vector <unsigned int> &shell = getTetrahedraAroundTriangleForModification (triangleIndex);
+        auto &shell = getTetrahedraAroundTriangleForModification (triangleIndex);
 
         if (shell.size() == 1)
         {
             //Check if triangle has the good orientation
-            if (CHECK_TOPOLOGY)
-            {
-                int test = getTriangleTetrahedronOrientation (m_tetrahedron[ shell[0] ], m_triangle[ triangleIndex ]);
-                msg_info() << "Border test: " << test;
-            }
+            int test = getTriangleTetrahedronOrientation (m_tetrahedron[ shell[0] ], m_triangle[ triangleIndex ]);
+            msg_info() << "Border test: " << test;
         }
         else if (shell.size() == 2)
         {
@@ -288,16 +284,11 @@ void ManifoldTetrahedronSetTopologyContainer::createTetrahedraAroundTriangleArra
 
 bool ManifoldTetrahedronSetTopologyContainer::checkTopology() const
 {
-    if (CHECK_TOPOLOGY)
-    {
-        bool ret = true;
+    bool ret = true;
 
-        // To be implemented later later....
+    // To be implemented later later....
 
-        return ret && TetrahedronSetTopologyContainer::checkTopology();
-    }
-    else
-        return true;
+    return ret && TetrahedronSetTopologyContainer::checkTopology();
 }
 
 
@@ -328,7 +319,7 @@ int ManifoldTetrahedronSetTopologyContainer::getTetrahedronOrientation (const Te
         it = mapPosition.find (t_test[i]);
         if (it == mapPosition.end())
         {
-            msg_error_when(CHECK_TOPOLOGY) << "GetTetrahedronOrientation: reference and testing tetrahedrons are not composed by the same vertices.";
+            msg_error() << "GetTetrahedronOrientation: reference and testing tetrahedrons are not composed by the same vertices.";
             return -1;
         }
         positionsChange[(*it).second] = i;
@@ -392,7 +383,7 @@ int ManifoldTetrahedronSetTopologyContainer::getTriangleTetrahedronOrientation (
         it = mapPosition.find (tri[i]);
         if (it == mapPosition.end())
         {
-            msg_error_when(CHECK_TOPOLOGY) << "GetTriangleTetrahedronOrientation: tetrahedrons and triangle are not composed by the same vertices.";
+            msg_error() << "GetTriangleTetrahedronOrientation: tetrahedrons and triangle are not composed by the same vertices.";
             return -1;
         }
         positionsChange[i] = (*it).second;

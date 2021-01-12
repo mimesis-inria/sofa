@@ -1,19 +1,16 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(Sofa) # Cannot use VERSION with patch like "00"
 
 # Manually define VERSION
-set(Sofa_VERSION_MAJOR 19)
+set(Sofa_VERSION_MAJOR 20)
 set(Sofa_VERSION_MINOR 06)
 set(Sofa_VERSION_PATCH 99)
 set(Sofa_VERSION ${Sofa_VERSION_MAJOR}.${Sofa_VERSION_MINOR}.${Sofa_VERSION_PATCH})
 
 set(SOFA_KERNEL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SofaKernel" CACHE STRING "Path to SofaKernel")
-
-if(NOT EXISTS ${SOFA_KERNEL_SOURCE_DIR}/framework)
-    set(SOFA_KERNEL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SofaKernel")
-    if(NOT EXISTS ${SOFA_KERNEL_SOURCE_DIR}/framework)
-        message( FATAL_ERROR "SofaKernel is not present or is inaccessible. Check if ${SOFA_KERNEL_SOURCE_DIR} exists or is accessible.")
-    endif()
+if(NOT EXISTS ${SOFA_KERNEL_SOURCE_DIR})
+    message(WARNING "SofaKernel is not present or is inaccessible. Check if ${SOFA_KERNEL_SOURCE_DIR} exists or is accessible. Backing up to default value.")
+    set(SOFA_KERNEL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SofaKernel" CACHE STRING "Path to SofaKernel" FORCE)
 endif()
 
 ## Default build type
@@ -43,12 +40,6 @@ if(APPLE AND SOFA_BUILD_APP_BUNDLE)
         )
 endif()
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
-
-# Use packaging.cmake configuration (used for Continuous Delivery)
-if(SOFA_BUILD_RELEASE_PACKAGE)
-    message("Using package.cmake")
-    include("package.cmake")
-endif()
 
 # Remove generated CMake files, this prevents CMake from finding packages that
 # were disabled (like, unchecked in cmake-gui) after being built once.
@@ -80,6 +71,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake")
 list(APPEND CMAKE_IGNORE_PATH "${CMAKE_INSTALL_PREFIX}") # ignore install directory for findXXX commands
 
+install(FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FindEigen3.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/macdeployqt.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/windeployqt.cmake"
+    DESTINATION lib/cmake/Modules
+    COMPONENT headers
+    )
+
 include(SofaMacros)
 
 ## RPATH
@@ -94,7 +93,6 @@ if(UNIX)
 
     # see https://cmake.org/Wiki/CMake_RPATH_handling for $ORIGIN doc
     set(CMAKE_INSTALL_RPATH
-        "../lib"
         "$ORIGIN/../lib"
         "$$ORIGIN/../lib"
         )
@@ -104,6 +102,8 @@ if(UNIX)
         list(APPEND CMAKE_INSTALL_RPATH
             "@loader_path/../lib"
             "@executable_path/../lib"
+            "@loader_path/../../Frameworks"
+            "@executable_path/../../Frameworks"
             )
         set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
     endif()
@@ -113,6 +113,7 @@ include(CompilerOptions)
 
 ## Boost (1.54.0 or higher) is now mandatory.
 set(BOOST_MIN_VERSION "1.54.0")
+set(Boost_NO_BOOST_CMAKE TRUE)
 find_package(Boost ${BOOST_MIN_VERSION} QUIET)
 if(NOT Boost_FOUND)
     if(WIN32)
@@ -128,9 +129,6 @@ endif()
 
 ### Windows config
 if(MSVC)
-    #define BOOST_ALL_DYN_LINK needed for dynamic linking with boost libraries
-    add_definitions(-DBOOST_ALL_DYN_LINK)
-
     # WinDepPack
     set(SOFA_DEPENDENCY_PACK_DIR "${CMAKE_SOURCE_DIR}" CACHE PATH "Directory containing Windows Dependency Pack")
     if(NOT EXISTS ${SOFA_DEPENDENCY_PACK_DIR})
@@ -158,7 +156,7 @@ option(SOFA_WITH_THREADING "Compile sofa with thread-safetiness support (PARTIAL
 
 ### Testing
 option(SOFA_BUILD_TESTS "Compile the automatic tests for Sofa, along with the gtest library." ON)
-if(SOFA_BUILD_TESTS)
+if(SOFA_BUILD_TESTS OR SOFA_BUILD_RELEASE_PACKAGE)
     # Enable testing features of cmake, like the add_test() command.
     enable_testing()
     add_subdirectory(extlibs/gtest)
@@ -181,6 +179,10 @@ endif()
 
 ### Ninja build pools
 option(SOFA_NINJA_BUILD_POOLS "Activate the Ninja build pools feature, to limit the cores used by specific targets" OFF)
+
+# This option is useful to compile SOFA + internal plugins without SofaPython soft dependencies (SofaExporter, SofaTest, Compliant, image, ...)
+# it simplifies binaries generation and future cohabitation between SofaPython and SofaPython3
+option(SOFA_ENABLE_SOFT_DEPS_TO_SOFAPYTHON "Enable all soft dependencies to SofaPython" ON)
 
 ### Sofa using type double or float or both
 set(SOFA_FLOATING_POINT_TYPE both CACHE STRING
@@ -213,29 +215,55 @@ if(${SOFA_FLOATING_POINT_TYPE} STREQUAL both)
     set(SOFA_WITH_DOUBLE 1)
 endif()
 
+### Deprecated components
+option(SOFA_WITH_DEPRECATED_COMPONENTS "Compile SOFA with all deprecated components" ON)
+if(SOFA_WITH_DEPRECATED_COMPONENTS)
+    message(DEPRECATION "Deprecated components are activated (SOFA_WITH_DEPRECATED_COMPONENTS variable is ON)")
+endif()
+
 ### Extlibs
 add_subdirectory(extlibs)
 
 ### Main Sofa subdirectories
-
 add_subdirectory(${SOFA_KERNEL_SOURCE_DIR}/SofaFramework)
 add_subdirectory(${SOFA_KERNEL_SOURCE_DIR}/SofaSimulation)
-if(SOFA_BUILD_TESTS)
+if(SOFA_BUILD_TESTS OR SOFA_BUILD_RELEASE_PACKAGE)
     # Depends on SofaSimulation
     add_subdirectory(tools/SofaGTestMain)
 endif()
+
 add_subdirectory(${SOFA_KERNEL_SOURCE_DIR}/SofaBase)
-add_subdirectory(${SOFA_KERNEL_SOURCE_DIR}/SofaCommon)
-add_subdirectory(SofaGeneral)
-add_subdirectory(SofaAdvanced)
-add_subdirectory(SofaMisc)
+
+## Modules
+## in the consortium convention a module is a similar to a plugin the difference is that
+## a module is hosted and managed by the consortium while plugins are hosted and managed by third parties.
+add_subdirectory(${SOFA_KERNEL_SOURCE_DIR}/modules)
+add_subdirectory(modules)
 
 # This is all the applications GUI stuff. As there is a dependency to this one
 # In scene creator and SofaPython...it is located here.
 add_subdirectory(SofaGui)
 
-# SofaTest, modules depend on SofaPython, so we add SofaPython before.
-sofa_add_plugin(applications/plugins/SofaPython SofaPython)
+if(SOFA_ENABLE_SOFT_DEPS_TO_SOFAPYTHON)
+    # SofaTest depend on SofaPython, so we add SofaPython before.
+    # and SofaPython needs SofaGui...
+    sofa_add_plugin(applications/plugins/SofaPython SofaPython)
+    sofa_add_module(modules/SofaExporter SofaExporter ON)
+endif()
+
+## Collections
+## A collection is a "meta module" and containing several modules (usable at find level [find_package] and include/link level [add_library])
+# SofaAdvanced is legacy and deprecated since 20.06
+set(SOFA_LIST_OF_DEPRECATED_COLLECTIONS ${SOFA_KERNEL_SOURCE_DIR}/SofaCommon SofaGeneral SofaAdvanced SofaMisc)
+option(SOFA_BUILD_DEPRECATED_COLLECTIONS "Build legacy collections (${SOFA_LIST_OF_DEPRECATED_COLLECTIONS})." ON)
+if(SOFA_BUILD_DEPRECATED_COLLECTIONS)
+    foreach(deprecated_collection ${SOFA_LIST_OF_DEPRECATED_COLLECTIONS})
+        add_subdirectory(${deprecated_collection})
+    endforeach()
+endif()
+## Customized collections
+# SofaComponentAll is a convenient collection to get all Sofa features
+add_subdirectory(applications/collections)
 
 ## Scene creator option
 option(SOFA_BUILD_SCENECREATOR "Compile the C++ API located in applications/plugins/SceneCreator" OFF)
@@ -244,7 +272,7 @@ option(SOFA_BUILD_SCENECREATOR "Compile the C++ API located in applications/plug
 option(SOFA_BUILD_TUTORIALS "Build (most of) the tutorials available." OFF)
 
 # Activate SceneCreator when required
-if(SOFA_BUILD_TESTS OR SOFA_BUILD_TUTORIALS)
+if(SOFA_BUILD_TESTS OR SOFA_BUILD_TUTORIALS OR SOFA_BUILD_RELEASE_PACKAGE)
     set(SOFA_BUILD_SCENECREATOR ON CACHE BOOL "" FORCE)
 endif()
 
@@ -255,31 +283,24 @@ if(SOFA_BUILD_SCENECREATOR)
 endif()
 
 # Tests : define subdirectories
-if(SOFA_BUILD_TESTS)
+if(SOFA_BUILD_TESTS OR SOFA_BUILD_RELEASE_PACKAGE)
     # Library used to write high level tests involving many components.
     add_subdirectory(applications/plugins/SofaTest)
-endif()
-
-## Modules
-## in the consortium convention a module is a similar to a plugin the difference is that
-## a module is hosted and managed by the consortium while plugins are hosted and managed by third parties.
-add_subdirectory(modules)
-
-if(SOFA_BUILD_TESTS)
-    # Tests for all the modules, written using SofaTest.
-    add_subdirectory(modules/tests)
-    # SofaPython_test is a special case, because it depends on
-    # SofaTest, which depends on SofaPython...
-    if(PLUGIN_SOFAPYTHON)
-        add_subdirectory(applications/plugins/SofaPython/SofaPython_test)
-    endif()
 endif()
 
 ## Plugins
 add_subdirectory(applications/plugins)
 
-## Packages
-add_subdirectory(applications/packages)
+if(SOFA_BUILD_TESTS)
+    # Tests for all the modules, written using SofaTest.
+    add_subdirectory(tests)
+endif()
+
+if(SOFA_BUILD_TESTS AND PLUGIN_SOFAPYTHON)
+    # SofaPython_test is a special case, because it depends on
+    # SofaTest, which may depend on SofaPython...
+    add_subdirectory(applications/plugins/SofaPython/SofaPython_test)
+endif()
 
 ## Applications
 add_subdirectory(applications/projects)
@@ -300,12 +321,6 @@ if(NOT "${SOFA_EXTERNAL_DIRECTORIES}" STREQUAL "")
     endforeach()
 endif()
 
-### Deprecated components
-option(SOFA_WITH_DEPRECATED_COMPONENTS "Compile SOFA with all deprecated components" ON)
-if(SOFA_WITH_DEPRECATED_COMPONENTS)
-    message(DEPRECATION "Deprecated components are activated (SOFA_WITH_DEPRECATED_COMPONENTS variable is ON)")
-endif()
-
 ## Custom
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/custom.cmake")
     message("Adding custom file")
@@ -320,17 +335,6 @@ install(FILES "${CMAKE_SOURCE_DIR}/CHANGELOG.md" DESTINATION . COMPONENT applica
 install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.LGPL.txt" DESTINATION . COMPONENT applications)
 install(FILES "${CMAKE_SOURCE_DIR}/Authors.txt" DESTINATION . COMPONENT applications)
 
-# Create build and install versions of etc/sofa.ini:
-#   - In build dir, sofa.ini contains absolute paths to distant (in source) share/ and examples/ dirs
-#   - In install dir, sofa.ini (generated later via installedSofa.ini) contains relative paths to local share/ and examples/ dirs
-set(SHARE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/share")
-set(EXAMPLES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/examples")
-configure_file("${SOFA_KERNEL_SOURCE_DIR}/etc/sofa.ini.in" "${CMAKE_BINARY_DIR}/etc/sofa.ini")
-set(SHARE_DIR "../share/sofa")
-set(EXAMPLES_DIR "../share/sofa/examples")
-configure_file("${SOFA_KERNEL_SOURCE_DIR}/etc/sofa.ini.in" "${CMAKE_BINARY_DIR}/etc/installedSofa.ini")
-install(FILES "${CMAKE_BINARY_DIR}/etc/installedSofa.ini" DESTINATION etc RENAME sofa.ini COMPONENT applications)
-
 option(SOFA_INSTALL_RESOURCES_FILES "Copy resources files (etc/, share/, examples/) when installing" ON)
 ## Install resource files
 if(SOFA_INSTALL_RESOURCES_FILES)
@@ -341,6 +345,8 @@ endif()
 file(WRITE "${CMAKE_BINARY_DIR}/plugins/README.txt" "This folder will be automatically scanned by the Plugin Manager.")
 install(DIRECTORY ${CMAKE_BINARY_DIR}/plugins/ DESTINATION plugins COMPONENT resources)
 
+# Post-install scripts (must be the last add_subdirectory)
+add_subdirectory(tools/postinstall-fixup)
 
 #######################
 # CPack configuration #
@@ -419,18 +425,16 @@ cpack_add_component(resources
     GROUP runtime
     )
 
-set(CPACK_COMPONENTS_ALL applications headers Eigen_headers GTest_headers libraries resources)
+set(CPACK_COMPONENTS_ALL applications headers GTest_headers libraries resources)
 
 set(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "runSofa Application")
 set(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C++ Headers")
-set(CPACK_COMPONENT_EIGEN_HEADERS_DISPLAY_NAME "Eigen Headers")
 set(CPACK_COMPONENT_GTEST_HEADERS_DISPLAY_NAME "GTest Headers")
 set(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "Libraries")
 set(CPACK_COMPONENT_RESOURCES_DISPLAY_NAME "Resources")
 
 set(CPACK_COMPONENT_APPLICATIONS_GROUP "Runtime")
 set(CPACK_COMPONENT_HEADERS_GROUP "Development")
-set(CPACK_COMPONENT_EIGEN_HEADERS_GROUP "Development")
 set(CPACK_COMPONENT_GTEST_HEADERS_GROUP "Development")
 set(CPACK_COMPONENT_LIBRARIES_GROUP "Development")
 set(CPACK_COMPONENT_RESOURCES_GROUP "Runtime")
@@ -468,10 +472,6 @@ if(CPACK_BINARY_IFW)
         )
     cpack_ifw_configure_component(headers
         DISPLAY_NAME "C++ Headers"
-        DEPENDS development
-        )
-    cpack_ifw_configure_component(Eigen_headers
-        DISPLAY_NAME "Eigen Headers"
         DEPENDS development
         )
     cpack_ifw_configure_component(GTest_headers

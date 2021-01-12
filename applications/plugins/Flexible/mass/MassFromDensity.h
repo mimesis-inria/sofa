@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -98,8 +98,8 @@ struct MassFromDensitySpecialization<DataTypes, defaulttype::Image<T>>
         This->Me.makeCompressed();
 
         // output some information
-        This->sout<<"Total Volume = "<<voxelVol*nb<<" ("<<pow((double)voxelVol*nb,1.0/3.0)<<")"<<This->sendl;
-        This->sout<<"Total Mass = "<<totalMass<<This->sendl;
+        msg_info(This)<<"Total Volume = "<<voxelVol*nb<<" ("<<pow((double)voxelVol*nb,1.0/3.0)<<")"<<msgendl
+                      <<"Total Mass = "<<totalMass<<This->sendl;
     }
 };
 
@@ -136,9 +136,6 @@ public:
 
     enum { NO_LUMPING=0, BLOCK_LUMPING=1, DIAGONAL_LUMPING=2 };
     Data< int > f_lumping; ///< is the mass matrix lumped? (copy each non-diagonal term on the diagonal term of the same line)  0->no, 1->by bloc, 2->diagonal matrix
-
-    virtual std::string getTemplateName() const    { return templateName(this);    }
-    static std::string templateName(const MassFromDensity<DataTypes,ImageTypes>* = NULL) { return DataTypes::Name()+std::string(",")+ImageTypes::Name();  }
 
     MassFromDensity()    :   Inherited()
       , image(initData(&image,ImageTypes(),"image",""))

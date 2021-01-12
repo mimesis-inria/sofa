@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 
 project(SofaGeneralExplicitOdeSolver_test)
 
@@ -10,7 +10,9 @@ list(APPEND SOURCE_FILES
     RungeKutta4ExplicitSolverDynamic_test.cpp
     )
 
+find_package(SofaGeneralExplicitOdeSolver REQUIRED)
+
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} SofaGTestMain SofaTest)
+target_link_libraries(${PROJECT_NAME} SofaGTestMain SofaTest SofaGeneralExplicitOdeSolver)
 
 add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})

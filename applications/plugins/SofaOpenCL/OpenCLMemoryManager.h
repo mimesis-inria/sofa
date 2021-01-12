@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -143,7 +143,7 @@ public:
         return 0;
     }
 
-    static bool bufferAlloc(gl_buffer* /*bId*/, int/* n*/)
+    static bool bufferAlloc(gl_buffer* /*bId*/, int/* n*/,  bool createBuffer = true)
     {
         DEBUG_TEXT("OpenCLMemoryManager::bufferAlloc");
         return false;

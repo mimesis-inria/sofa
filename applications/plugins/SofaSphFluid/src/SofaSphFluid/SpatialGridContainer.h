@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,23 +19,10 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-//
-// C++ Interface: SpatialGridContainer
-//
-// Description:
-//
-//
-// Author: The SOFA team <http://www.sofa-framework.org>, (C) 2006
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
-
 #ifndef SOFA_COMPONENT_CONTAINER_SPATIALGRIDCONTAINER_H
 #define SOFA_COMPONENT_CONTAINER_SPATIALGRIDCONTAINER_H
 #include <SofaSphFluid/src/SofaSphFluid/SphFluid.h>
 
-#include <sofa/helper/system/config.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/objectmodel/Event.h>
@@ -43,6 +30,7 @@
 #include <sofa/helper/rmath.h>
 #include <list>
 
+#include <sofa/defaulttype/TopologyTypes.h>
 
 // I need C++0x !!! 
 // a: we all do ;-)
@@ -132,14 +120,6 @@ public:
         }
     };
 
-//	class NeighborListener
-//	{
-//		public:
-//			void addNeighbor(int /*i1*/, int /*i2*/, Real /*r2*/, Real /*h2*/)
-//			{
-//			}
-//	};
-
     enum { GRIDDIM_LOG2 = 3 };
 };
 
@@ -154,6 +134,7 @@ public:
     typedef typename DataTypes::GridData GridData;
     //typedef typename DataTypes::NeighborListener NeighborListener;
     typedef typename DataTypes::ParticleField ParticleField;
+    using Index = sofa::Index;
 
 public:
     SpatialGrid(Real cellWidth);
@@ -184,7 +165,7 @@ public:
     /// Change particles ordering inside a given cell have contiguous indices
     ///
     /// Fill the old2new and new2old arrays giving the permutation to apply
-    void reorderIndices(helper::vector<unsigned int>* old2new, helper::vector<unsigned int>* new2old);
+    void reorderIndices(helper::vector<Index>* old2new, helper::vector<Index>* new2old);
 
     enum { GRIDDIM_LOG2 = DataTypes::GRIDDIM_LOG2, GRIDDIM = 1<<GRIDDIM_LOG2 };
     enum { NCELL = GRIDDIM*GRIDDIM*GRIDDIM };
@@ -239,6 +220,7 @@ public:
             return (*this)[0] == a[0] && (*this)[1] == a[1] && (*this)[2] == a[2];
         }
     };
+
 
     static std::size_t hash(const Key& x)
     {
@@ -333,6 +315,9 @@ public:
     typedef typename DataTypes::VecCoord VecCoord;
     typedef SpatialGridTypes<DataTypes> GridTypes;
     typedef SpatialGrid< GridTypes > Grid;
+
+    using Index = sofa::Index;
+
     Grid* grid;
     Data<Real> d_cellWidth; ///< Width each cell in the grid. If it is used to compute neighboors, it should be greater that the max radius considered.
     Data<bool> d_showGrid; ///< activate rendering of the grid
@@ -344,7 +329,7 @@ public:
     template<class T>
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
-        if (dynamic_cast<core::behavior::MechanicalState<DataTypes>*>(context->getMechanicalState()) == NULL)
+        if (dynamic_cast<core::behavior::MechanicalState<DataTypes>*>(context->getMechanicalState()) == nullptr)
             return false;
         return core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
@@ -377,7 +362,7 @@ public:
         return templateName(this);
     }
 
-    static std::string templateName(const SpatialGridContainer<DataTypes>* = NULL)
+    static std::string templateName(const SpatialGridContainer<DataTypes>* = nullptr)
     {
         return DataTypes::Name();
     }
@@ -386,7 +371,7 @@ protected:
 };
 
 #if  !defined(SOFA_COMPONENT_CONTAINER_SPATIALGRIDCONTAINER_CPP)
-extern template class SpatialGridContainer< defaulttype::Vec3Types >;
+extern template class SOFA_SPH_FLUID_API SpatialGridContainer< sofa::defaulttype::Vec3Types >;
 extern template class SOFA_SPH_FLUID_API SpatialGrid< SpatialGridTypes< sofa::defaulttype::Vec3Types > >;
 
 #endif

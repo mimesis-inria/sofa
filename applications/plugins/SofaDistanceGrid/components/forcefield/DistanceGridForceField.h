@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -161,7 +161,7 @@ public:
     Data<Real> stiffnessVolume; ///< force stiffness if a tetrahedron have an volume less than minVolume
     bool flipNormals;
 
-    Data<defaulttype::RGBAColor> color; ///< display color.(default=[0.0,0.5,0.2,1.0])
+    Data<sofa::helper::types::RGBAColor> color; ///< display color.(default=[0.0,0.5,0.2,1.0])
     Data<bool> bDraw; ///< enable/disable drawing of distancegrid
     Data<bool> drawPoints; ///< enable/disable drawing of distancegrid
     Data<Real> drawSize; ///< display size if draw is enabled
@@ -185,7 +185,7 @@ protected:
         , stiffnessArea(initData(&stiffnessArea, (Real)100, "stiffnessArea", "force stiffness if a triangle have an area less than minArea"))
         , minVolume(initData(&minVolume, (Real)0, "minVolume", "minimal volume for each tetrahedron (a flipped triangle will have a negative volume)"))
         , stiffnessVolume(initData(&stiffnessVolume, (Real)0, "stiffnessVolume", "force stiffness if a tetrahedron have an volume less than minVolume"))
-        , color(initData(&color, defaulttype::RGBAColor(0.0f,0.5f,0.2f,1.0f), "color", "display color.(default=[0.0,0.5,0.2,1.0])"))
+        , color(initData(&color, sofa::helper::types::RGBAColor(0.0f,0.5f,0.2f,1.0f), "color", "display color.(default=[0.0,0.5,0.2,1.0])"))
         , bDraw(initData(&bDraw, false, "draw", "enable/disable drawing of distancegrid"))
         , drawPoints(initData(&drawPoints, false, "drawPoints", "enable/disable drawing of distancegrid"))
         , drawSize(initData(&drawSize, (Real)10.0f, "drawSize", "display size if draw is enabled"))
@@ -216,7 +216,7 @@ public:
     void addKToMatrix(const sofa::core::MechanicalParams* mparams, const sofa::core::behavior::MultiMatrixAccessor* matrix) override;
     SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const override
     {
-        serr << "Get potentialEnergy not implemented" << sendl;
+        msg_warning() << "Get potentialEnergy not implemented" << sendl;
         return 0.0;
     }
     void draw(const core::visual::VisualParams* vparams) override;

@@ -3,6 +3,7 @@
   <RequiredPlugin pluginName="Flexible"/>
   <RequiredPlugin pluginName="Compliant"/>
   <RequiredPlugin pluginName="image"/>
+  <RequiredPlugin pluginName="SofaLoader"/>
   <DefaultAnimationLoop />
 
 
@@ -24,7 +25,7 @@
 
     <Node 	name="Elasticity"   >
       <MeshObjLoader name="loader" filename="beam.obj" triangulate="1"/> 
-	    <Mesh name="mesh" src="@loader" />
+	    <MeshTopology name="mesh" src="@loader" />
       <TopologyGaussPointSampler name="sampler" inPosition="@mesh.position" showSamplesScale="0" method="0" order="1" />
     </Node>
 

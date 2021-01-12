@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -28,7 +28,6 @@
 #include <sofa/core/DataEngine.h>
 #include <sofa/defaulttype/VecTypes.h>
 
-
 #include <sofa/helper/logging/Messaging.h>
 
 #include "PythonFactory.h"
@@ -55,7 +54,7 @@ PSDEDataFactory* getFactoryInstance(){
     if (s_localfactory == nullptr)
     {
         // helper vector style containers
-        std::string containers[] = {"vector", "ResizableExtVector"};
+        std::string containers[] = {"vector"};
 
         s_localfactory = new PSDEDataFactory();
         // Scalars
@@ -241,7 +240,7 @@ BaseData* helper_addNewData(PyObject *args, PyObject * kw, Base * obj) {
 
     char* dataRawType = new char;
     char* dataClass = new char;
-    char* dataHelp = new char;
+    char* dataHelp = "missing help";
     char * dataName = new char;
     std::string val = "";
     
@@ -275,7 +274,9 @@ BaseData* helper_addNewData(PyObject *args, PyObject * kw, Base * obj) {
     {
         return nullptr;
     }
+
     BaseData* bd = nullptr;
+
     if(KwargsOrArgs) // parse kwargs
     {
         if(kw==nullptr || !PyDict_Check(kw) )
@@ -361,7 +362,7 @@ BaseData* helper_addNewData(PyObject *args, PyObject * kw, Base * obj) {
             {
                 if(!bd->setParent(tmp.str()))
                 {
-                    msg_warning(obj) << "Could not setup link for Data, initialzing empty.";
+                    msg_warning(obj) << "Could not setup link for Data, initializing empty " << tmp.str() ;
                 }
             }
             else

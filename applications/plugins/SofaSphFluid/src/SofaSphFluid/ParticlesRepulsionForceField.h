@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -23,7 +23,6 @@
 #define SOFA_COMPONENT_FORCEFIELD_PARTICLESREPULSIONFORCEFIELD_H
 #include <SofaSphFluid/config.h>
 
-#include <sofa/helper/system/config.h>
 #include <sofa/core/behavior/ForceField.h>
 #include <sofa/core/behavior/MechanicalState.h>
 #include <SofaSphFluid/SpatialGridContainer.h>
@@ -111,8 +110,8 @@ using sofa::defaulttype::Vec2dTypes;
 
 #if  !defined(SOFA_COMPONENT_FORCEFIELD_PARTICLESREPULSIONFORCEFIELD_CPP)
 
-extern template class SOFA_SPH_FLUID_API ParticlesRepulsionForceField<Vec3Types>;
-extern template class SOFA_SPH_FLUID_API ParticlesRepulsionForceField<Vec2Types>;
+extern template class SOFA_SPH_FLUID_API ParticlesRepulsionForceField<sofa::defaulttype::Vec3Types>;
+extern template class SOFA_SPH_FLUID_API ParticlesRepulsionForceField<sofa::defaulttype::Vec2Types>;
 
 
 #endif //  !defined(SOFA_COMPONENT_FORCEFIELD_PARTICLESREPULSIONFORCEFIELD_CPP)

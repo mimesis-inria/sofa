@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,18 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-//
-// C++ Implementation: Light
-//
-// Description:
-//
-//
-// Author: The SOFA team </www.sofa-framework.org>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
-
 #include <SofaOpenglVisual/Light.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <SofaOpenglVisual/LightManager.h>
@@ -75,7 +63,7 @@ const std::string Light::PATH_TO_BLUR_TEXTURE_FRAGMENT_SHADER = "shaders/softSha
 
 Light::Light()
     : m_lightID(0), m_shadowTexWidth(0),m_shadowTexHeight(0)
-    , d_color(initData(&d_color, defaulttype::RGBAColor(1.0,1.0,1.0,1.0), "color", "Set the color of the light. (default=[1.0,1.0,1.0,1.0])"))
+    , d_color(initData(&d_color, sofa::helper::types::RGBAColor(1.0,1.0,1.0,1.0), "color", "Set the color of the light. (default=[1.0,1.0,1.0,1.0])"))
     , d_shadowTextureSize(initData(&d_shadowTextureSize, (GLuint)0, "shadowTextureSize", "[Shadowing] Set size for shadow texture "))
     , d_drawSource(initData(&d_drawSource, (bool) false, "drawSource", "Draw Light Source"))
     , d_zNear(initData(&d_zNear, "zNear", "[Shadowing] Light's ZNear"))
@@ -484,15 +472,15 @@ void DirectionalLight::computeOpenGLModelViewMatrix(GLfloat mat[16], const sofa:
     q = q.createQuaterFromFrame(xAxis, yAxis, zAxis);
     for (unsigned int i = 0; i < 3; i++)
     {
-        mat[i * 4] = xAxis[i];
-        mat[i * 4 + 1] = yAxis[i];
-        mat[i * 4 + 2] = zAxis[i];
+        mat[i * 4] = GLfloat(xAxis[i]);
+        mat[i * 4 + 1] = GLfloat(yAxis[i]);
+        mat[i * 4 + 2] = GLfloat(zAxis[i]);
     }
 
     //translation
     mat[12] = 0;
     mat[13] = 0;
-    mat[14] = (sceneBBox.maxBBox()[2] - sceneBBox.minBBox()[2])*-0.5;
+    mat[14] = GLfloat((sceneBBox.maxBBox()[2] - sceneBBox.minBBox()[2])*-0.5);
 
     //w
     mat[15] = 1;
@@ -552,13 +540,13 @@ void DirectionalLight::computeClippingPlane(const core::visual::VisualParams* vp
     Vector3 minBBox = sceneBBox.minBBox();
     Vector3 maxBBox = sceneBBox.maxBBox();
 
-    float maxLength = (maxBBox - minBBox).norm();
+    float maxLength = float((maxBBox - minBBox).norm());
 
-    left = maxLength * -0.5;
-    right = maxLength * 0.5;
-    top = maxLength * 0.5;
-    bottom = maxLength * -0.5;
-    zNear = 0.0 - maxLength*0.01;
+    left = maxLength * -0.5f;
+    right = maxLength * 0.5f;
+    top = maxLength * 0.5f;
+    bottom = maxLength * -0.5f;
+    zNear = 0.f - maxLength*0.01f;
     zFar = maxLength;
 
     //if (d_zNear.isSet())
@@ -733,11 +721,11 @@ void SpotLight::drawSource(const core::visual::VisualParams* vparams)
     if (d_lookat.getValue())
         dir -= d_position.getValue();
 
-    computeOpenGLProjectionMatrix(m_lightMatProj, m_shadowTexWidth, m_shadowTexHeight, 2 * d_cutoff.getValue(), zNear, zFar);
+    computeOpenGLProjectionMatrix(m_lightMatProj, float(m_shadowTexWidth), float(m_shadowTexHeight), 2 * d_cutoff.getValue(), zNear, zFar);
     computeOpenGLModelViewMatrix(m_lightMatModelview, d_position.getValue(), dir);
 
-    float baseLength = zFar * tanf(this->d_cutoff.getValue() * M_PI / 180);
-    float tipLength = (baseLength*0.5) * (zNear/ zFar);
+    float baseLength = zFar * tanf(float(this->d_cutoff.getValue() * M_PI / 180));
+    float tipLength = (baseLength*0.5f) * (zNear/ zFar);
 
     Vector3 direction;
     if(d_lookat.getValue())
@@ -752,7 +740,7 @@ void SpotLight::drawSource(const core::visual::VisualParams* vparams)
     centers.push_back(this->getPosition());
     vparams->drawTool()->setPolygonMode(0, true);
     vparams->drawTool()->setLightingEnabled(false);
-    vparams->drawTool()->drawSpheres(centers, zNear*0.1,d_color.getValue());
+    vparams->drawTool()->drawSpheres(centers, zNear*0.1f,d_color.getValue());
     vparams->drawTool()->drawCone(base, tip, baseLength, tipLength, d_color.getValue());
     vparams->drawTool()->setLightingEnabled(true);
     vparams->drawTool()->setPolygonMode(0, false);
@@ -769,7 +757,7 @@ void SpotLight::draw(const core::visual::VisualParams* vparams)
     if (d_lookat.getValue())
         dir -= d_position.getValue();
 
-    computeOpenGLProjectionMatrix(m_lightMatProj, m_shadowTexWidth, m_shadowTexHeight, 2 * d_cutoff.getValue(), zNear, zFar);
+    computeOpenGLProjectionMatrix(m_lightMatProj, float(m_shadowTexWidth), float(m_shadowTexHeight), float(2 * d_cutoff.getValue()), zNear, zFar);
     computeOpenGLModelViewMatrix(m_lightMatModelview, d_position.getValue(), dir);
 
     if (d_drawSource.getValue() && vparams->displayFlags().getShowVisualModels())
@@ -821,7 +809,7 @@ void SpotLight::computeClippingPlane(const core::visual::VisualParams* vp, float
                         (corner & 2) ? sceneBBox.minBBox().y() : sceneBBox.maxBBox().y(),
                         (corner & 4) ? sceneBBox.minBBox().z() : sceneBBox.maxBBox().z());
             p = q.rotate(p - pos);
-            double z = -p[2];
+            float z = float (-p[2]);
             if (z < zNear) zNear = z;
             if (z > zFar)  zFar = z;
         }
@@ -833,18 +821,18 @@ void SpotLight::computeClippingPlane(const core::visual::VisualParams* vp, float
             zFar = 1000.0;
         if (zFar <= 0)
         {
-            zNear = vp->zNear();
-            zFar = vp->zFar();
+            zNear = float(vp->zNear());
+            zFar = float(vp->zFar());
         }
 
         if (zNear > 0 && zFar < 1000)
         {
-            zNear *= 0.8; // add some margin
-            zFar *= 1.2;
-            if (zNear < zFar*0.01)
-                zNear = zFar*0.01;
-            if (zNear < 0.1) zNear = 0.1;
-            if (zFar < 2.0) zFar = 2.0;
+            zNear *= 0.8f; // add some margin
+            zFar *= 1.2f;
+            if (zNear < zFar*0.01f)
+                zNear = zFar*0.01f;
+            if (zNear < 0.1f) zNear = 0.1f;
+            if (zFar < 2.0f) zFar = 2.0f;
         }
 
         d_zNear.setValue(zNear);
@@ -873,7 +861,7 @@ void SpotLight::preDrawShadow(core::visual::VisualParams* vp)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    computeOpenGLProjectionMatrix(m_lightMatProj, m_shadowTexWidth, m_shadowTexHeight, 2 * d_cutoff.getValue(), zNear, zFar);
+    computeOpenGLProjectionMatrix(m_lightMatProj, float(m_shadowTexWidth), float(m_shadowTexHeight), 2 * d_cutoff.getValue(), zNear, zFar);
     glMultMatrixf(m_lightMatProj);
 
     glMatrixMode(GL_MODELVIEW);
@@ -910,9 +898,9 @@ void SpotLight::computeOpenGLModelViewMatrix(GLfloat mat[16], const sofa::defaul
 
     for (unsigned int i = 0; i < 3; i++)
     {
-        mat[i * 4] = xAxis[i];
-        mat[i * 4 + 1] = yAxis[i];
-        mat[i * 4 + 2] = zAxis[i];
+        mat[i * 4] = GLfloat(xAxis[i]);
+        mat[i * 4 + 1] = GLfloat(yAxis[i]);
+        mat[i * 4 + 2] = GLfloat(zAxis[i]);
     }
 
     sofa::defaulttype::Quat q;
@@ -921,9 +909,9 @@ void SpotLight::computeOpenGLModelViewMatrix(GLfloat mat[16], const sofa::defaul
     Vector3 origin = q.inverseRotate(-position);
 
     //translation
-    mat[12] = origin[0];
-    mat[13] = origin[1];
-    mat[14] = origin[2];
+    mat[12] = GLfloat(origin[0]);
+    mat[13] = GLfloat(origin[1]);
+    mat[14] = GLfloat(origin[2]);
 
     //w
     mat[15] = 1;
@@ -944,7 +932,7 @@ void SpotLight::computeOpenGLModelViewMatrix(GLfloat mat[16], const sofa::defaul
 
 void SpotLight::computeOpenGLProjectionMatrix(GLfloat mat[16], float width, float height, float fov, float zNear, float zFar)
 {
-    float scale = 1.0 / tan(fov * M_PI / 180 * 0.5);
+    float scale = 1.f / tanf(float(fov * M_PI / 180 * 0.5));
     float aspect = width / height;
 
     float pm00 = scale / aspect;
@@ -963,7 +951,7 @@ void SpotLight::computeOpenGLProjectionMatrix(GLfloat mat[16], float width, floa
     mat[2] = 0;
     mat[6] = 0;
     mat[10] = -(zFar + zNear) / (zFar - zNear);
-    mat[14] = -2.0 * zFar * zNear / (zFar - zNear);;
+    mat[14] = -2.f * zFar * zNear / (zFar - zNear);;
 
     mat[3] = 0.0;
     mat[7] = 0.0;

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -48,6 +48,7 @@ WriteTopology::WriteTopology()
     , f_interval( initData(&f_interval, 0.0, "interval", "time duration between outputs"))
     , f_time( initData(&f_time, helper::vector<double>(0), "time", "set time to write outputs"))
     , f_period( initData(&f_period, 0.0, "period", "period between outputs"))
+    , l_topology(initLink("topology", "link to the topology container"))
     , m_topology(nullptr)
     , outfile(nullptr)
     #if SOFAEXPORTER_HAVE_ZLIB
@@ -73,7 +74,21 @@ WriteTopology::~WriteTopology()
 
 void WriteTopology::init()
 {
-    m_topology = this->getContext()->getMeshTopology();
+    if (l_topology.empty())
+    {
+        msg_info() << "link to Topology container should be set to ensure right behavior. First Topology found in current context will be used.";
+        l_topology.set(this->getContext()->getMeshTopologyLink());
+    }
+
+    m_topology = l_topology.get();
+    msg_info() << "Topology path used: '" << l_topology.getLinkedPath() << "'";
+
+    if (m_topology == nullptr)
+    {
+        msg_error() << "No topology component found at path: " << l_topology.getLinkedPath() << ", nor in current context: " << this->getContext()->name;
+        sofa::core::objectmodel::BaseObject::d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
+        return;
+    }
 
     const std::string& filename = f_filename.getFullPath();
 

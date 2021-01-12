@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -116,7 +116,7 @@ namespace sofa
                             file.write((char*)&type,4);
 
                             // number of data
-                            unsigned size = mmodel->getSize();
+                            auto size = mmodel->getSize();
                             if(simulationType.getValue()==Hair)
                             {
                                 unsigned sizeHair = size+size/(nbPtsByHair.getValue());
@@ -150,7 +150,7 @@ namespace sofa
                             ReadVecCoord posData = mmodel->readPositions();
 
 
-                            for(int i=(int)size-1; i>=0; i--)
+                            for(auto i=size-1; i>=0; i--)
                             {
                                 //create an additional point for root tangent
                                 if((simulationType.getValue() == Hair && (i%nbPtsByHair.getValue()==0)))
@@ -160,10 +160,7 @@ namespace sofa
                                    defaulttype::Vector3  x1 = T::getCPos(posData[i+1]);
 
                                     x1 = x1-x0;
-                                   // sout<<"tangeant direction: "<<x1<<sendl;
                                     x1.normalize();
-
-                                   // sout<<"tangeant direction normalized: "<<x1<<sendl;
 
                                     x0 = x0+x1;
 

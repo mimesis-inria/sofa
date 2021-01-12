@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 
 project(SofaBaseTopology_test)
 
@@ -16,11 +16,13 @@ set(SOURCE_FILES
     MeshTopology_test.cpp
 
     RegularGridTopology_test.cpp
+    SparseGridTopology_test.cpp
     TetrahedronNumericalIntegration_test.cpp
-    TriangleNumericalIntegration_test.cpp)
+    TriangleNumericalIntegration_test.cpp
+    )
 
 add_definitions("-DSOFABASETOPOLOGY_TEST_RESOURCES_DIR=\"${CMAKE_SOURCE_DIR}/share\"")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} SofaGTestMain SofaTest)
+target_link_libraries(${PROJECT_NAME} PUBLIC SofaGTestMain SofaTest SofaGeneralLoader)
 
 add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})

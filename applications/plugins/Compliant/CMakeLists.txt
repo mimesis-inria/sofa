@@ -1,10 +1,13 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(Compliant VERSION 0.1)
 
-find_package(SofaMisc REQUIRED)
+find_package(SofaMiscMapping REQUIRED)
 find_package(SofaMiscCollision REQUIRED)
 find_package(SofaGui QUIET)
 sofa_find_package(SofaPython QUIET)
+
+# Previous Eigen versions have a critical bug (v.noalias()+=w does not work in some situations)
+find_package(Eigen3 3.2.5 REQUIRED)
 
 set(HEADER_FILES
     config.h.in
@@ -55,6 +58,7 @@ set(HEADER_FILES
     mapping/ContactMapping.h
     mapping/ConstantAssembledMapping.h
     mapping/ConstantAssembledMultiMapping.h
+    mapping/ContactMultiMapping.h
     mapping/DifferenceFromTargetMapping.h
     mapping/DifferenceMapping.h
     mapping/DotProductMapping.h
@@ -70,6 +74,7 @@ set(HEADER_FILES
     mapping/RigidJointMultiMapping.h
     mapping/RigidJointFromTargetMapping.h
     mapping/SafeDistanceMapping.h
+    mapping/WinchMultiMapping.h
     misc/CompliantAttachButtonSetting.h
     misc/CompliantSolverMerger.h
     misc/FailNode.h
@@ -168,6 +173,7 @@ set(SOURCE_FILES
     mapping/AffineMultiMapping.cpp
     mapping/AssembledRigidRigidMapping.cpp
     mapping/ContactMapping.cpp
+    mapping/ContactMultiMapping.cpp
     mapping/DifferenceFromTargetMapping.cpp
     mapping/DifferenceMapping.cpp
     mapping/DotProductMapping.cpp
@@ -183,6 +189,7 @@ set(SOURCE_FILES
     mapping/RigidJointMultiMapping.cpp
     mapping/RigidJointFromTargetMapping.cpp
     mapping/SafeDistanceMapping.cpp
+    mapping/WinchMultiMapping.cpp
     misc/CompliantAttachButtonSetting.cpp
     misc/CompliantSolverMerger.cpp
     misc/FailNode.cpp
@@ -256,19 +263,17 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES} ${PYTHON_FILES})
 
-target_link_libraries(${PROJECT_NAME} SofaEigen2Solver SofaUserInteraction SofaComponentMisc SofaSimulationGraph SofaMiscCollision)
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_Compliant")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "-DSOFA_BUILD_${PROJECT_NAME}")
+target_link_libraries(${PROJECT_NAME} PUBLIC SofaEigen2Solver SofaUserInteraction SofaMiscMapping SofaSimulationGraph SofaMiscCollision)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
 # linking explicitly with rt looks necessary on some posix (e.g. CentOS)
 if(UNIX AND NOT APPLE)
-    target_link_libraries(${PROJECT_NAME} rt)
+    target_link_libraries(${PROJECT_NAME} PRIVATE rt)
 endif()
 
 if(SofaPython_FOUND)
-    target_link_libraries(${PROJECT_NAME} SofaPython)
+    target_link_libraries(${PROJECT_NAME} PUBLIC SofaPython)
 endif()
 
 if(SOFA_BUILD_TESTS)
@@ -283,9 +288,9 @@ if(SofaGui_FOUND AND SOFAGUI_HAVE_SOFAGUIQT)
 endif()
 
 ## Install rules for the library; CMake package configurations files
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    TARGETS ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
     RELOCATABLE "plugins"
     )

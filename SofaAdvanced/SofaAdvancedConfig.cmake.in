@@ -1,14 +1,20 @@
 # CMake package configuration file for SofaAdvanced
-
+@PACKAGE_GUARD@
 @PACKAGE_INIT@
 
-find_package(SofaGeneral REQUIRED)
+set(SOFAADVANCED_MODULES @SOFAADVANCED_MODULES@)
 
-foreach(target @SOFAADVANCED_TARGETS@ SofaComponentAdvanced)
-    if(NOT TARGET ${target})
-        include("${CMAKE_CURRENT_LIST_DIR}/SofaAdvancedTargets.cmake")
-        break()
-    endif()
+message(DEPRECATION
+    " @PROJECT_NAME@ is deprecated.\n"
+    " You must now explicitely find (find_package) and link (target_link_library) the modules you need within: \n"
+    " ${SOFAADVANCED_MODULES}"
+    )
+
+foreach(module ${SOFAADVANCED_MODULES})
+    find_package(${module} QUIET REQUIRED)
 endforeach()
 
-check_required_components(@SOFAADVANCED_TARGETS@ SofaComponentAdvanced)
+if(NOT TARGET @PROJECT_NAME@)
+    include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+endif()
+check_required_components(@PROJECT_NAME@)

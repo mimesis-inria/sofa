@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -281,7 +281,7 @@ void WriteState::handleEvent(sofa::core::objectmodel::Event* event)
                     // computes the energy increase
                     if (fabs(gnode->mass->getKineticEnergy() - savedKineticEnergy) < d_stopAt.getValue())
                     {
-                        sout << "WriteState has been stopped. Kinetic energy threshold has been reached" << sendl;
+                        msg_info() << "WriteState has been stopped. Kinetic energy threshold has been reached";
                         kineticEnergyThresholdReached = true;
                     }
                     else

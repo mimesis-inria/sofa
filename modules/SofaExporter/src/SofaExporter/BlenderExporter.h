@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -91,16 +91,6 @@ namespace sofa
 
                 static const char* Name(){return "Blender exporter";}
 
-                virtual std::string getTemplateName() const override
-                {
-                    return templateName(this);
-                }
-
-                static std::string templateName(const BlenderExporter<T>* = nullptr)
-                {
-                    return T::Name();
-                }
-
                 void init() override;
 
                 void reset() override;
@@ -113,7 +103,11 @@ namespace sofa
                 static bool canCreate(T2*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
                 {
                     if (dynamic_cast<DataType*>(context->getState()) == nullptr)
+                    {
+                        arg->logError(std::string("No mechanical state with the datatype '") + T::Name() +
+                                      "' found in the context node.");
                         return false;
+                    }
                     return BaseObject::canCreate(obj, context, arg);
                 }
 

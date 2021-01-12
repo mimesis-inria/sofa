@@ -2,6 +2,8 @@
 <Node 	name="Root" gravity="0 0 0 " dt="1"  >
   <RequiredPlugin pluginName="Flexible"/>
   <RequiredPlugin pluginName="image"/>
+  <RequiredPlugin pluginName="SofaLoader"/>
+
   <DefaultAnimationLoop />
 
   <Node 	name="Flexible"   >
@@ -33,7 +35,7 @@
     </Node>
 
     <Node 	name="collision"   >
-      <Mesh name="mesh" src="@../mesh" />
+      <MeshTopology name="mesh" src="@../mesh" />
       <MechanicalObject  template="Vec3d" name="pts"    />
       <UniformMass totalMass="10" />
 

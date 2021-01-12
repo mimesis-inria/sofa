@@ -1,10 +1,16 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(Flexible VERSION 0.1)
 
-find_package(SofaMisc REQUIRED)
+find_package(SofaMiscMapping REQUIRED)
+find_package(SofaValidation REQUIRED)
+find_package(SofaGeneralEngine REQUIRED)
+find_package(SofaBoundaryCondition REQUIRED)
+find_package(SofaConstraint REQUIRED)
+find_package(SofaEngine REQUIRED)
 sofa_find_package(SofaPython REQUIRED)
 sofa_find_package(image QUIET)
 sofa_find_package(SofaHighOrderTopology QUIET)
+find_package(Eigen3 REQUIRED)
 
 set(HEADER_FILES
     config.h.in
@@ -223,10 +229,14 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${PYTHON_FILES} ${README_FILES})
 
-target_link_libraries(${PROJECT_NAME} SofaComponentMisc)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC SofaMiscMapping SofaValidation SofaBaseVisual SofaGeneralEngine SofaBoundaryCondition SofaConstraint SofaEngine)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
+
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 if(image_FOUND)
-    target_link_libraries(${PROJECT_NAME} image)
+    target_link_libraries(${PROJECT_NAME} PUBLIC image)
 endif()
 
 # TODO: Clean this. We should find_package(MGDiffusion) somehow.
@@ -235,16 +245,10 @@ if(NOT SOFA-EXTERNAL_MGDIFFUSI0N_PATH STREQUAL "")
     target_compile_definitions(${PROJECT_NAME} PRIVATE "-DSOFA_HAVE_MGDIFFUSI0N")
     target_include_directories(${PROJECT_NAME} "${SOFA-EXTERNAL_MGDIFFUSI0N_PATH}/mgdiffusion/DiffusionSolver/")
 
-    # link_directories(${SOFA-EXTERNAL_MGDIFFUSI0N_PATH}/mgdiffusion/DiffusionSolver/)
-    # target_link_libraries(${PROJECT_NAME} "DiffusionSolver")
-    # link_directories(${SOFA-EXTERNAL_MGDIFFUSI0N_PATH}/PhysBAM/build/nocona/release/Public_Library/)
-    # link_directories(${SOFA-EXTERNAL_MGDIFFUSI0N_PATH}/PhysBAM/build/nocona/release/Common_Libraries/)
-    # target_link_libraries(${PROJECT_NAME} "PhysBAM_PhysBAM_Tools" "Threading_Tools")
-
     # TODO fix this!
     # link_directories does not add a -Lpath to the link command so I found this workaround for now
 
-    target_link_libraries(${PROJECT_NAME}
+    target_link_libraries(${PROJECT_NAME} PUBLIC
         ${SOFA-EXTERNAL_MGDIFFUSI0N_PATH}/mgdiffusion/DiffusionSolver/libDiffusionSolver.so
         ${SOFA-EXTERNAL_MGDIFFUSI0N_PATH}/PhysBAM/build/nocona/release/Public_Library/libPhysBAM_PhysBAM_Tools.so
         ${SOFA-EXTERNAL_MGDIFFUSI0N_PATH}/PhysBAM/build/nocona/release/Common_Libraries/libThreading_Tools.so)
@@ -256,16 +260,10 @@ if(SOFA_NINJA_BUILD_POOLS)
     set_property(TARGET ${PROJECT_NAME} PROPERTY JOB_POOL_COMPILE flexible_pool)
 endif()
 
-#if(UNIX)
-#    target_link_libraries(${PROJECT_NAME} pthread)
-#endif()
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "-DSOFA_BUILD_FLEXIBLE")
 
 if(SofaHighOrderTopology_FOUND)
-    target_link_libraries(${PROJECT_NAME} SofaHighOrderTopology)
+    target_link_libraries(${PROJECT_NAME} PUBLIC SofaHighOrderTopology)
     target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${SofaHighOrderTopology_SOURCE_DIR}/..>")
 endif()
 
@@ -277,9 +275,9 @@ if(SOFA_BUILD_TESTS)
 endif()
 
 ## Install rules for the library; CMake package configurations files
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    TARGETS ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
     RELOCATABLE "plugins"
     )

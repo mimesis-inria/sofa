@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_SIMULATION_GRAPH_DAGNODE_H
 #define SOFA_SIMULATION_GRAPH_DAGNODE_H
 
-#include <SofaSimulationGraph/graph.h>
+#include <SofaSimulationGraph/config.h>
 #include <sofa/simulation/Node.h>
 #include <sofa/core/objectmodel/Link.h>
 #include <sofa/simulation/Visitor.h>
@@ -111,7 +111,7 @@ public:
 
     /// Mesh Topology that is relevant for this context
     /// (within it or its parents until a mapping is reached that does not preserve topologies).
-    core::topology::BaseMeshTopology* getActiveMeshTopology() const override;
+    core::topology::BaseMeshTopology* getMeshTopologyLink(SearchDirection dir = SearchUp) const override;
 
 
     /// Called during initialization to corectly propagate the visual context to the children
@@ -139,6 +139,8 @@ public:
     /// compute the traversal order from this Node
     void precomputeTraversalOrder( const core::ExecParams* params ) override;
 
+    virtual void moveChild(BaseNode::SPtr node) override;
+
 protected:
 
     /// bottom-up traversal, returning the first node which have a descendancy containing both node1 & node2
@@ -147,7 +149,6 @@ protected:
 
     LinkParents l_parents;
 
-    virtual void moveChild(BaseNode::SPtr node) override;
 
     virtual void doAddChild(BaseNode::SPtr node) override;
     virtual void doRemoveChild(BaseNode::SPtr node) override;

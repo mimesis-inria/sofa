@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -107,7 +107,7 @@ void STLExporter::doReInit()
         else
         {
             msg_error() << "STLExporter needs VisualModel or Topology." ;
-            m_componentstate = ComponentState::Invalid ;
+            d_componentState.setValue(ComponentState::Invalid) ;
             return ;
         }
 
@@ -115,12 +115,12 @@ void STLExporter::doReInit()
         d_triangle.setParent(tri);
         d_quad.setParent(qua);
     }
-    m_componentstate = ComponentState::Valid ;
+    d_componentState.setValue(ComponentState::Valid) ;
 }
 
 bool STLExporter::write()
 {
-    if(m_componentstate != ComponentState::Valid)
+    if(d_componentState.getValue() != ComponentState::Valid)
         return false ;
 
     if(d_binaryFormat.getValue())
@@ -130,7 +130,7 @@ bool STLExporter::write()
 
 bool STLExporter::writeSTL(bool autonumbering)
 {
-    if(m_componentstate != ComponentState::Valid)
+    if(d_componentState.getValue() != ComponentState::Valid)
         return false ;
 
     std::string filename = getOrCreateTargetPath(d_filename.getValue(), d_exportEveryNbSteps.getValue() && autonumbering) ;
@@ -218,7 +218,7 @@ bool STLExporter::writeSTL(bool autonumbering)
 
 bool STLExporter::writeSTLBinary(bool autonumbering)
 {
-    if(m_componentstate != ComponentState::Valid)
+    if(d_componentState.getValue() != ComponentState::Valid)
         return false ;
 
     std::string filename = getOrCreateTargetPath(d_filename.getValue(),
@@ -322,7 +322,7 @@ bool STLExporter::writeSTLBinary(bool autonumbering)
 
 void STLExporter::handleEvent(Event *event)
 {
-    if(m_componentstate != ComponentState::Valid)
+    if(d_componentState.getValue() != ComponentState::Valid)
         return ;
 
     if (KeypressedEvent::checkEventType(event))

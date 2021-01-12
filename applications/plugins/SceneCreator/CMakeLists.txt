@@ -1,11 +1,12 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SceneCreator VERSION 0.1)
 
 find_package(SofaSimulation REQUIRED)
-sofa_find_package(Metis QUIET)
+sofa_find_package(SofaSparseSolver QUIET)
+find_package(Eigen3 REQUIRED)
 
 set(HEADER_FILES
-    config.h.in
+    src/SceneCreator/config.h.in
     src/SceneCreator/GetAssembledSizeVisitor.h
     src/SceneCreator/GetVectorVisitor.h
     src/SceneCreator/SceneCreator.h
@@ -20,20 +21,19 @@ set(SOURCE_FILES
     )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} SofaSimulationGraph)
+target_link_libraries(${PROJECT_NAME} PUBLIC SofaSimulationGraph SofaEigen2Solver SofaBaseMechanics)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "-DSOFA_BUILD_SCENECREATOR")
 
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
 
 ## Install rules for the library; CMake package configurations files
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    TARGETS ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
-    RELOCATABLE "plugins"
-    INCLUDE_SOURCE_DIR "src/SceneCreator"
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
     INCLUDE_INSTALL_DIR "SceneCreator"
+    RELOCATABLE "plugins"
     )
 
 ## Add example project to use sceneCreator

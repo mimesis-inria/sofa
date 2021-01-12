@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -38,6 +38,8 @@
 #include <boost/thread.hpp>
 #endif
 
+#include <thread>
+#include <chrono>
 //sensable namespace
 
 using std::cout;
@@ -572,7 +574,7 @@ void NewOmniDriver::init()
                 visualNode[i].visu->updateVisual();
 
                 // create the visual mapping and at it to the graph //
-                visualNode[i].mapping = sofa::core::objectmodel::New< sofa::component::mapping::RigidMapping< Rigid3Types, ExtVec3Types > >();
+                visualNode[i].mapping = sofa::core::objectmodel::New< sofa::component::mapping::RigidMapping< Rigid3Types, Vec3Types > >();
                 visualNode[i].node->addObject(visualNode[i].mapping);
                 visualNode[i].mapping->setModels(rigidDOF.get(), visualNode[i].visu.get());
                 visualNode[i].mapping->name.setValue("RigidMapping");
@@ -599,7 +601,7 @@ void NewOmniDriver::init()
 
         for(int j=0; j<=VN_X; j++)
         {
-            sofa::defaulttype::ResizableExtVector< sofa::defaulttype::Vec<3, SReal> > &scaleMapping = *(visualNode[j].mapping->points.beginEdit());
+            sofa::helper::vector< sofa::defaulttype::Vec<3, SReal> > &scaleMapping = *(visualNode[j].mapping->points.beginEdit());
             for(unsigned int i=0; i<scaleMapping.size(); i++)
                 scaleMapping[i] *= (float)(1.0*scale.getValue()/100.0);
             visualNode[j].mapping->points.endEdit();
@@ -732,7 +734,7 @@ void NewOmniDriver::draw()
             float rapport=((float)data.scale)/oldScale;
             for(int j = 0; j<NVISUALNODE ; j++)
             {
-                sofa::defaulttype::ResizableExtVector< sofa::defaulttype::Vec<3,SReal> > &scaleMapping = *(visualNode[j].mapping->points.beginEdit());
+                sofa::helper::vector< sofa::defaulttype::Vec<3,SReal> > &scaleMapping = *(visualNode[j].mapping->points.beginEdit());
                 for(unsigned int i=0; i<scaleMapping.size(); i++)
                     scaleMapping[i]*=rapport;
                 visualNode[j].mapping->points.endEdit();
@@ -889,7 +891,7 @@ void NewOmniDriver::onAnimateBeginEvent()
 #ifdef SOFA_HAVE_BOOST
 			boost::thread::yield();
 #else
-			sofa::helper::system::thread::CTime::sleep(0);
+                        std::this_thread::sleep_for(std::chrono::milliseconds(0));
 #endif
 		}
 	}

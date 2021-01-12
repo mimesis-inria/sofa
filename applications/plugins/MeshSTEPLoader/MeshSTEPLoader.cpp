@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -55,7 +55,7 @@ MeshSTEPLoader::MeshSTEPLoader():MeshLoader()
     _indicesComponents.setPersistent(false);
 }
 
-bool MeshSTEPLoader::load()
+bool MeshSTEPLoader::doLoad()
 {
     dmsg_info() << "Loading STEP file: " << m_filename;
 
@@ -76,6 +76,17 @@ bool MeshSTEPLoader::load()
     file.close();
 
     return fileRead;
+}
+
+void MeshSTEPLoader::doClearBuffers()
+{
+    _uv.beginEdit()->clear();
+    _uv.endEdit();
+    _indicesComponents.beginEdit()->clear();
+    _indicesComponents.endEdit();
+    _debug.setValue(false);
+    _aDeflection.setValue(0.1);
+    _keepDuplicate.setValue(true);
 }
 
 bool MeshSTEPLoader::readSTEP(const char* fileName)
@@ -405,9 +416,9 @@ void MeshSTEPLoader::tesselateShape(const TopoDS_Shape& aShape)
                             {
                                 int nodesOfPol_1 = aNodesOfPol(i) - aLower + aNumOfNodes, nodesOfPol_2 = aNodesOfPol(i+1) - aLower + aNumOfNodes;
                                 if (!_keepDuplicate.getValue())
-                                    addEdge(&my_edges, Edge(nodeIndex[nodesOfPol_1], nodeIndex[nodesOfPol_2]));
+                                    addEdge(my_edges, Edge(nodeIndex[nodesOfPol_1], nodeIndex[nodesOfPol_2]));
                                 else
-                                    addEdge(&my_edges, Edge(nodesOfPol_1, nodesOfPol_2));
+                                    addEdge(my_edges, Edge(nodesOfPol_1, nodesOfPol_2));
                             }
                         }
                     }
@@ -431,9 +442,9 @@ void MeshSTEPLoader::tesselateShape(const TopoDS_Shape& aShape)
                 }
                 n1 -= aLower - aNumOfNodes; n2 -= aLower - aNumOfNodes; n3 -= aLower - aNumOfNodes;
                 if (!_keepDuplicate.getValue())
-                    addTriangle(&my_triangles, Triangle(nodeIndex[n1], nodeIndex[n2], nodeIndex[n3]));
+                    addTriangle(my_triangles, Triangle(nodeIndex[n1], nodeIndex[n2], nodeIndex[n3]));
                 else
-                    addTriangle(&my_triangles, Triangle(n1, n2, n3));
+                    addTriangle(my_triangles, Triangle(n1, n2, n3));
             }
 
             aNumOfNodes += aNbOfNodesOfFace;
@@ -552,7 +563,7 @@ void MeshSTEPLoader::tesselateMultiShape(const TopoDS_Shape& aShape, const std::
                                 for (int i=aLower; i<anUpper ; ++i)
                                 {
                                     int nodesOfPol_1 = aNodesOfPol(i) - aLower + aNumOfNodes, nodesOfPol_2 = aNodesOfPol(i+1) - aLower + aNumOfNodes;
-                                    addEdge(&my_edges, Edge(nodesOfPol_1, nodesOfPol_2));
+                                    addEdge(my_edges, Edge(nodesOfPol_1, nodesOfPol_2));
                                 }
                             }
                         }
@@ -575,7 +586,7 @@ void MeshSTEPLoader::tesselateMultiShape(const TopoDS_Shape& aShape, const std::
                         triangles(nt).Get(n2, n1, n3);
                     }
                     n1 -= aLower - aNumOfNodes; n2 -= aLower - aNumOfNodes; n3 -= aLower - aNumOfNodes;
-                    addTriangle(&my_triangles, Triangle(n1, n2, n3));
+                    addTriangle(my_triangles, Triangle(n1, n2, n3));
                 }
 
                 aNumOfNodes += aNbOfNodesOfFace;

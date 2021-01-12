@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 
 project(Compliant_test)
 
@@ -14,6 +14,7 @@ set(SOURCE_FILES
     DampedOscillator_test.cpp
     RigidJointMapping_test.cpp
     DotProductMapping_test.cpp
+    WinchMultiMapping_test.cpp
     NormalizationMapping_test.cpp
     SafeDistanceMapping_test.cpp
     UniformStiffness_test.cpp

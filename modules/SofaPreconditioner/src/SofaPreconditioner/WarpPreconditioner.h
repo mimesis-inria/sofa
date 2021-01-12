@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -21,7 +21,7 @@
 ******************************************************************************/
 #ifndef SOFA_COMPONENT_LINEARSOLVER_WARPPRECONDITIONER_H
 #define SOFA_COMPONENT_LINEARSOLVER_WARPPRECONDITIONER_H
-#include "config.h"
+#include <SofaPreconditioner/config.h>
 
 #include <sofa/simulation/MechanicalVisitor.h>
 #include <sofa/core/behavior/LinearSolver.h>
@@ -59,6 +59,7 @@ public:
     typedef sofa::defaulttype::MatNoInit<3, 3, Real> Transformation;
     typedef TMatrix TRotationMatrix;
     typedef typename Inherit::JMatrixType JMatrixType;
+    using Index = typename TMatrix::Index;
 
     Data <std::string> solverName; ///< Name of the solver/preconditioner to warp
     Data<unsigned> f_useRotationFinder; ///< Which rotation Finder to use
@@ -82,7 +83,7 @@ public:
 
     bool addMInvJt(defaulttype::BaseMatrix* result, defaulttype::BaseMatrix* J, double fact) override;
 
-    unsigned getSystemDimention(const sofa::core::MechanicalParams* mparams);
+    Index getSystemDimention(const sofa::core::MechanicalParams* mparams);
 
     void computeResidual(const core::ExecParams* params, defaulttype::BaseVector* /*f*/) override;
 

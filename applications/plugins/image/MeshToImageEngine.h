@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -125,10 +125,6 @@ public:
     Data<bool> gridSnap; ///< align voxel centers on voxelSize multiples for perfect image merging (nbVoxels and rotateImage should be off)
 
     Data<bool> worldGridAligned; ///< perform rasterization on a world aligned grid using nbVoxels and voxelSize
-
-
-    virtual std::string getTemplateName() const    override { return templateName(this);    }
-    static std::string templateName(const MeshToImageEngine<ImageTypes>* = NULL) { return ImageTypes::Name();    }
 
     MeshToImageEngine()    :   Inherited()
       , voxelSize(initData(&voxelSize,helper::vector<Real>(3,(Real)1.0),"voxelSize","voxel Size (redondant with and not priority over nbVoxels)"))
@@ -388,7 +384,7 @@ protected:
 
         for( size_t meshId=0 ; meshId<f_nbMeshes.getValue() ; ++meshId )        rasterizeAndFill ( meshId, im, tr );
 
-        if(this->f_printLog.getValue()) sout<<this->getName()<<": Voxelization done"<<sendl;
+        msg_info() << "Voxelization done";
 
     }
 
@@ -399,17 +395,29 @@ protected:
         raPositions pos(*this->vf_positions[meshId]);       unsigned int nbp = pos.size();
         raTriangles tri(*this->vf_triangles[meshId]);       unsigned int nbtri = tri.size();
         raEdges edg(*this->vf_edges[meshId]);               unsigned int nbedg = edg.size();
-        if(!nbp || (!nbtri && !nbedg) ) { serr<<"no topology defined for mesh "<<meshId<<sendl; return; }
+        if(!nbp || (!nbtri && !nbedg) )
+        {
+            msg_error()<<"No topology defined for mesh "<<meshId;
+            return;
+        }
         unsigned int nbval = this->vf_values[meshId]->getValue().size();
 
         raIndex roiIndices(*this->vf_roiIndices[meshId]);
-        if(roiIndices.size() && !this->vf_roiValue[meshId]->getValue().size()) serr<<"at least one roiValue for mesh "<<meshId<<" needs to be specified"<<sendl;
-        if(this->f_printLog.getValue())  for(size_t r=0;r<roiIndices.size();++r) sout<<this->getName()<<": mesh "<<meshId<<"\t ROI "<<r<<"\t number of vertices= " << roiIndices[r].size() << "\t value= "<<getROIValue(meshId,r)<<sendl;
+
+        if(roiIndices.size() && !this->vf_roiValue[meshId]->getValue().size())
+            msg_error() <<"at least one roiValue for mesh "<<meshId<<" needs to be specified";
+
+        if(notMuted())
+        {
+            std::stringstream tmpStr;
+            for(size_t r=0;r<roiIndices.size();++r)
+                tmpStr <<"mesh "<<meshId<<"\t ROI "<<r<<"\t number of vertices= " << roiIndices[r].size() << "\t value= "<<getROIValue(meshId,r)<<msgendl;
+            msg_info() << tmpStr.str();
+        }
 
         /// colors definition
         const T FillColor = (T)getValue(meshId,0);
         const T InsideColor = (T)this->vf_InsideValues[meshId]->getValue();
-        //        T OutsideColor = (T)this->backgroundValue.getValue();
 
         /// draw surface
         cimg_library::CImg<bool> mask;
@@ -417,7 +425,7 @@ protected:
         mask.fill(false);
 
         // draw edges
-        if(this->f_printLog.getValue() && nbedg) sout<<this->getName()<<":  Voxelizing edges (mesh "<<meshId<<")..."<<sendl;
+        msg_info() <<"Voxelizing edges (mesh "<<meshId<<")";
 
         unsigned int subdivValue = this->subdiv.getValue();
 
@@ -453,7 +461,7 @@ protected:
         }
 
         //  draw filled faces
-        if(this->f_printLog.getValue() && nbtri) sout<<this->getName()<<":  Voxelizing triangles (mesh "<<meshId<<")..."<<sendl;
+        msg_info() << "Voxelizing triangles (mesh "<<meshId<<")...";
 
         std::map<unsigned int,T> triToValue; // we record special roi values and rasterize them after to prevent from overwriting
 #ifdef _OPENMP
@@ -491,9 +499,11 @@ protected:
         /// fill inside
         if(this->vf_FillInside[meshId]->getValue())
         {
-            if(!isClosed(tri.ref())) sout<<"mesh["<<meshId<<"] might be open, let's try to fill it anyway"<<sendl;
+            msg_info_when(!isClosed(tri.ref())) <<"mesh["<<meshId<<"] might be open, let's try to fill it anyway";
+
             // flood fill from the exterior point (0,0,0) with the color outsideColor
-            if(this->f_printLog.getValue()) sout<<this->getName()<<":  Filling object (mesh "<<meshId<<")..."<<sendl;
+            msg_info() <<"Filling object (mesh "<<meshId<<")...";
+
             static const bool colorTrue=true;
             mask.draw_fill(0,0,0,&colorTrue);
             cimg_foroff(mask,off) if(!mask[off]) im[off]=InsideColor;
