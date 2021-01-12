@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,21 +19,10 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-//
-// C++ Interface: Node
-//
-// Description:
-//
-//
-// Author: The SOFA team </www.sofa-framework.org>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 #ifndef SOFA_SIMULATION_CORE_NODE_H
 #define SOFA_SIMULATION_CORE_NODE_H
 
-#include <type_traits>
+#include <sofa/simulation/config.h>
 
 #include <sofa/core/ExecParams.h>
 #include <sofa/core/objectmodel/Context.h>
@@ -65,10 +54,10 @@
 #include <sofa/core/collision/Pipeline.h>
 #include <sofa/core/loader/BaseLoader.h>
 #include <sofa/core/objectmodel/Event.h>
-
-#include <sofa/simulation/simulationcore.h>
 #include <sofa/simulation/MutationListener.h>
 #include <sofa/simulation/VisitorScheduler.h>
+
+#include <type_traits>
 
 namespace sofa
 {
@@ -206,7 +195,7 @@ public:
         {
         }
 
-        value_type operator[](unsigned int i) const
+        value_type operator[](std::size_t i) const
         {
             return this->get(i);
         }

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -68,7 +68,6 @@ void AnimateVisitor::processBehaviorModel(simulation::Node*, core::BehaviorModel
 
 void AnimateVisitor::fwdInteractionForceField(simulation::Node*, core::behavior::BaseInteractionForceField* obj)
 {
-    //cerr<<"AnimateVisitor::IFF "<<obj->getName()<<endl;
     sofa::helper::AdvancedTimer::stepBegin("InteractionFF",obj);
 
     MultiVecDerivId   ffId      = VecDerivId::externalForce();
@@ -110,7 +109,7 @@ void AnimateVisitor::processOdeSolver(simulation::Node* node, core::behavior::Od
     sofa::helper::AdvancedTimer::stepBegin("Mechanical",node);
     /*    MechanicalIntegrationVisitor act(getDt());
         node->execute(&act);*/
-    //  cerr<<"AnimateVisitor::processOdeSolver "<<solver->getName()<<endl;
+
     solver->solve(params, getDt());
     sofa::helper::AdvancedTimer::stepEnd("Mechanical",node);
 }

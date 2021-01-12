@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -23,7 +23,7 @@
 #define SOFA_CORE_MULTIMAPPING_H
 
 #include <sofa/core/BaseMapping.h>
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 
 namespace sofa
 {
@@ -153,7 +153,7 @@ public:
     /// This method must be reimplemented by all mappings if they need to support constraints.
     virtual void applyJT( const ConstraintParams* /* cparams */, const helper::vector< InDataMatrixDeriv* >& /* dataMatOutConst */, const helper::vector< const OutDataMatrixDeriv* >& /* dataMatInConst */ )
     {
-        serr << "This mapping does not support certain constraints since MultiMapping::applyJT( const ConstraintParams*, const helper::vector< InDataMatrixDeriv* >& , const helper::vector< const OutDataMatrixDeriv* >&  ) is not overloaded" << sendl;
+        msg_error() << "This mapping does not support certain constraints since MultiMapping::applyJT( const ConstraintParams*, const helper::vector< InDataMatrixDeriv* >& , const helper::vector< const OutDataMatrixDeriv* >&  ) is not overloaded";
     }
 
     /// computeAccFromMapping
@@ -192,14 +192,6 @@ public:
     void disable() override;
 
 
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const MultiMapping<TIn, TOut>* = nullptr);
-
     template<class T>
     static std::string shortName(const T* ptr = nullptr, objectmodel::BaseObjectDescription* arg = nullptr)
     {
@@ -217,9 +209,27 @@ public:
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
         std::string input  = arg->getAttribute("input","");
-        if( input.empty() || !LinkFromModels::CheckPaths( input, context ) ) return false;
+        if (input.empty()) {
+            arg->logError("The 'input' data attribute is empty. It should contain a valid path "
+                          "to one or more mechanical states of type '" + std::string(TIn::Name()) + "'.");
+            return false;
+        } else if (!LinkFromModels::CheckPaths( input, context )) {
+            arg->logError("The 'input' data attribute does not contain a valid path to one or more mechanical "
+                          "states of type '" + std::string(TIn::Name()) + "'.");
+            return false;
+        }
+
         std::string output = arg->getAttribute("output","");
-        if( output.empty() || !LinkToModels::CheckPaths( output, context ) ) return false;
+        if (output.empty()) {
+            arg->logError("The 'output' data attribute is empty. It should contain a valid path "
+                          "to one or more mechanical states. of type '" + std::string(TOut::Name()) + "'.");
+            return false;
+        } else if (!LinkToModels::CheckPaths( output, context )) {
+            arg->logError("The 'output' data attribute does not contain a valid path to one or more mechanical "
+                          "states of type '" + std::string(TOut::Name()) + "'.");
+            return false;
+        }
+
         return BaseMapping::canCreate(obj, context, arg);
     }
 

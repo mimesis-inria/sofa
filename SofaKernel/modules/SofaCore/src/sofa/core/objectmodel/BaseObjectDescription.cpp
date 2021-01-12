@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -161,13 +161,6 @@ int BaseObjectDescription::getAttributeAsInt(const std::string& attr, const int 
 
     return retval ;
 }
-
-void BaseObjectDescription::setAttribute(const std::string& attr, const char* val)
-{
-    std::string s = val;
-    return setAttribute(attr, s);
-}
-
 
 /// Set an attribute. Override any existing value
 void BaseObjectDescription::setAttribute(const std::string& attr, const std::string &val)

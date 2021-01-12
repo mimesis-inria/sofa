@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -44,9 +44,8 @@ Visitor::Result UpdateBoundingBoxVisitor::processNodeTopDown(Node* node)
     helper::vector<BaseObject*> objectList;
     helper::vector<BaseObject*>::iterator object;
     node->get<BaseObject>(&objectList,BaseContext::Local);
-    sofa::defaulttype::BoundingBox* nodeBBox = node->f_bbox.beginEdit(params);
-    if(!node->f_bbox.isSet())
-        nodeBBox->invalidate();
+    sofa::defaulttype::BoundingBox* nodeBBox = node->f_bbox.beginEdit();
+    nodeBBox->invalidate();
     for ( object = objectList.begin(); object != objectList.end(); ++object)
     {
         sofa::helper::AdvancedTimer::stepBegin("ComputeBBox: " + (*object)->getName());
@@ -58,12 +57,12 @@ Visitor::Result UpdateBoundingBoxVisitor::processNodeTopDown(Node* node)
         // if some objects does not participate to the bounding box where they should,
         // you should overload their computeBBox function to correct that
         (*object)->computeBBox(params, true);
-//        cerr<<"UpdateBoundingBoxVisitor::processNodeTopDown object " << (*object)->getName() << " = "<< (*object)->f_bbox.getValue(params) << endl;
-        nodeBBox->include((*object)->f_bbox.getValue(params));
-//        cerr << "   new bbox = " << *nodeBBox << endl;
+
+        nodeBBox->include((*object)->f_bbox.getValue());
+
         sofa::helper::AdvancedTimer::stepEnd("ComputeBBox: " + (*object)->getName());
     }
-    node->f_bbox.endEdit(params);
+    node->f_bbox.endEdit();
     return RESULT_CONTINUE;
 }
 
@@ -72,14 +71,13 @@ void UpdateBoundingBoxVisitor::processNodeBottomUp(simulation::Node* node)
     std::string msg = "BoundingBoxVisitor - ProcessBottomUp: " + node->getName();
     sofa::helper::ScopedAdvancedTimer timer(msg.c_str());
 
-    sofa::defaulttype::BoundingBox* nodeBBox = node->f_bbox.beginEdit(params);
+    sofa::defaulttype::BoundingBox* nodeBBox = node->f_bbox.beginEdit();
     Node::ChildIterator childNode;
     for( childNode = node->child.begin(); childNode!=node->child.end(); ++childNode)
     {
-//        cerr<<"   UpdateBoundingBoxVisitor::processNodeBottomUpDown object " << (*childNode)->getName() << endl;
-        nodeBBox->include((*childNode)->f_bbox.getValue(params));
+        nodeBBox->include((*childNode)->f_bbox.getValue());
     }
-    node->f_bbox.endEdit(params);
+    node->f_bbox.endEdit();
 }
 
 }

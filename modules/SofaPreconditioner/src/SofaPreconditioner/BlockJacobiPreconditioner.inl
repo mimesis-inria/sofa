@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,9 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-// Author: Hadrien Courtecuisse
-//
-// Copyright: See COPYING file that comes with this distribution
 #ifndef SOFA_COMPONENT_LINEARSOLVER_BLOCKJACOBIPRECONDITIONER_INL
 #define SOFA_COMPONENT_LINEARSOLVER_BLOCKJACOBIPRECONDITIONER_INL
 
@@ -47,8 +44,8 @@ namespace linearsolver
 
 template<class TMatrix, class TVector>
 BlockJacobiPreconditioner<TMatrix,TVector>::BlockJacobiPreconditioner()
-    : f_verbose( initData(&f_verbose,false,"verbose","Dump system state at each iteration") )
 {
+    this->addAlias(&(this->f_printLog), "verbose");
 }
 
 template<class TMatrix, class TVector>
@@ -61,7 +58,7 @@ template<class TMatrix, class TVector>
 void BlockJacobiPreconditioner<TMatrix,TVector>::invert(Matrix& M)
 {
     M.invert();
-    if (f_verbose.getValue()) sout<<M<<sendl;
+    msg_info() << M;
 }
 
 } // namespace linearsolver

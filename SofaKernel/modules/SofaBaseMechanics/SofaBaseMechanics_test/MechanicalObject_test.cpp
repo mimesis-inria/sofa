@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -53,10 +53,10 @@ TYPED_TEST_CASE(MechanicalObject_test, DataTypesList);
 namespace TestHelpers
 {
 
-template<typename T, int INDEX>
+template<typename T, Size INDEX>
 struct CheckPositionImpl;
 
-template<int N, typename REAL>
+template<Size N, typename REAL>
 struct CheckPositionImpl<Vec<N, REAL>, 1>
 {
     void operator () (const Vec<N, REAL>& vec)
@@ -65,7 +65,7 @@ struct CheckPositionImpl<Vec<N, REAL>, 1>
     }
 };
 
-template<int N, typename REAL>
+template<Size N, typename REAL>
 struct CheckPositionImpl<Vec<N, REAL>, 2>
 {
     void operator () (const Vec<N, REAL>& vec)
@@ -75,7 +75,7 @@ struct CheckPositionImpl<Vec<N, REAL>, 2>
     }
 };
 
-template<int N, typename REAL>
+template<Size N, typename REAL>
 struct CheckPositionImpl<Vec<N, REAL>, 3>
 {
     void operator () (const Vec<N, REAL>& vec)

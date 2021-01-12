@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -64,7 +64,7 @@ void ArgumentParser::parse()
             extra = vm.at("argv").as<std::vector<std::string> >();
     }
     catch (boost::program_options::error const& e) {
-        std::cerr << e.what() << '\n';
+        msg_error("ArgumentParser") << e.what();
         exit( EXIT_FAILURE );
     }
     boost::program_options::notify(vm);

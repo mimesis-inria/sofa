@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -29,7 +29,10 @@ namespace sofa
 {
 namespace defaulttype
 {
-    using sofa::helper::types::RGBAColor ;
+    SOFA_BEGIN_DEPRECATION_AS_ERROR
+    [[deprecated("sofa::helper::types::RGBAColor is now part in sofa::helper::types::RGBAColor. Please update your code.")]]
+    typedef sofa::helper::types::RGBAColor RGBAColor;
+    SOFA_END_DEPRECATION_AS_ERROR
 } // namespace defaulttype
 } // namespace sofa
 

@@ -1,10 +1,13 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(Registration VERSION 0.1)
 
 find_package(SofaGui REQUIRED)
 sofa_find_package(SofaMiscCollision REQUIRED)
+sofa_find_package(SofaOpenglVisual REQUIRED)
+sofa_find_package(SofaExporter REQUIRED)
 sofa_find_package(SofaDistanceGrid QUIET)
 sofa_find_package(image QUIET)
+find_package(Eigen3 REQUIRED)
 
 set(HEADER_FILES
     config.h.in
@@ -53,6 +56,7 @@ sofa_set_python_directory(Registration "python")
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES} ${PYTHON_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaMeshCollision SofaMiscCollision SofaBaseCollision SofaGuiCommon SofaBaseVisual SofaExporter SofaOpenglVisual SofaLoader SofaMiscForceField SofaGeneralEngine)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
 if(image_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC image)
@@ -64,10 +68,6 @@ else()
     message(STATUS "Registration: could not find SofaDistanceGrid, won't build RegistrationContact for RigidDistanceGridCollisionModel.")
 endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_REGISTRATION")
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 
 find_package(SofaTest QUIET)
 if(SofaTest_FOUND)
@@ -75,9 +75,9 @@ if(SofaTest_FOUND)
 endif()
 
 ## Install rules for the library; CMake package configurations files
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    TARGETS ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
     RELOCATABLE "plugins"
     )

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,17 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-//
-// C++ Implementation: Node
-//
-// Description:
-//
-//
-// Author: The SOFA team </www.sofa-framework.org>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 #include <sofa/simulation/Node.h>
 #include <sofa/simulation/Node.inl>
 #include <sofa/simulation/PropagateEventVisitor.h>
@@ -403,7 +392,7 @@ void* Node::findLinkDestClass(const core::objectmodel::BaseClass* destType, cons
     {
         if (pathStr[psize-1] != ']')
         {
-            serr << "Invalid index-based path \"" << path << "\"" << sendl;
+            msg_error() << "Invalid index-based path \"" << path << "\"";
             return nullptr;
         }
         int index = atoi(pathStr.c_str()+ppos+1);
@@ -872,7 +861,7 @@ void Node::executeVisitor(Visitor* action, bool precomputedOrder)
         std::stringstream tmp;
         for (int i=0; i<level; ++i)
             tmp << ' ';
-        tmp << ">" << sofa::core::objectmodel::BaseClass::decodeClassName(typeid(*action)) << " on " << this->getPathName();
+        tmp << ">" << sofa::helper::NameDecoder::decodeClassName(typeid(*action)) << " on " << this->getPathName();
         if (!action->getInfos().empty())
             tmp << "  : " << action->getInfos();
         dmsg_info () << tmp.str() ;
@@ -887,7 +876,7 @@ void Node::executeVisitor(Visitor* action, bool precomputedOrder)
         std::stringstream tmp;
         for (int i=0; i<level; ++i)
             tmp << ' ';
-        tmp  << "<" << sofa::core::objectmodel::BaseClass::decodeClassName(typeid(*action)) << " on " << this->getPathName();
+        tmp  << "<" << sofa::helper::NameDecoder::decodeClassName(typeid(*action)) << " on " << this->getPathName();
         dmsg_info() << tmp.str() ;
     }
 }
@@ -919,70 +908,74 @@ void Node::printComponents()
     using core::collision::Pipeline;
     using core::BaseState;
 
-    serr<<"BaseAnimationLoop: ";
-    for ( Single<BaseAnimationLoop>::iterator i=animationManager.begin(), iend=animationManager.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"OdeSolver: ";
-    for ( Sequence<OdeSolver>::iterator i=solver.begin(), iend=solver.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"LinearSolver: ";
-    for ( Sequence<BaseLinearSolver>::iterator i=linearSolver.begin(), iend=linearSolver.end(); i!=iend; i++ )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"ConstraintSolver: ";
-    for ( Sequence<ConstraintSolver>::iterator i=constraintSolver.begin(), iend=constraintSolver.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<"VisualLoop: ";
-    for ( Single<VisualLoop>::iterator i=visualLoop.begin(), iend=visualLoop.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"InteractionForceField: ";
-    for ( Sequence<BaseInteractionForceField>::iterator i=interactionForceField.begin(), iend=interactionForceField.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"ForceField: ";
-    for ( Sequence<BaseForceField>::iterator i=forceField.begin(), iend=forceField.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"State: ";
-    for ( Single<BaseState>::iterator i=state.begin(), iend=state.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"MechanicalState: ";
-    for ( Single<BaseMechanicalState>::iterator i=mechanicalState.begin(), iend=mechanicalState.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"Mechanical Mapping: ";
-    for ( Single<BaseMapping>::iterator i=mechanicalMapping.begin(), iend=mechanicalMapping.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"Mapping: ";
-    for ( Sequence<BaseMapping>::iterator i=mapping.begin(), iend=mapping.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"Topology: ";
-    for ( Single<Topology>::iterator i=topology.begin(), iend=topology.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"MeshTopology: ";
-    for ( Single<BaseMeshTopology>::iterator i=meshTopology.begin(), iend=meshTopology.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"Shader: ";
-    for ( Sequence<Shader>::iterator i=shaders.begin(), iend=shaders.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"ProjectiveConstraintSet: ";
-    for ( Sequence<BaseProjectiveConstraintSet>::iterator i=projectiveConstraintSet.begin(), iend=projectiveConstraintSet.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"ConstraintSet: ";
-    for ( Sequence<BaseConstraintSet>::iterator i=constraintSet.begin(), iend=constraintSet.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"BehaviorModel: ";
-    for ( Sequence<BehaviorModel>::iterator i=behaviorModel.begin(), iend=behaviorModel.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"VisualModel: ";
-    for ( Sequence<VisualModel>::iterator i=visualModel.begin(), iend=visualModel.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"CollisionModel: ";
-    for ( Sequence<CollisionModel>::iterator i=collisionModel.begin(), iend=collisionModel.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"ContextObject: ";
-    for ( Sequence<ContextObject>::iterator i=contextObject.begin(), iend=contextObject.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl<<"Pipeline: ";
-    for ( Single<Pipeline>::iterator i=collisionPipeline.begin(), iend=collisionPipeline.end(); i!=iend; ++i )
-        serr<<(*i)->getName()<<" ";
-    serr<<sendl;
+    std::stringstream sstream;
+
+    sstream << "BaseAnimationLoop: ";
+    for (Single<BaseAnimationLoop>::iterator i = animationManager.begin(), iend = animationManager.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "OdeSolver: ";
+    for (Sequence<OdeSolver>::iterator i = solver.begin(), iend = solver.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "LinearSolver: ";
+    for (Sequence<BaseLinearSolver>::iterator i = linearSolver.begin(), iend = linearSolver.end(); i != iend; i++)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "ConstraintSolver: ";
+    for (Sequence<ConstraintSolver>::iterator i = constraintSolver.begin(), iend = constraintSolver.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "VisualLoop: ";
+    for (Single<VisualLoop>::iterator i = visualLoop.begin(), iend = visualLoop.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "InteractionForceField: ";
+    for (Sequence<BaseInteractionForceField>::iterator i = interactionForceField.begin(), iend = interactionForceField.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "ForceField: ";
+    for (Sequence<BaseForceField>::iterator i = forceField.begin(), iend = forceField.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "State: ";
+    for (Single<BaseState>::iterator i = state.begin(), iend = state.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "MechanicalState: ";
+    for (Single<BaseMechanicalState>::iterator i = mechanicalState.begin(), iend = mechanicalState.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "Mechanical Mapping: ";
+    for (Single<BaseMapping>::iterator i = mechanicalMapping.begin(), iend = mechanicalMapping.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "Mapping: ";
+    for (Sequence<BaseMapping>::iterator i = mapping.begin(), iend = mapping.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "Topology: ";
+    for (Single<Topology>::iterator i = topology.begin(), iend = topology.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "MeshTopology: ";
+    for (Single<BaseMeshTopology>::iterator i = meshTopology.begin(), iend = meshTopology.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "Shader: ";
+    for (Sequence<Shader>::iterator i = shaders.begin(), iend = shaders.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "ProjectiveConstraintSet: ";
+    for (Sequence<BaseProjectiveConstraintSet>::iterator i = projectiveConstraintSet.begin(), iend = projectiveConstraintSet.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "ConstraintSet: ";
+    for (Sequence<BaseConstraintSet>::iterator i = constraintSet.begin(), iend = constraintSet.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "BehaviorModel: ";
+    for (Sequence<BehaviorModel>::iterator i = behaviorModel.begin(), iend = behaviorModel.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "VisualModel: ";
+    for (Sequence<VisualModel>::iterator i = visualModel.begin(), iend = visualModel.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "CollisionModel: ";
+    for (Sequence<CollisionModel>::iterator i = collisionModel.begin(), iend = collisionModel.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "ContextObject: ";
+    for (Sequence<ContextObject>::iterator i = contextObject.begin(), iend = contextObject.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n" << "Pipeline: ";
+    for (Single<Pipeline>::iterator i = collisionPipeline.begin(), iend = collisionPipeline.end(); i != iend; ++i)
+        sstream << (*i)->getName() << " ";
+    sstream << "\n";
+
+    msg_info() << sstream.str();
 }
 
 /** @name Dependency graph

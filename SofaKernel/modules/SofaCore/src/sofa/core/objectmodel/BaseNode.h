@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -131,7 +131,7 @@ public:
     virtual const BaseContext* getContext() const = 0;
 
     /// Return the full path name of this node
-    virtual std::string getPathName() const;
+    virtual std::string getPathName() const override;
 
     /// Return the path from this node to the root node
     virtual std::string getRootPath() const;

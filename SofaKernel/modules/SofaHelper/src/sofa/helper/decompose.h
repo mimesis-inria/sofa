@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -21,7 +21,7 @@
 ******************************************************************************/
 #ifndef SOFA_HELPER_DECOMPOSE_H
 #define SOFA_HELPER_DECOMPOSE_H
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 
 #include <sofa/defaulttype/Mat.h>
 
@@ -73,7 +73,7 @@ public:
       * Formula given in "Finite Random Matrix Theory, Jacobians of Matrix Transforms (without wedge products)", Alan Edelman, 2005, http://web.mit.edu/18.325/www/handouts/handout2.pdf
       * Note that dR is also easy to compute.
       */
-    template<int spatial_dimension, int material_dimension>
+    template<Size spatial_dimension, Size material_dimension>
     static void QRDecompositionGradient_dQ( const defaulttype::Mat<spatial_dimension,material_dimension,Real>&Q,
                                             const defaulttype::Mat<material_dimension,material_dimension,Real>&invR,
                                             const defaulttype::Mat<spatial_dimension,material_dimension,Real>& dM,
@@ -89,11 +89,11 @@ public:
         // L = lower(tmp) - (lower(tmp))^T
         defaulttype::Mat<material_dimension,material_dimension,Real> L;
 
-        for(int i = 0; i < material_dimension; ++i)
+        for(Size i = 0; i < material_dimension; ++i)
         {
-            for(int j = 0; j < i; ++j) // strictly lower
+            for(Size j = 0; j < i; ++j) // strictly lower
                 L[i][j] = tmp[i][j];
-            for(int j = i + 1; j < material_dimension; ++j) // strictly lower transposed
+            for(Size j = i + 1; j < material_dimension; ++j) // strictly lower transposed
                 L[i][j] = -tmp[j][i];
         }
 
@@ -372,7 +372,7 @@ private:
       * QL algorithm with implicit shifting, applies to tridiagonal matrices
       * Derived from numerical recipies
       */
-    template <int iSize>
+    template <sofa::Size iSize>
     static void QLAlgorithm( defaulttype::Vec<iSize,Real> &diag, defaulttype::Vec<iSize,Real> &subDiag, defaulttype::Mat<iSize,iSize,Real> &V );
 
 }; // class Decompose

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SofaPython VERSION 0.1)
 
 if(UNIX)
@@ -144,8 +144,9 @@ set(PYTHON_FILES
 
 find_package(PythonLibs 2.7 REQUIRED)
 find_package(SofaGui REQUIRED)
-find_package(SofaGeneral REQUIRED)
-find_package(SofaMisc REQUIRED)
+find_package(SofaUserInteraction REQUIRED)
+find_package(SofaMiscMapping REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 GET_FILENAME_COMPONENT(LIBRARY_NAME ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX} NAME_WE)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -175,22 +176,22 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC "$<INSTALL_INTERFACE:include>"
     )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC SofaSimulationCommon SofaUserInteraction SofaGuiCommon SofaComponentMisc SofaComponentGeneral ${PYTHON_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC SofaSimulationCommon SofaUserInteraction SofaGuiCommon SofaMiscMapping ${PYTHON_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
     # dlopen() is used on Linux for a workaround (see PythonEnvironnement.cpp)
     target_link_libraries(${PROJECT_NAME} PRIVATE dl)
 endif()
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "-Dregister=")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "-D_ALLOW_KEYWORD_MACROS")
+
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "${SOFAPYTHON_COMPILER_FLAGS}")
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 
 ## Install rules for the library and headers; CMake package configurations files
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    TARGETS ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
     RELOCATABLE "plugins"
     )

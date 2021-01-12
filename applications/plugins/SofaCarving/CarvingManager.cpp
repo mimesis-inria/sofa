@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -50,7 +50,7 @@ int CarvingManagerClass = core::RegisterObject("Manager handling carving operati
 
 CarvingManager::CarvingManager()
     : d_toolModelPath( initData(&d_toolModelPath, "toolModelPath", "Tool model path"))
-    , d_surfaceModelPath( initData(&d_surfaceModelPath, "surfaceModelPath", "TriangleSetModel or SphereModel path"))
+    , d_surfaceModelPath( initData(&d_surfaceModelPath, "surfaceModelPath", "TriangleSetModel or SphereCollisionModel<sofa::defaulttype::Vec3Types> path"))
     , d_carvingDistance( initData(&d_carvingDistance, 0.0, "carvingDistance", "Collision distance at which cavring will start. Equal to contactDistance by default."))
     , d_active( initData(&d_active, false, "active", "Activate this object.\nNote that this can be dynamically controlled by using a key") )
     , d_keyEvent( initData(&d_keyEvent, '1', "key", "key to press to activate this object until the key is released") )
@@ -180,7 +180,7 @@ void CarvingManager::doCarve()
         }
 
         int nbelems = 0;
-        helper::vector<int> elemsToRemove;
+        helper::vector<Index> elemsToRemove;
 
         for (size_t j = 0; j < ncontacts; ++j)
         {
@@ -188,7 +188,7 @@ void CarvingManager::doCarve()
 
             if (c.value < d_carvingDistance.getValue())
             {
-                int triangleIdx = (c.elem.first.getCollisionModel() == m_toolCollisionModel ? c.elem.second.getIndex() : c.elem.first.getIndex());
+                auto triangleIdx = (c.elem.first.getCollisionModel() == m_toolCollisionModel ? c.elem.second.getIndex() : c.elem.first.getIndex());
                 elemsToRemove.push_back(triangleIdx);
             }
         }
@@ -253,7 +253,7 @@ void CarvingManager::handleEvent(sofa::core::objectmodel::Event* event)
             d_active.setValue(false);
         }
     }
-    else if (simulation::CollisionEndEvent::checkEventType(event))
+    else if (sofa::simulation::AnimateEndEvent::checkEventType(event))
     {
         if (d_active.getValue()) {
             doCarve();

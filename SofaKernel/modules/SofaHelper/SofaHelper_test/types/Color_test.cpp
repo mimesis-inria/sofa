@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,8 +25,8 @@ using sofa::defaulttype::Vec4d ;
 #include <sofa/core/objectmodel/Data.h>
 using sofa::core::objectmodel::Data ;
 
-#include <sofa/defaulttype/RGBAColor.h>
-using sofa::defaulttype::RGBAColor ;
+#include <sofa/helper/types/RGBAColor.h>
+using sofa::helper::types::RGBAColor ;
 
 #include <sofa/helper/testing/BaseTest.h>
 using sofa::helper::testing::BaseTest ;

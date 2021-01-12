@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -24,6 +24,7 @@
 
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/defaulttype/Quat.h>
+#include <sofa/defaulttype/TopologyTypes.h>
 
 namespace sofa
 {
@@ -167,7 +168,8 @@ public:
      *  The number of vertices position, normal, and texture coordinates already written is given as parameters.
      *  This method should update them.
      */
-    virtual void exportOBJ(std::string /*name*/, std::ostream* /*out*/, std::ostream* /*mtl*/, int& /*vindex*/, int& /*nindex*/, int& /*tindex*/, int& /*count*/)
+    virtual void exportOBJ(std::string /*name*/, std::ostream* /*out*/, std::ostream* /*mtl*/, 
+        sofa::Index& /*vindex*/, sofa::Index& /*nindex*/, sofa::Index& /*tindex*/, int& /*count*/)
     {
     }
 

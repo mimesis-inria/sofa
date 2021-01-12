@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,7 +25,6 @@
 #include <SofaSphFluid/ParticlesRepulsionForceField.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <SofaSphFluid/SpatialGridContainer.inl>
-#include <sofa/helper/system/config.h>
 #include <cmath>
 #include <iostream>
 
@@ -76,12 +75,12 @@ void ParticlesRepulsionForceField<DataTypes>::addForce(const core::MechanicalPar
     const Real h2 = h*h;
     const Real ks = stiffness.getValue();
     const Real kd = damping.getValue();
-    const int n = x.size();
+    const size_t n = x.size();
 
     // Initialization
     f.resize(n);
     particles.resize(n);
-    for (int i=0; i<n; i++)
+    for (size_t i=0; i<n; i++)
     {
         particles[i].neighbors.clear();
     }
@@ -90,10 +89,10 @@ void ParticlesRepulsionForceField<DataTypes>::addForce(const core::MechanicalPar
     // This is an O(n2) step, except if a hash-grid is used to optimize it
     if (grid == nullptr)
     {
-        for (int i=0; i<n; i++)
+        for (size_t i=0; i<n; i++)
         {
             const Coord& ri = x[i];
-            for (int j=i+1; j<n; j++)
+            for (size_t j=i+1; j<n; j++)
             {
                 const Coord& rj = x[j];
                 Real r2 = (rj-ri).norm2();
@@ -109,7 +108,7 @@ void ParticlesRepulsionForceField<DataTypes>::addForce(const core::MechanicalPar
     }
 
     // Compute the forces
-    for (int i=0; i<n; i++)
+    for (size_t i=0; i<n; i++)
     {
         Particle& Pi = particles[i];
 
@@ -151,11 +150,11 @@ void ParticlesRepulsionForceField<DataTypes>::addDForce(const core::MechanicalPa
     const Real h2 = h*h;
     const Real ks = (Real)(stiffness.getValue() * mparams->kFactorIncludingRayleighDamping(this->rayleighStiffness.getValue()));
     //const Real kd = damping.getValue()*bFactor;
-    const int n = x.size();
+    const size_t n = x.size();
     df.resize(dx.size());
 
     // Compute the forces
-    for (int i=0; i<n; i++)
+    for (size_t i=0; i<n; i++)
     {
         Particle& Pi = particles[i];
 
@@ -200,7 +199,7 @@ void ParticlesRepulsionForceField<DataTypes>::draw(const core::visual::VisualPar
     const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
     const Real h = distance.getValue();
 
-    std::vector<sofa::defaulttype::Vec4f> colorVector;
+    std::vector<sofa::helper::types::RGBAColor> colorVector;
     std::vector<sofa::defaulttype::Vector3> vertices;
 
     for (unsigned int i=0; i<particles.size(); i++)
@@ -213,11 +212,11 @@ void ParticlesRepulsionForceField<DataTypes>::draw(const core::visual::VisualPar
             float f = r_h*2;
             if (f < 1)
             {
-                colorVector.push_back(sofa::defaulttype::Vec4f(0,1-f,f,1-r_h));
+                colorVector.push_back({0.0f, 1.0f - f, f, 1.0f - r_h});
             }
             else
             {
-                colorVector.push_back(sofa::defaulttype::Vec4f(f-1,0,2-f,1-r_h));
+                colorVector.push_back({f - 1.0f, 0.0f, 2.0f - f, 1.0f - r_h});
             }
             vertices.push_back(sofa::defaulttype::Vector3(x[i]));
             vertices.push_back(sofa::defaulttype::Vector3(x[j]));

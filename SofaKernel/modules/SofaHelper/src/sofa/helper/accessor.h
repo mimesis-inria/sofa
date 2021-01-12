@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_HELPER_ACCESSOR_H
 #define SOFA_HELPER_ACCESSOR_H
 
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 #include <sofa/helper/vector.h>
 #include <iostream>
 
@@ -169,7 +169,7 @@ class ReadAccessorVector
 {
 public:
     typedef T container_type;
-    typedef typename container_type::size_type size_type;
+    typedef typename container_type::Size Size;
     typedef typename container_type::value_type value_type;
     typedef typename container_type::reference reference;
     typedef typename container_type::const_reference const_reference;
@@ -185,8 +185,8 @@ public:
     const container_type& ref() const { return *vref; }
 
     bool empty() const { return vref->empty(); }
-    size_type size() const { return vref->size(); }
-	const_reference operator[](size_type i) const { return (*vref)[i]; }
+    Size size() const { return vref->size(); }
+	const_reference operator[](Size i) const { return (*vref)[i]; }
 
     const_iterator begin() const { return vref->begin(); }
     const_iterator end() const { return vref->end(); }
@@ -204,7 +204,7 @@ class WriteAccessorVector
 {
 public:
     typedef T container_type;
-    typedef typename container_type::size_type size_type;
+    typedef typename container_type::Size Size;
     typedef typename container_type::value_type value_type;
     typedef typename container_type::reference reference;
     typedef typename container_type::const_reference const_reference;
@@ -221,10 +221,10 @@ public:
     container_type& wref() { return *vref; }
 
     bool empty() const { return vref->empty(); }
-    size_type size() const { return vref->size(); }
+    Size size() const { return vref->size(); }
 
-	const_reference operator[](size_type i) const { return (*vref)[i]; }
-	reference operator[](size_type i) { return (*vref)[i]; }
+	const_reference operator[](Size i) const { return (*vref)[i]; }
+	reference operator[](Size i) { return (*vref)[i]; }
 
     const_iterator begin() const { return vref->begin(); }
     iterator begin() { return vref->begin(); }
@@ -232,8 +232,8 @@ public:
     iterator end() { return vref->end(); }
 
     void clear() { vref->clear(); }
-    void resize(size_type s, bool /*init*/ = true) { vref->resize(s); }
-    void reserve(size_type s) { vref->reserve(s); }
+    void resize(Size s, bool /*init*/ = true) { vref->resize(s); }
+    void reserve(Size s) { vref->reserve(s); }
     void push_back(const value_type& v) { vref->push_back(v); }
 
     inline friend std::ostream& operator<< ( std::ostream& os, const WriteAccessorVector<T>& vec )
@@ -287,6 +287,35 @@ public:
 };
 
 
+/// Returns a read accessor from the provided Data<>
+/// Example of use:
+///   auto points = getReadAccessor(d_points)
+template<class D>
+sofa::helper::ReadAccessor<D> getReadAccessor(D& c)
+{
+    return sofa::helper::ReadAccessor<D>{ c };
+}
+
+/// Returns a write only accessor from the provided Data<>
+/// Example of use:
+///   auto points = getWriteOnlyAccessor(d_points)
+template<class D>
+sofa::helper::WriteAccessor<D> getWriteAccessor(D& c)
+{
+    return sofa::helper::WriteAccessor<D>{ c };
+}
+
+/// Returns a write only accessor from the provided Data<>
+/// WriteOnly accessors are faster than WriteAccessor because
+/// as the data is only read this means there is no need to pull
+/// the data from the parents
+/// Example of use:
+///   auto points = getWriteOnlyAccessor(d_points)
+template<class D>
+sofa::helper::WriteOnlyAccessor<D> getWriteOnlyAccessor(D& c)
+{
+    return sofa::helper::WriteOnlyAccessor<D>{ c };
+}
 
 } // namespace helper
 

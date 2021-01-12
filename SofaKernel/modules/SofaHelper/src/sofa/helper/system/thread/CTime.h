@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -23,7 +23,7 @@
 #define SOFA_HELPER_SYSTEM_THREAD_CTIME_H
 
 #include <ctime>
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 
 #ifdef WIN32
 # include <windows.h>

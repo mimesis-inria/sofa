@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 #ifndef SOFA_CORE_OBJECTMODEL_BASELINK_H
 #define SOFA_CORE_OBJECTMODEL_BASELINK_H
 
-#include <sofa/helper/fixed_array.h>
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 #include <sofa/core/ExecParams.h>
 #include <string>
 
@@ -48,13 +47,13 @@ class BaseObjectDescription;
 class SOFA_CORE_API BaseLink
 {
 public:
+    SOFA_BEGIN_DEPRECATION_AS_ERROR
     enum LinkFlagsEnum
     {
         FLAG_NONE       = 0,
         FLAG_MULTILINK  = 1 << 0, ///< True if link is an array
         FLAG_STRONGLINK = 1 << 1, ///< True if link has ownership of linked object(s)
         FLAG_DOUBLELINK = 1 << 2, ///< True if link has a reciprocal link in linked object(s)
-        FLAG_DATALINK   = 1 << 3, ///< True if link points to a Data
         FLAG_DUPLICATE  = 1 << 4, ///< True if link duplicates another one (possibly with a different/specialized DestType)
         FLAG_STOREPATH  = 1 << 5, ///< True if link requires a path string in order to be created
     };
@@ -92,7 +91,10 @@ public:
     void setHelp(const std::string& val) { m_help = val; }
 
     virtual Base* getOwnerBase() const = 0;
-    virtual BaseData* getOwnerData() const = 0;
+
+    [[deprecated("2020-10-03: Deprecated since PR #1503. BaseLink cannot hold Data anymore. Use DataLink instead. Please update your code. ")]]
+    virtual sofa::core::objectmodel::BaseData* getOwnerData() const = 0;
+
 
     /// Set one of the flags.
     void setFlag(LinkFlagsEnum flag, bool b)
@@ -105,7 +107,9 @@ public:
     bool getFlag(LinkFlagsEnum flag) const { return (m_flags&LinkFlags(flag))!=0; }
 
     bool isMultiLink() const { return getFlag(FLAG_MULTILINK); }
-    bool isDataLink() const { return getFlag(FLAG_DATALINK); }
+
+    [[deprecated("2020-10-03: Deprecated since PR #1503. BaseLink cannot hold Data anymore. Use DataLink instead. Please update your code. ")]]
+    bool isDataLink() const { return false; }
     bool isStrongLink() const { return getFlag(FLAG_STRONGLINK); }
     bool isDoubleLink() const { return getFlag(FLAG_DOUBLELINK); }
     bool isDuplicate() const { return getFlag(FLAG_DUPLICATE); }
@@ -123,16 +127,22 @@ public:
 
     /// Return the number of changes since creation
     /// This can be used to efficiently detect changes
-    int getCounter() const { return m_counters[size_t(core::ExecParams::currentAspect())]; }
+    int getCounter() const { return m_counter; }
 
     /// Return the number of changes since creation
     /// This can be used to efficiently detect changes
-    int getCounter(const core::ExecParams* params) const { return m_counters[size_t(core::ExecParams::currentAspect(params))]; }
+    [[deprecated("2020-03-25: Aspect have been deprecated for complete removal in PR #1269. You can probably update your code by removing aspect related calls. If the feature was important to you contact sofa-dev. ")]]
+    int getCounter(const core::ExecParams*) const { return getCounter(); }
+
+    void setLinkedBase(Base* link);
 
     virtual size_t getSize() const = 0;
-    virtual Base* getLinkedBase(unsigned int index=0) const = 0;
-    virtual BaseData* getLinkedData(unsigned int index=0) const = 0;
-    virtual std::string getLinkedPath(unsigned int index=0) const = 0;
+    virtual Base* getLinkedBase(std::size_t index=0) const = 0;
+
+    [[deprecated("2020-10-03: Deprecated since PR #1503. BaseLink cannot hold Data anymore. Use DataLink instead. Please update your code. ")]]
+    virtual BaseData* getLinkedData(std::size_t index=0) const = 0;
+
+    virtual std::string getLinkedPath(std::size_t index=0) const = 0;
 
     /// @name Serialization API
     /// @{
@@ -155,12 +165,6 @@ public:
 
     /// @}
 
-    /// Copy the value of an aspect into another one.
-    virtual void copyAspect(int destAspect, int srcAspect) = 0;
-
-    /// Release memory allocated for the specified aspect.
-    virtual void releaseAspect(int aspect);
-
     /// @name Serialization Helper API
     /// @{
 
@@ -179,16 +183,17 @@ public:
     static std::string CreateString(Base* object, BaseData* data, Base* from);
 
     /// @}
-
+    ///
+    SOFA_END_DEPRECATION_AS_ERROR
 protected:
     unsigned int m_flags;
     std::string m_name;
     std::string m_help;
     /// Number of changes since creation
-    helper::fixed_array<int, SOFA_DATA_MAX_ASPECTS> m_counters;
-    void updateCounter(unsigned int aspect)
+    int m_counter;
+    void updateCounter()
     {
-        ++m_counters[aspect];
+        ++m_counter;
     }
 };
 

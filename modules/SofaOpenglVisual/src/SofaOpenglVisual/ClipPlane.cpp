@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -63,18 +63,18 @@ sofa::core::objectmodel::ComponentState ClipPlane::checkDataValues()
 
 void ClipPlane::init()
 {
-    m_componentstate = checkDataValues() ;
+    d_componentState.setValue(checkDataValues()) ;
 }
 
 void ClipPlane::reinit()
 {
-    if(m_componentstate==ComponentState::Invalid)
+    if(d_componentState.getValue() == ComponentState::Invalid)
         msg_error() << "Reiniting an invalid component is not allowed. It must be inited first" ;
 }
 
 void ClipPlane::fwdDraw(core::visual::VisualParams*)
 {
-    if(m_componentstate==ComponentState::Invalid)
+    if(d_componentState.getValue() == ComponentState::Invalid)
         return ;
 
     wasActive = glIsEnabled(GL_CLIP_PLANE0+id.getValue());

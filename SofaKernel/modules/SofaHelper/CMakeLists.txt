@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SofaHelper)
 
 # DEPENDENCIES
@@ -12,6 +12,8 @@ if(SOFAHELPER_HAVE_BOOST_SYSTEM
    AND SOFAHELPER_HAVE_BOOST_PROGRAM_OPTIONS
    AND SOFAHELPER_HAVE_BOOST_THREAD)
     sofa_set_01(SOFAHELPER_HAVE_BOOST VALUE TRUE BOTH_SCOPES)
+else()
+    sofa_set_01(SOFAHELPER_HAVE_BOOST VALUE FALSE BOTH_SCOPES)
 endif()
 # OpenGL (gl, glu) + GLEW
 if(NOT SOFA_NO_OPENGL)
@@ -19,11 +21,11 @@ if(NOT SOFA_NO_OPENGL)
     sofa_find_package(GLEW BOTH_SCOPES)
 endif()
 # GTest
-if(SOFA_BUILD_TESTS)
+if(SOFA_BUILD_TESTS OR SOFA_BUILD_RELEASE_PACKAGE)
     sofa_find_package(GTest CONFIG BOTH_SCOPES)
 endif()
 # Eigen (header only)
-sofa_find_package(Eigen3 REQUIRED BOTH_SCOPES)
+find_package(Eigen3 REQUIRED)
 # Json (header only) needed by AdvancedTimer
 sofa_find_package(Json 3.1.2 REQUIRED BOTH_SCOPES)
 
@@ -31,7 +33,8 @@ set(SRC_ROOT "src/sofa/helper")
 
 # HEADERS + SOURCES
 set(HEADER_FILES
-    ${SRC_ROOT}/helper.h.in # = config.h.in
+    ${SRC_ROOT}/config.h.in
+    ${SRC_ROOT}/helper.h
     ${SRC_ROOT}/AdvancedTimer.h
     ${SRC_ROOT}/ArgumentParser.h
     ${SRC_ROOT}/BackTrace.h
@@ -53,6 +56,7 @@ set(HEADER_FILES
     ${SRC_ROOT}/MarchingCubeUtility.h
     ${SRC_ROOT}/MatEigen.h
     ${SRC_ROOT}/MemoryManager.h
+    ${SRC_ROOT}/NameDecoder.h
     ${SRC_ROOT}/OptionsGroup.h
     ${SRC_ROOT}/OwnershipSPtr.h
     ${SRC_ROOT}/StateMask.h
@@ -92,11 +96,6 @@ set(HEADER_FILES
     ${SRC_ROOT}/io/MeshTopologyLoader.h
     ${SRC_ROOT}/io/SphereLoader.h
     ${SRC_ROOT}/io/TriangleLoader.h
-    ${SRC_ROOT}/io/bvh/BVHChannels.h
-    ${SRC_ROOT}/io/bvh/BVHJoint.h
-    ${SRC_ROOT}/io/bvh/BVHLoader.h
-    ${SRC_ROOT}/io/bvh/BVHMotion.h
-    ${SRC_ROOT}/io/bvh/BVHOffset.h
     ${SRC_ROOT}/kdTree.h
     ${SRC_ROOT}/kdTree.inl
     ${SRC_ROOT}/list.h
@@ -136,6 +135,7 @@ set(HEADER_FILES
     ${SRC_ROOT}/vector_algebra.h
     ${SRC_ROOT}/vector_device.h
     ${SRC_ROOT}/types/RGBAColor.h
+    ${SRC_ROOT}/types/RGBAColor_fwd.h
     ${SRC_ROOT}/types/Material.h
     ${SRC_ROOT}/logging/Messaging.h
     ${SRC_ROOT}/logging/Message.h
@@ -168,6 +168,7 @@ set(SOURCE_FILES
     ${SRC_ROOT}/GenerateRigid.cpp
     ${SRC_ROOT}/LCPcalc.cpp
     ${SRC_ROOT}/MarchingCubeUtility.cpp
+    ${SRC_ROOT}/NameDecoder.cpp
     ${SRC_ROOT}/OptionsGroup.cpp
     ${SRC_ROOT}/StateMask.cpp
     ${SRC_ROOT}/SVector.cpp
@@ -195,9 +196,6 @@ set(SOURCE_FILES
     ${SRC_ROOT}/io/SphereLoader.cpp
     ${SRC_ROOT}/io/TriangleLoader.cpp
     ${SRC_ROOT}/io/XspLoader.cpp
-    ${SRC_ROOT}/io/bvh/BVHJoint.cpp
-    ${SRC_ROOT}/io/bvh/BVHLoader.cpp
-    ${SRC_ROOT}/io/bvh/BVHMotion.cpp
     ${SRC_ROOT}/kdTree.cpp
     ${SRC_ROOT}/polygon_cube_intersection/fast_polygon_cube_intersection.cpp
     ${SRC_ROOT}/polygon_cube_intersection/polygon_cube_intersection.cpp
@@ -241,7 +239,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
     list(APPEND SOURCE_FILES  ${SRC_ROOT}/system/FileMonitor_windows.cpp)
 endif()
-if(SOFA_BUILD_TESTS)
+if(SOFA_BUILD_TESTS OR SOFA_BUILD_RELEASE_PACKAGE)
     list(APPEND HEADER_FILES
         ${SRC_ROOT}/testing/BaseTest.h
         ${SRC_ROOT}/testing/NumericTest.h
@@ -267,7 +265,6 @@ if(NOT SOFA_NO_OPENGL)
         ${SRC_ROOT}/gl/Capture.h
         ${SRC_ROOT}/gl/Color.h
         ${SRC_ROOT}/gl/RAII.h
-        ${SRC_ROOT}/gl/glfont.h
         ${SRC_ROOT}/gl/template.h
         ${SRC_ROOT}/system/gl.h
         ${SRC_ROOT}/system/glu.h
@@ -292,7 +289,6 @@ if(NOT SOFA_NO_OPENGL)
         ${SRC_ROOT}/gl/Texture.cpp
         ${SRC_ROOT}/gl/VideoRecorderFFMPEG.cpp
         ${SRC_ROOT}/gl/Color.cpp
-        ${SRC_ROOT}/gl/glfont.cpp
         ${SRC_ROOT}/system/gl.cpp
     )
     if(GLEW_FOUND)
@@ -334,10 +330,7 @@ endif()
 # since this is configuration specific it is a bit more convenient to put it as a debug compile definition for
 # PluginManager.cpp, at the expense of being much less visible compare to having it in the generated
 # SofaFramework/config.h
-set_property(SOURCE system/PluginManager.cpp APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG "SOFA_LIBSUFFIX=_d" )
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_HELPER")
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_d")
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${SOFAFRAMEWORK_VERSION}")
+set_property(SOURCE ${SRC_ROOT}/system/PluginManager.cpp APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG "SOFA_LIBSUFFIX=_d" )
 
 # Compile options
 if(CMAKE_SYSTEM_NAME STREQUAL Linux AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -358,13 +351,6 @@ endif()
 # System libs
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
     target_link_libraries(${PROJECT_NAME} PRIVATE dl)
-    # X11 functions are used in glfont.cpp
-    sofa_find_package(X11 REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${X11_X11_LIB})
-    target_include_directories(${PROJECT_NAME} PUBLIC
-        "$<BUILD_INTERFACE:${X11_X11_INCLUDE_PATH}>"
-        # No INSTALL_INTERFACE include dir => dev user will need to find_package this dependency
-        )
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     target_link_libraries(${PROJECT_NAME} PRIVATE dl)
     find_library(ICONV iconv)
@@ -382,16 +368,18 @@ if(NOT SOFA_NO_OPENGL)
         target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL OpenGL::GLU)
     else()
         target_link_libraries(${PROJECT_NAME} PUBLIC ${OPENGL_LIBRARIES})
-        target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIR})
+        target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${OPENGL_INCLUDE_DIR})
     endif()
     if(CMAKE_SYSTEM_NAME STREQUAL Linux AND SOFA_BUILD_RELEASE_PACKAGE AND OPENGL_GLU_FOUND)
         # Add GLU to Linux binaries
-        sofa_install_libraries(LIBRARIES ${OPENGL_glu_LIBRARY})
+        sofa_install_libraries(PATHS ${OPENGL_glu_LIBRARY})
     endif()
 
     if(GLEW_FOUND)
         target_link_libraries(${PROJECT_NAME} PUBLIC GLEW::GLEW)
-        sofa_install_libraries(TARGETS GLEW::GLEW)
+        if (SOFA_BUILD_RELEASE_PACKAGE OR CMAKE_SYSTEM_NAME STREQUAL Windows)
+            sofa_install_libraries(TARGETS GLEW::GLEW)
+        endif()
     else()
         message("OpenGL advanced functions (e.g shaders, FBO) are disabled.")
     endif()
@@ -399,39 +387,27 @@ endif()
 
 # Boost
 if(Boost_FOUND)
-    target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost Boost::system Boost::filesystem Boost::program_options Boost::thread)
+    target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost Boost::system Boost::filesystem Boost::program_options)
     if(Boost_THREAD_FOUND)
         target_link_libraries(${PROJECT_NAME} PUBLIC Boost::thread)
     endif()
-    sofa_install_libraries(LIBRARIES ${Boost_LIBRARIES}) # Boost_LIBRARIES covers Boost internal dependencies
+    if (SOFA_BUILD_RELEASE_PACKAGE OR CMAKE_SYSTEM_NAME STREQUAL Windows)
+        sofa_install_libraries(PATHS ${Boost_LIBRARIES}) # Boost_LIBRARIES covers Boost internal dependencies
+    endif()
+
+    if(MSVC)
+        #define BOOST_ALL_DYN_LINK needed for dynamic linking with boost libraries
+        target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_ALL_DYN_LINK)
+    endif()
 endif()
 
 # GTest
-if(SOFA_BUILD_TESTS AND GTest_FOUND)
+if((SOFA_BUILD_TESTS OR SOFA_BUILD_RELEASE_PACKAGE) AND GTest_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC gtest)
 endif()
 
 # Eigen (header only)
-if(EIGEN3_FOUND)
-    install(DIRECTORY ${EIGEN3_INCLUDE_DIR}/Eigen
-        COMPONENT headers
-        DESTINATION "include/extlibs/Eigen"
-        PATTERN "*.in" EXCLUDE
-        PATTERN "*.txt" EXCLUDE
-        PATTERN "*.cpp" EXCLUDE
-        )
-    install(DIRECTORY ${EIGEN3_INCLUDE_DIR}/unsupported/Eigen
-        COMPONENT headers
-        DESTINATION "include/extlibs/Eigen"
-        PATTERN "*.in" EXCLUDE
-        PATTERN "*.txt" EXCLUDE
-        PATTERN "*.cpp" EXCLUDE
-        )
-    target_include_directories(${PROJECT_NAME} PUBLIC
-        "$<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>"
-        "$<INSTALL_INTERFACE:include/extlibs/Eigen>"
-        )
-endif()
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
 # Json (header only) needed by AdvancedTimer
 if(JSON_FOUND)
@@ -442,13 +418,18 @@ if(JSON_FOUND)
         PATTERN "*.txt" EXCLUDE
         PATTERN "*.cpp" EXCLUDE
         )
-    target_include_directories(${PROJECT_NAME} PUBLIC
+    target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
         "$<BUILD_INTERFACE:${JSON_INCLUDE_DIR}>"
         "$<INSTALL_INTERFACE:include/extlibs/json>"
         )
 endif()
 
-sofa_install_targets(SofaFramework ${PROJECT_NAME} "SofaFramework/sofa/helper" ${SRC_ROOT})
+sofa_add_targets_to_package(
+    PACKAGE_NAME SofaFramework
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
+    INCLUDE_INSTALL_DIR "SofaFramework"
+    )
 
 if(SOFA_BUILD_TESTS)
     add_subdirectory(SofaHelper_test)

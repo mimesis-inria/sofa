@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -93,7 +93,7 @@ public:
 /// Table storing associations between types of collision models and intersectors implementing intersection tests
 ///
 /// This class uses the new ClassInfo metaclass to be able to recognize derived classes. So it is no longer necessary
-/// to register all derived collision models (i.e. an intersector registered for RayModel will also be used for RayPickIntersector).
+/// to register all derived collision models (i.e. an intersector registered for RayCollisionModel will also be used for RayPickIntersector).
 class SOFA_CORE_API IntersectorMap
 {
     typedef std::map<std::pair<helper::TypeInfo, helper::TypeInfo>, ElementIntersector*> InternalMap;

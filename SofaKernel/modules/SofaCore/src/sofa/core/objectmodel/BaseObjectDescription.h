@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,7 +25,7 @@
 #include <sofa/helper/vector.h>
 #include <map>
 
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 
 namespace sofa
 {
@@ -115,9 +115,6 @@ public:
     /// adds a message in the logError if the attribute cannot be totally parsed.
     virtual int getAttributeAsInt(const std::string& attr, const int defaultVal=0.0) ;
 
-    [[deprecated("since 18.12, replaced by a pure c++ version with similar name. Will be removed in 19.12")]]
-    virtual void setAttribute(const std::string& attr, const char* val);
-
     /// Set an attribute. Override any existing value
     virtual void setAttribute(const std::string& attr, const std::string& val);
 
@@ -127,9 +124,11 @@ public:
     /// Get the full name of this object (i.e. concatenation if all the names of its ancestors and itself)
     virtual std::string getFullName();
 
-    virtual void logError(std::string s) {errors.push_back(s);}
+    virtual void logError(const std::string & s) {errors.push_back(s);}
+    virtual void logErrors(const std::vector<std::string> & e) {errors.insert(errors.end(), e.begin(), e.end());}
 
     std::vector< std::string > const& getErrors() const {return errors;}
+    virtual void clearErrors() {errors.clear();}
 
 protected:
     AttributeMap attributes;

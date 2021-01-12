@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_CORE_BEHAVIOR_PROJECTIVECONSTRAINTSET_H
 #define SOFA_CORE_BEHAVIOR_PROJECTIVECONSTRAINTSET_H
 
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 #include <sofa/core/behavior/BaseProjectiveConstraintSet.h>
 
 
@@ -149,14 +149,14 @@ public:
     /// Project the global Mechanical Matrix to constrained space using offset parameter
     void applyConstraint(const MechanicalParams* /*mparams*/, const sofa::core::behavior::MultiMatrixAccessor* /*matrix*/) override
     {
-        serr << "applyConstraint(mparams, matrix) not implemented" << sendl;
+        msg_error() << "applyConstraint(mparams, matrix) not implemented.";
     }
 
 
     /// Project the global Mechanical Vector to constrained space using offset parameter
     void applyConstraint(const MechanicalParams* /*mparams*/, defaulttype::BaseVector* /*vector*/, const sofa::core::behavior::MultiMatrixAccessor* /*matrix*/) override
     {
-        serr << "applyConstraint(mparams, vector, matrix) not implemented" << sendl;
+        msg_error() << "applyConstraint(mparams, vector, matrix) not implemented.";
     }
 
     /// Pre-construction check method called by ObjectFactory.
@@ -164,19 +164,12 @@ public:
     template<class T>
     static bool canCreate(T*& obj, objectmodel::BaseContext* context, objectmodel::BaseObjectDescription* arg)
     {
-        if (dynamic_cast<MechanicalState<DataTypes>*>(context->getMechanicalState()) == nullptr)
+        if (dynamic_cast<MechanicalState<DataTypes>*>(context->getMechanicalState()) == nullptr){
+            arg->logError("No mechanical state with the datatype '" + std::string(DataTypes::Name()) + "' found in the context node.");
             return false;
+        }
+
         return BaseObject::canCreate(obj, context, arg);
-    }
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const ProjectiveConstraintSet<DataTypes>* = nullptr)
-    {
-        return DataTypes::Name();
     }
 
 protected:

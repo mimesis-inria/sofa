@@ -2,6 +2,8 @@
 <Node 	name="sceneRoot" gravity="0 0 0" time="0" animate="0"  dt="0.02" >
   <RequiredPlugin pluginName="Flexible"/>
   <RequiredPlugin pluginName="Compliant"/>
+  <RequiredPlugin pluginName="SofaBoundaryCondition"/>
+  
   <VisualStyle displayFlags="showVisualModels showBehaviorModels showForceFields" />
 
   <Node name="Patch" >
@@ -9,12 +11,12 @@
     <LDLTSolver/> 
 
     <!--Nodes-->
-    <MechanicalObject template="Rigid"  position="0 0 0 0 0 0 1 20 0 0 0 0 0 1" name="DOFs" showObject="1"  showObjectScale="5" showIndices="1"/>
+    <MechanicalObject template="Rigid3d"  position="0 0 0 0 0 0 1 20 0 0 0 0 0 1" name="DOFs" showObject="1"  showObjectScale="5" showIndices="1"/>
     <MeshTopology name="mesh" lines="0 1" position="@DOFs.position" drawEdges="true"/>
     
     <!--Constraint and roi-->
     <BoxROI name="Box" box="-10 -10 -10 30 30 30"/>
-    <AffineMovementConstraint template="Rigid" name="affineConstraint" indices="@Box.indices" meshIndices = "@Box.indices" quaternion="-0.690728 -0.0685764 0.504544 -0.513446" translation="2 5 -3"/>
+    <AffineMovementConstraint template="Rigid3d" name="affineConstraint" indices="@Box.indices" meshIndices = "@Box.indices" quaternion="-0.690728 -0.0685764 0.504544 -0.513446" translation="2 5 -3"/>
     
     <!--Mass-->
     <UniformMass name="mass" totalMass="1"/>

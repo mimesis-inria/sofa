@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -59,18 +59,18 @@ public:
 
     void addKToMatrix(const MechanicalParams* /* mparams */, const sofa::core::behavior::MultiMatrixAccessor* /* matrix */ ) override
     {
-        serr << "ERROR("<<getClassName()<<"): addKToMatrix not implemented." << sendl;
+        msg_error() << "addKToMatrix not implemented.";
     }
 
 
     /// initialization to export potential energy to gnuplot files format
     virtual void initGnuplot(const std::string path){
-        sout << path << std::endl << "Warning ::: initGnuplot not implemented for all interaction force field" << sendl;
+        msg_warning() << path << msgendl << "initGnuplot not implemented for all interaction force field";
     }
 
     /// export kinetic and potential energy state at "time" to a gnuplot file
     virtual void exportGnuplot(SReal time){
-        sout << time << std::endl << "Warning ::: exportGnuplot not implemented for all interaction force field" << sendl;
+        msg_warning() << time << msgendl << "exportGnuplot not implemented for all interaction force field";
     }
 
 

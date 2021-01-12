@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -34,8 +34,8 @@ simulation::Visitor::Result InitGnuplotVisitor::processNodeTopDown(simulation::N
 {
     if (node->interactionForceField.getSize() != 0)
     {
-        int size = node->interactionForceField.getSize();
-        for(int i = 0; i < size; i++)
+        auto size = node->interactionForceField.getSize();
+        for(Size i = 0; i < size; i++)
         {
             if (node->interactionForceField.getValue()[i] )
             {
@@ -65,8 +65,8 @@ simulation::Visitor::Result ExportGnuplotVisitor::processNodeTopDown(simulation:
 {
     if (node->interactionForceField.getSize() != 0)
     {
-        int size = node->interactionForceField.getSize();
-        for(int i = 0; i < size; i++)
+        std::size_t size = node->interactionForceField.getSize();
+        for(std::size_t i = 0; i < size; i++)
         {
             if (node->interactionForceField.getValue()[i] )
             {

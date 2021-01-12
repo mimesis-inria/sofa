@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/helper/vectorData.h>
 #include <sofa/core/objectmodel/DataFileName.h>
-
+#include <sofa/helper/types/RGBAColor.h>
 #include <sofa/helper/testing/BaseTest.h>
 using sofa::helper::testing::BaseTest ;
 
@@ -31,41 +31,35 @@ namespace sofa {
 
 using namespace core::objectmodel;
 
-/**  Test suite for data link.
-Create two datas and a link between them.
-Set the value of data1 and check if the boolean is dirty of data2 is true and that the value of data2 is right.
-  */
-struct DataLink_test: public BaseTest
+class Data_test : public BaseTest
 {
-    Data<int> data1;
-    Data<int> data2;
-
-    /// Create a link between the two datas
-    void SetUp() override
-    {
-        // Link
-        data2.setParent(&data1);
-    }
-
-    // Test if the output is updated only if necessary
-    void testDataLink()
-    {
-        data1.setValue(1);
-        ASSERT_FALSE(data1.isDirty());
-        ASSERT_TRUE(data2.isDirty());
-        ASSERT_TRUE(data2.getValue()!=0);
-
-    }
-
+public:
+    Data<int> dataInt;
+    Data<float> dataFloat;
+    Data<bool> dataBool;
+    Data<sofa::defaulttype::Vec3> dataVec3;
+    Data<sofa::helper::vector<sofa::defaulttype::Vec3>> dataVectorVec3;
+    Data<sofa::helper::vector<sofa::helper::types::RGBAColor>> dataVectorColor;
 };
 
-
-/////////////////////////////////////
-
-
-TEST_F(DataLink_test , testDataLink )
+TEST_F(Data_test, getValueTypeString)
 {
-    this->testDataLink();
+    EXPECT_EQ(dataInt.getValueTypeString(), "int");
+    EXPECT_EQ(dataFloat.getValueTypeString(), "float");
+    EXPECT_EQ(dataBool.getValueTypeString(), "bool");
+    EXPECT_EQ(dataVec3.getValueTypeString(), "Vec3d");
+    EXPECT_EQ(dataVectorVec3.getValueTypeString(), "vector<Vec3d>");
+    EXPECT_EQ(dataVectorColor.getValueTypeString(), "vector<RGBAColor>");
+}
+
+TEST_F(Data_test, getNameWithValueTypeInfo)
+{
+    EXPECT_EQ(dataInt.getValueTypeInfo()->name(), "int");
+    EXPECT_EQ(dataFloat.getValueTypeInfo()->name(), "float");
+    EXPECT_EQ(dataBool.getValueTypeInfo()->name(), "bool");
+    EXPECT_EQ(dataVec3.getValueTypeInfo()->name(), "Vec3d");
+    EXPECT_EQ(dataVectorVec3.getValueTypeInfo()->name(), "vector<Vec3d>");
+    EXPECT_EQ(dataVectorColor.getValueTypeInfo()->name(), "vector<RGBAColor>");
 }
 
 /** Test suite for vectorData
@@ -86,12 +80,12 @@ struct vectorData_test: public ::testing::Test
 
     void test_resize()
     {
-       vDataInt.resize(3);
-       ASSERT_EQ(vDataInt.size(),3u);
-       vDataInt.resize(10);
-       ASSERT_EQ(vDataInt.size(),10u);
-       vDataInt.resize(8);
-       ASSERT_EQ(vDataInt.size(),8u);
+        vDataInt.resize(3);
+        ASSERT_EQ(vDataInt.size(),3u);
+        vDataInt.resize(10);
+        ASSERT_EQ(vDataInt.size(),10u);
+        vDataInt.resize(8);
+        ASSERT_EQ(vDataInt.size(),8u);
     }
 
     void test_link()
@@ -99,6 +93,7 @@ struct vectorData_test: public ::testing::Test
         vDataInt.resize(5);
         vDataInt[3]->setParent(&data1);
         data1.setValue(1);
+        ASSERT_NE(vDataInt[3]->getParent(),nullptr);
         ASSERT_EQ(vDataInt[3]->getValue(),1);
     }
 

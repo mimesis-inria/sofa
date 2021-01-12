@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_HELPER_SYSTEM_DYNAMICLIBRARY_H
 #define SOFA_HELPER_SYSTEM_DYNAMICLIBRARY_H
 
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 #include <memory>
 #include <iostream>
 
@@ -50,6 +50,8 @@ public:
         Handle();
         /// Copy constructor.
         Handle(const Handle& that);
+        /// Copy assignment
+        Handle& operator= (const Handle& other);
         /// Check if the handle is valid, i.e. if load() was successful.
         bool isValid() const;
         /// Get the filename of the library.

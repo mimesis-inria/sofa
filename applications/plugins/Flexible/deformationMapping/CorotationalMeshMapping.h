@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -94,8 +94,8 @@ public:
     typedef helper::vector<ID> VecID;
     typedef helper::vector<VecID> VecVecID;
 
-    typedef core::topology::BaseMeshTopology::index_type index_type;
-    typedef helper::vector< index_type > VecIndex;
+    typedef core::topology::BaseMeshTopology::Index Index;
+    typedef helper::vector< Index > VecIndex;
 
     typedef defaulttype::Mat<3,3,Real> Mat3x3;
 

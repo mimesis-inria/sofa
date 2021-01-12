@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -27,7 +27,7 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 
 namespace sofa
 {
@@ -44,7 +44,7 @@ private:
 public:
 
     typedef Real value_type;
-    typedef int size_type;
+    typedef sofa::Size Size;
 
     Quater();
     ~Quater();
@@ -164,13 +164,13 @@ public:
 
     Quater vectQuatMult(const defaulttype::Vec<3,Real>& vect);
 
-    Real& operator[](int index)
+    Real& operator[](Size index)
     {
         assert(index >= 0 && index < 4);
         return _q[index];
     }
 
-    const Real& operator[](int index) const
+    const Real& operator[](Size index) const
     {
         assert(index >= 0 && index < 4);
         return _q[index];

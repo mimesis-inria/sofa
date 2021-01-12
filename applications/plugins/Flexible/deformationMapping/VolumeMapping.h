@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -82,7 +82,7 @@ public:
     typedef typename sofa::core::topology::BaseMeshTopology::Quad Quad;
     typedef typename core::topology::BaseMeshTopology::SeqQuads SeqQuads;
     typedef helper::ReadAccessor<Data< SeqQuads > > raQuads;
-    typedef typename sofa::core::topology::BaseMeshTopology::index_type Index;
+    typedef typename sofa::core::topology::BaseMeshTopology::Index Index;
     typedef sofa::helper::vector< Index > VecIndex;
 
     virtual void init() override

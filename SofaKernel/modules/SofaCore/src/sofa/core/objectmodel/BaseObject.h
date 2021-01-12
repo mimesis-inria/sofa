@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -24,7 +24,6 @@
 
 #include <sofa/core/objectmodel/BaseContext.h>
 #include <sofa/core/DataTracker.h>
-
 namespace sofa
 {
 
@@ -139,7 +138,7 @@ public:
     BaseObject* getMaster();
 
 
-    typedef MultiLink<BaseObject, BaseObject, BaseLink::FLAG_DOUBLELINK|BaseLink::FLAG_STRONGLINK> LinkSlaves;
+    typedef sofa::core::objectmodel::MultiLink<BaseObject, BaseObject, BaseLink::FLAG_DOUBLELINK|BaseLink::FLAG_STRONGLINK> LinkSlaves;
     typedef LinkSlaves::Container VecSlaves;
 
     const VecSlaves& getSlaves() const;
@@ -149,11 +148,6 @@ public:
     virtual void addSlave(BaseObject::SPtr s);
 
     virtual void removeSlave(BaseObject::SPtr s);
-
-    void copyAspect(int destAspect, int srcAspect) override;
-
-    void releaseAspect(int aspect) override;
-
     /// @}
 
     /// @name Component accessors
@@ -444,7 +438,7 @@ public:
 
 
     /// Return the full path name of this object
-    virtual std::string getPathName() const;
+    virtual std::string getPathName() const override;
 
     /// @name internalupdate
     ///   Methods related to tracking of data and the internal update
@@ -475,7 +469,7 @@ protected:
     void changeContextLink(BaseContext* before, BaseContext*& after);
 
     /// This method insures that slaves objects have master and context links set correctly
-    void changeSlavesLink(BaseObject::SPtr ptr, unsigned int /*index*/, bool add);
+    void changeSlavesLink(BaseObject::SPtr ptr, std::size_t /*index*/, bool add);
 
     /// BaseNode can set the context of its own objects
     friend class BaseNode;

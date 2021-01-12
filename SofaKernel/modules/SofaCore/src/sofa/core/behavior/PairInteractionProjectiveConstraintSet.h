@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_CORE_BEHAVIOR_PAIRINTERACTIONPROJECTIVECONSTRAINTSET_H
 #define SOFA_CORE_BEHAVIOR_PAIRINTERACTIONPROJECTIVECONSTRAINTSET_H
 
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 #include <sofa/core/behavior/BaseInteractionProjectiveConstraintSet.h>
 
 
@@ -145,8 +145,15 @@ public:
         context->findLinkDest(mstate1, object1, nullptr);
         context->findLinkDest(mstate2, object2, nullptr);
 
-        if (!mstate1 || !mstate2)
+        if (!mstate1) {
+            arg->logError("Data attribute 'object1' does not point to a valid mechanical state of datatype '" + std::string(DataTypes::Name()) + "'.");
             return false;
+        }
+        if (!mstate2) {
+            arg->logError("Data attribute 'object2' does not point to a valid mechanical state of datatype '" + std::string(DataTypes::Name()) + "'.");
+            return false;
+        }
+
         return BaseInteractionProjectiveConstraintSet::canCreate(obj, context, arg);
     }
 
@@ -175,16 +182,6 @@ public:
         }
 
         return obj;
-    }
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const PairInteractionProjectiveConstraintSet<DataTypes>* = nullptr)
-    {
-        return DataTypes::Name();
     }
 
 protected:

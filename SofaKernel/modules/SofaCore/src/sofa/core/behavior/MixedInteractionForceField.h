@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_CORE_BEHAVIOR_MIXEDINTERACTIONFORCEFIELD_H
 #define SOFA_CORE_BEHAVIOR_MIXEDINTERACTIONFORCEFIELD_H
 
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 #include <sofa/core/behavior/BaseInteractionForceField.h>
 namespace sofa
 {
@@ -153,14 +153,6 @@ public:
     /// by the generic MixedInteractionForceField::getPotentialEnergy() method.
     virtual SReal getPotentialEnergy(const MechanicalParams* mparams, const DataVecCoord1& x1, const DataVecCoord2& x2) const =0;
 
-    /// Pre-construction check method called by ObjectFactory.
-    /// Check that DataTypes matches the MechanicalState.
-    template<class T>
-    static bool canCreate(T*& obj, objectmodel::BaseContext* context, objectmodel::BaseObjectDescription* arg)
-    {
-
-        return BaseInteractionForceField::canCreate(obj, context, arg);
-    }
 
     /// Construction method called by ObjectFactory.
     template<class T>
@@ -177,16 +169,6 @@ public:
         }
 
         return obj;
-    }
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const MixedInteractionForceField<DataTypes1,DataTypes2>* = nullptr)
-    {
-        return DataTypes1::Name()+std::string(",")+DataTypes2::Name();
     }
 
     template<class T>

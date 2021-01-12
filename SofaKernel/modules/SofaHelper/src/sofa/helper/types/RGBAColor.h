@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,7 +25,7 @@
 
 #include <string>
 
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 #include <sofa/helper/fixed_array.h>
 
 namespace sofa
@@ -66,8 +66,8 @@ public:
     static RGBAColor magenta() { return RGBAColor(1.0,0.0,1.0,1.0); }
     static RGBAColor yellow()  { return RGBAColor(1.0,1.0,0.0,1.0); }
     static RGBAColor gray()    { return RGBAColor(0.5,0.5,0.5,1.0); }
-    static RGBAColor lightgray() { return RGBAColor(0.25,0.25,0.25,1.0); }
-    static RGBAColor darkgray()  { return RGBAColor(0.75,0.75,0.75,1.0); }
+    static RGBAColor darkgray() { return RGBAColor(0.25,0.25,0.25,1.0); }
+    static RGBAColor lightgray()  { return RGBAColor(0.75,0.75,0.75,1.0); }
 
     /// @brief enlight a color by a given factor.
     static RGBAColor lighten(const RGBAColor& in, const SReal factor);

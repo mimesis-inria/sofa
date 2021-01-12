@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -53,7 +53,7 @@ void BaseLoader::parse(sofa::core::objectmodel::BaseObjectDescription *arg)
     
     // File not loaded, component is set to invalid
     if (!success)
-        m_componentstate = sofa::core::objectmodel::ComponentState::Invalid;
+        d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
 }
 
 

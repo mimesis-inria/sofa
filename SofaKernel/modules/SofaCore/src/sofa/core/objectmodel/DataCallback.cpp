@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -43,7 +43,7 @@ void DataCallback::addCallback(std::function<void(void)> f)
     m_callbacks.push_back(f);
 }
 
-void DataCallback::notifyEndEdit(const core::ExecParams* params)
+void DataCallback::notifyEndEdit()
 {
     if (!m_updating)
     {
@@ -51,29 +51,13 @@ void DataCallback::notifyEndEdit(const core::ExecParams* params)
         for (auto& callback : m_callbacks)
             callback();
 
-        sofa::core::objectmodel::DDGNode::notifyEndEdit(params);
+        sofa::core::objectmodel::DDGNode::notifyEndEdit();
         m_updating = false;
     }
     else
     {
         msg_warning("DataCallback") << "A DataCallback seems to have a circular dependency, please fix it to remove this warning.";
     }
-}
-
-const std::string& DataCallback::getName() const
-{
-    static std::string s="";
-    return s;
-}
-
-sofa::core::objectmodel::Base* DataCallback::getOwner() const
-{
-    return nullptr;
-}
-
-sofa::core::objectmodel::BaseData* DataCallback::getData() const
-{
-    return nullptr;
 }
 
 void DataCallback::update()

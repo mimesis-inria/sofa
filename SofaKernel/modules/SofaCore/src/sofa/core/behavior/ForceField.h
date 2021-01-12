@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_CORE_BEHAVIOR_FORCEFIELD_H
 #define SOFA_CORE_BEHAVIOR_FORCEFIELD_H
 
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 #include <sofa/core/behavior/BaseForceField.h>
 
 namespace sofa
@@ -201,19 +201,11 @@ public:
     template<class T>
     static bool canCreate(T*& obj, objectmodel::BaseContext* context, objectmodel::BaseObjectDescription* arg)
     {
-        if (dynamic_cast<MechanicalState<DataTypes>*>(context->getMechanicalState()) == nullptr)
+        if (dynamic_cast<MechanicalState<DataTypes>*>(context->getMechanicalState()) == nullptr) {
+            arg->logError(std::string("No mechanical state with the datatype '") + DataTypes::Name() + "' found in the context node.");
             return false;
+        }
         return BaseObject::canCreate(obj, context, arg);
-    }
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const ForceField<DataTypes>* = nullptr)
-    {
-        return DataTypes::Name();
     }
 
     template<class T>

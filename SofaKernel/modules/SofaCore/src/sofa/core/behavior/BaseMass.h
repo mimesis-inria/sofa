@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,9 +22,11 @@
 #ifndef SOFA_CORE_BEHAVIOR_BASEMASS_H
 #define SOFA_CORE_BEHAVIOR_BASEMASS_H
 
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/behavior/MultiMatrixAccessor.h>
+#include <sofa/defaulttype/TopologyTypes.h>
+
 namespace sofa
 {
 
@@ -107,9 +109,9 @@ public:
     virtual void exportGnuplot(const MechanicalParams* mparams, SReal time)=0;
 
     /// Get the mass relative to the DOF at \a index.
-    virtual SReal getElementMass(unsigned int index) const =0;
+    virtual SReal getElementMass(sofa::Index index) const =0;
     /// Get the matrix relative to the DOF at \a index.
-    virtual void getElementMass(unsigned int index, defaulttype::BaseMatrix *m) const = 0;
+    virtual void getElementMass(sofa::Index index, defaulttype::BaseMatrix *m) const = 0;
 
     virtual bool isDiagonal() { return false; }
 

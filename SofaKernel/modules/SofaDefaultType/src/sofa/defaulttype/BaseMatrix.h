@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 #ifndef SOFA_DEFAULTTYPE_BASEMATRIX_H
 #define SOFA_DEFAULTTYPE_BASEMATRIX_H
 
-#include <sofa/helper/system/config.h>
-#include <sofa/defaulttype/defaulttype.h>
+#include <sofa/defaulttype/config.h>
 #include <sofa/defaulttype/BaseVector.h>
 #include <sofa/defaulttype/Mat.h>
 #include <sofa/helper/logging/Messaging.h>

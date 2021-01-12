@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -89,9 +89,6 @@ public:
     Data< SeqTriangles > triangles; ///< output triangles
 
     Data< Real > minLength; ///< minimun edge length in pixels
-
-    virtual std::string getTemplateName() const    override { return templateName(this);    }
-    static std::string templateName(const VoronoiToMeshEngine<ImageTypes>* = NULL) { return ImageTypes::Name();    }
 
     VoronoiToMeshEngine()    :   Inherited()
       , showMesh(initData(&showMesh,false,"showMesh","show reconstructed mesh"))
@@ -410,8 +407,6 @@ protected:
 
     void draw(const core::visual::VisualParams* vparams) override
     {
-#ifndef SOFA_NO_OPENGL
-
         if (!vparams->displayFlags().getShowVisualModels()) return;
         if (!this->showMesh.getValue()) return;
 
@@ -421,14 +416,12 @@ protected:
         std::vector<defaulttype::Vector3> points;
         raEdges Edges(this->edges);
         points.resize(2*Edges.size());
-        for (unsigned int i=0; i<Edges.size(); ++i)
+        for (std::size_t i=0; i<Edges.size(); ++i)
         {
             points[2*i][0]=pos[Edges[i][0]][0];            points[2*i][1]=pos[Edges[i][0]][1];            points[2*i][2]=pos[Edges[i][0]][2];
             points[2*i+1][0]=pos[Edges[i][1]][0];          points[2*i+1][1]=pos[Edges[i][1]][1];          points[2*i+1][2]=pos[Edges[i][1]][2];
         }
         vparams->drawTool()->drawLines(points,2.0,defaulttype::Vec4f(0.7,1,0.7,1));
-
-#endif /* SOFA_NO_OPENGL */
     }
 };
 

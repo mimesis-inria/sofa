@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,7 +25,7 @@
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/behavior/BaseAnimationLoop.h>
 #include <sofa/core/ExecParams.h>
-#include <sofa/simulation/simulationcore.h>
+#include <sofa/simulation/config.h>
 #include <sofa/simulation/Node.h>
 
 namespace sofa {

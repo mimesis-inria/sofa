@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -24,7 +24,7 @@
 #include "config.h"
 
 #include <sofa/core/visual/VisualModel.h>
-#include <sofa/defaulttype/RGBAColor.h>
+#include <sofa/helper/types/RGBAColor.h>
 
 namespace sofa
 {
@@ -50,7 +50,7 @@ public:
     Data<float> size; ///< Size of the squared grid
     Data<int> nbSubdiv; ///< Number of subdivisions
 
-    Data<defaulttype::RGBAColor> color; ///< Color of the lines in the grid. default=(0.34,0.34,0.34,1.0)
+    Data<sofa::helper::types::RGBAColor> color; ///< Color of the lines in the grid. default=(0.34,0.34,0.34,1.0)
     Data<float> thickness; ///< Thickness of the lines in the grid
     Data<bool> draw; ///< Display the grid or not
 

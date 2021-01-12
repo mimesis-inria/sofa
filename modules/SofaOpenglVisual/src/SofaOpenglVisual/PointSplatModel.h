@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -26,7 +26,7 @@
 #include <sofa/core/visual/VisualModel.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <SofaBaseTopology/TopologyData.h>
-#include <sofa/defaulttype/RGBAColor.h>
+#include <sofa/helper/types/RGBAColor.h>
 
 namespace sofa
 {
@@ -68,7 +68,7 @@ private:
     Data<float>		radius; ///< Radius of the spheres.
     Data<int>		textureSize; ///< Size of the billboard texture.
     Data<float>		alpha; ///< Opacity of the billboards. 1.0 is 100% opaque.
-    Data<defaulttype::RGBAColor>	color; ///< Billboard color.(default=[1.0,1.0,1.0,1.0])
+    Data<sofa::helper::types::RGBAColor>	color; ///< Billboard color.(default=[1.0,1.0,1.0,1.0])
 
     core::topology::BaseMeshTopology*	_topology;
     core::behavior::BaseMechanicalState* _mstate;

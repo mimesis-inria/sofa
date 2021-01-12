@@ -26,7 +26,7 @@
 		<EulerImplicitSolver name="cg_odesolver" printLog="false" />
 		<CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
 			
-		<RegularGrid name="hexaGrid" min="0 0 0" max="1 1 2.7" n="3 3 8" p0="2 0 0"/>
+		<RegularGridTopology name="hexaGrid" min="0 0 0" max="1 1 2.7" n="3 3 8" p0="2 0 0"/>
 		
 		<MechanicalObject name="mechObj"/>
 		<UniformMass/>
@@ -34,7 +34,6 @@
 		<Node name="tetras">
 			<TetrahedronSetTopologyContainer name="Container"/>
 			<TetrahedronSetTopologyModifier name="Modifier" />
-			<TetrahedronSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
 			<TetrahedronSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
 			<Hexa2TetraTopologicalMapping name="default28" input="@../" output="@Container" printLog="0" />
 			
@@ -50,7 +49,7 @@
 		<EulerImplicitSolver name="cg_odesolver" printLog="false" />
 		<CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
 			
-		<RegularGrid name="hexaGrid" min="0 0 0" max="1 1 2.7" n="3 3 8" p0="4 0 0"/>
+		<RegularGridTopology name="hexaGrid" min="0 0 0" max="1 1 2.7" n="3 3 8" p0="4 0 0"/>
 		
 		<MechanicalObject name="mechObj"/>
 		<UniformMass/>
@@ -58,7 +57,6 @@
 		<Node name="tetras">
 			<TetrahedronSetTopologyContainer name="Container"/>
 			<TetrahedronSetTopologyModifier name="Modifier" />
-			<TetrahedronSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
 			<TetrahedronSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
 			<Hexa2TetraTopologicalMapping name="default28" input="@../" output="@Container" printLog="0" />
 			
@@ -75,7 +73,7 @@
 		<EulerImplicitSolver name="cg_odesolver" printLog="false" />
 		<CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
 			
-		<RegularGrid name="hexaGrid" min="0 0 0" max="1 1 2.7" n="3 3 8" p0="6 0 0"/>
+		<RegularGridTopology name="hexaGrid" min="0 0 0" max="1 1 2.7" n="3 3 8" p0="6 0 0"/>
 		
 		<MechanicalObject name="mechObj"/>
 		<UniformMass/>
@@ -83,7 +81,6 @@
 		<Node name="tetras">
 			<TetrahedronSetTopologyContainer name="Container"/>
 			<TetrahedronSetTopologyModifier name="Modifier" />
-			<TetrahedronSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
 			<TetrahedronSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
 			<Hexa2TetraTopologicalMapping name="default28" input="@../" output="@Container" printLog="0" />
 			
@@ -100,7 +97,7 @@
 		<EulerImplicitSolver name="cg_odesolver" printLog="false" />
 		<CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
 			
-		<RegularGrid name="hexaGrid" min="0 0 0" max="1 1 2.7" n="3 3 8" p0="8 0 0"/>
+		<RegularGridTopology name="hexaGrid" min="0 0 0" max="1 1 2.7" n="3 3 8" p0="8 0 0"/>
 		
 		<MechanicalObject name="mechObj"/>
 		<UniformMass/>
@@ -108,7 +105,6 @@
 		<Node name="tetras">
 			<TetrahedronSetTopologyContainer name="Container"/>
 			<TetrahedronSetTopologyModifier name="Modifier" />
-			<TetrahedronSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
 			<TetrahedronSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
 			<Hexa2TetraTopologicalMapping name="default28" input="@../" output="@Container" printLog="0" />
 			

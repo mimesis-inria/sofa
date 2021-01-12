@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -89,8 +89,8 @@ public:
     const sofa::helper::vector<Vector3> & getTexCoords() const { return texCoords; }
     sofa::helper::vector<Vector3> & getNormals() { return normals; }
     const sofa::helper::vector<Vector3> & getNormals() const { return normals; }
-    sofa::helper::vector< vector < vector <int> > > & getFacets() { return facets; }
-    const sofa::helper::vector< vector < vector <int> > > & getFacets() const { return facets; }
+    sofa::helper::vector< vector < vector <PointID> > > & getFacets() { return facets; }
+    const sofa::helper::vector< vector < vector <PointID> > > & getFacets() const { return facets; }
 
 
     const sofa::helper::vector< PrimitiveGroup > & getEdgesGroups() const { return m_edgesGroups; }
@@ -155,7 +155,7 @@ protected:
 
     sofa::helper::vector<Vector3> texCoords; // for the moment, we suppose that texCoords is order 2 (2 texCoords for a vertex)
     sofa::helper::vector<Vector3> normals;
-    sofa::helper::vector< sofa::helper::vector < sofa::helper::vector <int> > > facets;
+    sofa::helper::vector< sofa::helper::vector < sofa::helper::vector <PointID> > > facets;
     //sofa::core::objectmodel::Data< Material > material;
     Material material;
 

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -59,7 +59,7 @@ void ProjectiveConstraintSet<DataTypes>::init()
 {
     BaseProjectiveConstraintSet::init();
     mstate = dynamic_cast< MechanicalState<DataTypes>* >(getContext()->getMechanicalState());
-    if(!mstate) this->serr<<"ProjectiveConstraintSet<DataTypes>::init(), no mstate . This may be because there is no MechanicalState in the local context, or because the type is not compatible." << this->sendl;
+    msg_error_when(!mstate) << "ProjectiveConstraintSet<DataTypes>::init(), no mstate . This may be because there is no MechanicalState in the local context, or because the type is not compatible.";
 }
 
 template<class DataTypes>
@@ -85,7 +85,7 @@ void ProjectiveConstraintSet<DataTypes>::projectResponse(const MechanicalParams*
     {
             projectResponse(mparams, *dxId[mstate.get(mparams)].write());
     }
-    else serr << "ProjectiveConstraintSet<DataTypes>::projectResponse(const MechanicalParams* mparams, MultiVecDerivId dxId), no mstate for " << this->getName() << sendl;
+    msg_error_when(!mstate) << "ProjectiveConstraintSet<DataTypes>::projectResponse(const MechanicalParams* mparams, MultiVecDerivId dxId), no mstate for " << this->getName();
 }
 
 template<class DataTypes>
@@ -99,7 +99,7 @@ void ProjectiveConstraintSet<DataTypes>::projectVelocity(const MechanicalParams*
 
             projectVelocity(mparams, *vId[mstate.get(mparams)].write());
     }
-    else serr << "ProjectiveConstraintSet<DataTypes>::projectVelocity(const MechanicalParams* mparams, MultiVecDerivId dxId), no mstate for " << this->getName() << sendl;
+    msg_error_when(!mstate) << "ProjectiveConstraintSet<DataTypes>::projectVelocity(const MechanicalParams* mparams, MultiVecDerivId dxId), no mstate for " << this->getName();
 }
 
 template<class DataTypes>

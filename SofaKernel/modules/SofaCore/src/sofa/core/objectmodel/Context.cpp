@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -83,7 +83,6 @@ void Context::setChangeSleepingState(bool val)
 /// Simulation timestep
 SReal Context::getDt() const
 {
-//    cerr << "Context::getDt() is " << dt_.getValue() << endl;
     return dt_.getValue();
 }
 
@@ -110,7 +109,6 @@ bool Context::getAnimate() const
 /// Simulation timestep
 void Context::setDt(SReal val)
 {
-//    cerr << "Context::setDt("<< val <<")" << endl;
     dt_.setValue(val);
 }
 

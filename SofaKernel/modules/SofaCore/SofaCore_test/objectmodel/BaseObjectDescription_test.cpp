@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU General Public License as published by the Free  *
@@ -19,16 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-/*
- * #include <SofaSimulationCommon/init.h>
-using sofa::simulation::common::init ;
-
-#include <SofaSimulationGraph/init.h>
-using sofa::simulation::graph::init ;
-
-#include <SofaComponentBase/initComponentBase.h>
-using sofa::component::initComponentBase ;
-*/
 
 #include <sofa/core/objectmodel/BaseObjectDescription.h>
 using sofa::core::objectmodel::BaseObjectDescription ;

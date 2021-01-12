@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -41,7 +41,7 @@ Visitor::Result InitVisitor::processNodeTopDown(simulation::Node* node)
 
     node->initialize();
 
-    sofa::defaulttype::BoundingBox* nodeBBox = node->f_bbox.beginEdit(params);
+    sofa::defaulttype::BoundingBox* nodeBBox = node->f_bbox.beginEdit();
     if(!node->f_bbox.isSet())
         nodeBBox->invalidate();
 
@@ -49,9 +49,9 @@ Visitor::Result InitVisitor::processNodeTopDown(simulation::Node* node)
     {
         node->object[i]->init();
         node->object[i]->computeBBox(params, true);
-        nodeBBox->include(node->object[i]->f_bbox.getValue(params));
+        nodeBBox->include(node->object[i]->f_bbox.getValue());
     }
-    node->f_bbox.endEdit(params);
+    node->f_bbox.endEdit();
     return RESULT_CONTINUE;
 }
 
@@ -60,15 +60,15 @@ void InitVisitor::processNodeBottomUp(simulation::Node* node)
 {
     // init all the components in reverse order
     node->setDefaultVisualContextValue();
-    sofa::defaulttype::BoundingBox* nodeBBox = node->f_bbox.beginEdit(params);
+    sofa::defaulttype::BoundingBox* nodeBBox = node->f_bbox.beginEdit();
 
-    for(unsigned int i=node->object.size(); i>0; --i)
+    for(std::size_t i=node->object.size(); i>0; --i)
     {
         node->object[i-1]->bwdInit();
-        nodeBBox->include(node->object[i-1]->f_bbox.getValue(params));
+        nodeBBox->include(node->object[i-1]->f_bbox.getValue());
     }
 
-    node->f_bbox.endEdit(params);
+    node->f_bbox.endEdit();
     node->bwdInit();
 }
 

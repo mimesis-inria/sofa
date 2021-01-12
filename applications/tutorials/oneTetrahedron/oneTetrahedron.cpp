@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU General Public License as published by the Free  *
@@ -26,7 +26,6 @@ using sofa::core::VecId;
 #include <sofa/defaulttype/Vec.h>
 #include <sofa/defaulttype/VecTypes.h>
 using sofa::defaulttype::Vec3Types;
-using sofa::defaulttype::ExtVec3Types;
 using Coord3 = sofa::defaulttype::Vector3;
 using VecCoord3 = sofa::helper::vector<Coord3>;
 #include <sofa/gui/GUIManager.h>
@@ -34,11 +33,7 @@ using VecCoord3 = sofa::helper::vector<Coord3>;
 #include <sofa/helper/ArgumentParser.h>
 #include <sofa/helper/system/FileRepository.h>
 
-#include <SofaComponentAdvanced/initComponentAdvanced.h>
-#include <SofaComponentBase/initComponentBase.h>
-#include <SofaComponentCommon/initComponentCommon.h>
-#include <SofaComponentGeneral/initComponentGeneral.h>
-#include <SofaComponentMisc/initComponentMisc.h>
+#include <SofaBase/initSofaBase.h>
 
 #include <SofaBaseLinearSolver/CGLinearSolver.h>
 using CGLinearSolver = sofa::component::linearsolver::CGLinearSolver<sofa::component::linearsolver::GraphScatteredMatrix, sofa::component::linearsolver::GraphScatteredVector>;
@@ -86,11 +81,7 @@ int main(int argc, char** argv)
     sofa::gui::initMain();
     sofa::gui::GUIManager::Init(argv[0]);
 
-    sofa::component::initComponentBase();
-    sofa::component::initComponentCommon();
-    sofa::component::initComponentGeneral();
-    sofa::component::initComponentAdvanced();
-    sofa::component::initComponentMisc();
+    sofa::component::initSofaBase();
 
     // The graph root node : gravity already exists in a GNode by default
     sofa::simulation::setSimulation(new sofa::simulation::tree::TreeSimulation());

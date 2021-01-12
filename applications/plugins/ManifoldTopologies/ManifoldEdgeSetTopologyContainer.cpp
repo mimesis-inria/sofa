@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -54,31 +54,28 @@ void ManifoldEdgeSetTopologyContainer::init()
     // load edges
     EdgeSetTopologyContainer::init();
 
-    // the edgesAroundVertex is needed to recognize if the edgeSet is manifold
-    createEdgesAroundVertexArray();
-
-    computeConnectedComponent();
-    checkTopology();
+    helper::ReadAccessor< Data< sofa::helper::vector<Edge> > > m_edge = d_edge;
+    if (!m_edge.empty())
+    {
+        computeConnectedComponent();
+        checkTopology();
+    }
 }
 
 void ManifoldEdgeSetTopologyContainer::createEdgesAroundVertexArray()
 {
+    // first clear potential previous buffer
+    clearEdgesAroundVertex();
+
     if(!hasEdges())	//  this method should only be called when edges exist
     {
-        msg_warning_when(CHECK_TOPOLOGY) << "Edge array is empty.";
-
         createEdgeSetArray();
-    }
-
-    if(hasEdgesAroundVertex())
-    {
-        clearEdgesAroundVertex();
     }
 
     m_edgesAroundVertex.resize( getNbPoints() );
 
     helper::ReadAccessor< Data< sofa::helper::vector<Edge> > > m_edge = d_edge;
-    for (unsigned int edge = 0; edge < m_edge.size(); ++edge)
+    for (Index edge = 0; edge < m_edge.size(); ++edge)
     {
         // check to how many edges is the end vertex of each edge connnected to
         size_t size1 = m_edgesAroundVertex[ m_edge[edge][1] ].size();
@@ -94,7 +91,7 @@ void ManifoldEdgeSetTopologyContainer::createEdgesAroundVertexArray()
         }
         else if(size1==1)
         {
-            unsigned int nextEdge = m_edgesAroundVertex[ m_edge[edge][1] ][0];
+            Index nextEdge = m_edgesAroundVertex[ m_edge[edge][1] ][0];
             m_edgesAroundVertex[ m_edge[edge][1] ][0] = edge;
             m_edgesAroundVertex[ m_edge[edge][1] ].push_back( nextEdge );
         }
@@ -109,7 +106,7 @@ void ManifoldEdgeSetTopologyContainer::createEdgesAroundVertexArray()
 }
 
 // Return the number of connected components
-int ManifoldEdgeSetTopologyContainer::getNumberConnectedComponents(sofa::helper::vector<unsigned int>& components) // const
+int ManifoldEdgeSetTopologyContainer::getNumberConnectedComponents(sofa::helper::vector<Index>& components) // const
 {
     computeConnectedComponent();
 
@@ -120,7 +117,7 @@ int ManifoldEdgeSetTopologyContainer::getNumberConnectedComponents(sofa::helper:
 
 bool ManifoldEdgeSetTopologyContainer::checkTopology() const
 {
-    if (!CHECK_TOPOLOGY)
+    if (!d_checkTopology.getValue())
         return true;
 
     bool ret = true;
@@ -129,7 +126,7 @@ bool ManifoldEdgeSetTopologyContainer::checkTopology() const
     {
         for (unsigned int i=0; i<m_edgesAroundVertex.size(); ++i)
         {
-            const sofa::helper::vector<unsigned int> &es = m_edgesAroundVertex[i];
+            const auto &es = m_edgesAroundVertex[i];
 
             if(es.size() != 1 && es.size() != 2)
             {
@@ -241,7 +238,7 @@ int ManifoldEdgeSetTopologyContainer::getNumberOfConnectedComponents()
 }
 
 
-int ManifoldEdgeSetTopologyContainer::getFirstVertexIndex(unsigned int i)
+int ManifoldEdgeSetTopologyContainer::getFirstVertexIndex(Index i)
 {
     computeConnectedComponent();
     assert(i<m_ConnectedComponentArray.size());
@@ -249,7 +246,7 @@ int ManifoldEdgeSetTopologyContainer::getFirstVertexIndex(unsigned int i)
 }
 
 
-int ManifoldEdgeSetTopologyContainer::getLastVertexIndex(unsigned int i)
+int ManifoldEdgeSetTopologyContainer::getLastVertexIndex(Index i)
 {
     computeConnectedComponent();
     assert(i<m_ConnectedComponentArray.size());
@@ -257,7 +254,7 @@ int ManifoldEdgeSetTopologyContainer::getLastVertexIndex(unsigned int i)
 }
 
 
-int ManifoldEdgeSetTopologyContainer::getComponentSize(unsigned int i)
+int ManifoldEdgeSetTopologyContainer::getComponentSize(Index i)
 {
     computeConnectedComponent();
     assert(i<m_ConnectedComponentArray.size());
@@ -265,7 +262,7 @@ int ManifoldEdgeSetTopologyContainer::getComponentSize(unsigned int i)
 }
 
 
-int ManifoldEdgeSetTopologyContainer::getComponentIndex(unsigned int i)
+int ManifoldEdgeSetTopologyContainer::getComponentIndex(Index i)
 {
     computeConnectedComponent();
     assert(i<m_ConnectedComponentArray.size());
@@ -273,7 +270,7 @@ int ManifoldEdgeSetTopologyContainer::getComponentIndex(unsigned int i)
 }
 
 
-bool ManifoldEdgeSetTopologyContainer::isComponentClosed(unsigned int i)
+bool ManifoldEdgeSetTopologyContainer::isComponentClosed(Index i)
 {
     computeConnectedComponent();
     assert(i<m_ConnectedComponentArray.size());
@@ -281,7 +278,7 @@ bool ManifoldEdgeSetTopologyContainer::isComponentClosed(unsigned int i)
 }
 
 
-int ManifoldEdgeSetTopologyContainer::getNextVertex(const unsigned int i)
+int ManifoldEdgeSetTopologyContainer::getNextVertex(const Index i)
 {
     assert(getEdgesAroundVertex(i).size()>0);
     if ((getEdgesAroundVertex(i)).size() == 1 && (getEdge((getEdgesAroundVertex(i))[0]))[1] == i)
@@ -295,7 +292,7 @@ int ManifoldEdgeSetTopologyContainer::getNextVertex(const unsigned int i)
 }
 
 
-int ManifoldEdgeSetTopologyContainer::getPreviousVertex(const unsigned int i)
+int ManifoldEdgeSetTopologyContainer::getPreviousVertex(const Index i)
 {
     assert(getEdgesAroundVertex(i).size()>0);
     if ((getEdgesAroundVertex(i)).size() == 1 && (getEdge((getEdgesAroundVertex(i))[0]))[0] == i)
@@ -309,7 +306,7 @@ int ManifoldEdgeSetTopologyContainer::getPreviousVertex(const unsigned int i)
 }
 
 
-int ManifoldEdgeSetTopologyContainer::getNextEdge(const unsigned int i)
+int ManifoldEdgeSetTopologyContainer::getNextEdge(const Index i)
 {
     if ((getEdgesAroundVertex(getEdge(i)[1])).size() == 1)
     {
@@ -322,7 +319,7 @@ int ManifoldEdgeSetTopologyContainer::getNextEdge(const unsigned int i)
 }
 
 
-int ManifoldEdgeSetTopologyContainer::getPreviousEdge(const unsigned int i)
+int ManifoldEdgeSetTopologyContainer::getPreviousEdge(const Index i)
 {
     if ((getEdgesAroundVertex(getEdge(i)[0])).size() == 1)
     {
@@ -335,7 +332,7 @@ int ManifoldEdgeSetTopologyContainer::getPreviousEdge(const unsigned int i)
 }
 
 
-const sofa::helper::vector< unsigned int > &ManifoldEdgeSetTopologyContainer::getComponentVertexArray() const
+const sofa::helper::vector< Index > &ManifoldEdgeSetTopologyContainer::getComponentVertexArray() const
 {
     return m_ComponentVertexArray;
 }

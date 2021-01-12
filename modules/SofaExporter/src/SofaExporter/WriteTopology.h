@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -95,8 +95,11 @@ public:
     template<class T>
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
-        if (context->getMeshTopologyLink() == nullptr)
+        if (context->getMeshTopology() == nullptr) {
+            arg->logError("No mesh topology found in the context node.");
             return false;
+        }
+
         return BaseObject::canCreate(obj, context, arg);
     }
 

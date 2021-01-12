@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 
 project(SofaGeneralEngine_test)
 
@@ -20,7 +20,12 @@ list(APPEND SOURCE_FILES
     SmoothMeshEngine_test.cpp
     IndicesFromValues_test.cpp
     MergePoints_test.cpp
-    IndexValueMapper_test.cpp)
+    IndexValueMapper_test.cpp
+    JoinPoints_test.cpp
+    RandomPointDistributionInSurface_test.cpp
+    )
+
+find_package(SofaGeneralEngine REQUIRED)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} SofaGTestMain SofaTest SofaGeneralEngine)

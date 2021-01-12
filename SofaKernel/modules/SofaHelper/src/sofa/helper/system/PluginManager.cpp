@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -26,7 +26,6 @@
 using sofa::helper::system::FileSystem;
 #include <sofa/helper/Utils.h>
 #include <sofa/helper/logging/Messaging.h>
-#include <sofa/helper/system/config.h>
 
 #include <boost/filesystem.hpp>
 #include <fstream>
@@ -170,6 +169,12 @@ bool PluginManager::loadPluginByPath(const std::string& pluginPath, std::ostream
             return false;
         }
         getPluginEntry(p.getModuleName,d);
+
+        if (checkDuplicatedPlugin(p, pluginPath))
+        {
+            return true;
+        }
+
         getPluginEntry(p.getModuleDescription,d);
         getPluginEntry(p.getModuleLicense,d);
         getPluginEntry(p.getModuleComponentList,d);
@@ -235,7 +240,7 @@ Plugin* PluginManager::getPlugin(const std::string& plugin, const std::string& /
     std::string pluginPath = plugin;
 
     if (!FileSystem::isFile(plugin)) {
-        pluginPath = findPlugin(plugin);
+        return getPluginByName(plugin);
     }
 
     if (!pluginPath.empty() && m_pluginMap.find(pluginPath) != m_pluginMap.end())
@@ -247,6 +252,21 @@ Plugin* PluginManager::getPlugin(const std::string& plugin, const std::string& /
         msg_info("PluginManager") << "Plugin not found in loaded plugins: " << plugin << msgendl;
         return nullptr;
     }
+}
+
+Plugin* PluginManager::getPluginByName(const std::string& pluginName)
+{
+    for (PluginMap::iterator itP = m_pluginMap.begin(); itP != m_pluginMap.end(); ++itP)
+    {
+        std::string name(itP->second.getModuleName());
+        if (name.compare(pluginName) == 0)
+        {
+            return &itP->second;
+        }
+    }
+
+    msg_info("PluginManager") << "Plugin not found in loaded plugins: " << pluginName << msgendl;
+    return nullptr;
 }
 
 std::istream& PluginManager::readFromStream(std::istream & in)
@@ -354,11 +374,42 @@ bool PluginManager::pluginIsLoaded(const std::string& plugin)
 {
     std::string pluginPath = plugin;
 
-    if (!FileSystem::isFile(plugin)) {
+    /// If we are not providing a filename then we have either to iterate in the plugin
+    /// map to check no plugin has the same name or check in there is no accessible path
+    /// in the plugin repository matching the pluginName
+    if (!FileSystem::isFile(plugin))
+    {
+        /// Here is the iteration in the loaded plugin map
+        for(auto k : m_pluginMap)
+        {
+            if(plugin == k.second.getModuleName())
+                return true;
+        }
+
+        /// At this point we have not found a loaded plugin, we try to
+        /// explore if the filesystem can help.
         pluginPath = findPlugin(plugin);
     }
 
+    /// Check that the path (either provided by user or through the call to findPlugin()
+    /// leads to a loaded plugin.
     return m_pluginMap.find(pluginPath) != m_pluginMap.end();
+}
+
+bool PluginManager::checkDuplicatedPlugin(const Plugin& plugin, const std::string& pluginPath)
+{
+    for (auto itP : m_pluginMap)
+    {
+        std::string name(itP.second.getModuleName());
+        std::string plugName(plugin.getModuleName());
+        if (name.compare(plugName) == 0 && pluginPath.compare(itP.first) != 0)
+        {
+            msg_warning("PluginManager") << "Trying to load plugin (" + name + ", from path: " + pluginPath + ") already registered from path: " + itP.first;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 }

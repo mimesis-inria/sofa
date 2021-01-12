@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -42,13 +42,13 @@ namespace objectmodel
 BaseLink::BaseLink(LinkFlags flags)
     : m_flags(flags)
 {
-    m_counters.assign(0);
+    m_counter = 0;
 }
 
 BaseLink::BaseLink(const BaseInitLink& init, LinkFlags flags)
     : m_flags(flags), m_name(init.name), m_help(init.help)
 {
-    m_counters.assign(0);
+    m_counter = 0;
 }
 
 BaseLink::~BaseLink()
@@ -91,18 +91,6 @@ std::string BaseLink::getValueTypeString() const
         t += '>';
     }
     return t;
-}
-
-/// Copy the value of an aspect into another one.
-void BaseLink::copyAspect(int destAspect, int srcAspect)
-{
-    m_counters[size_t(destAspect)] = m_counters[size_t(srcAspect)];
-}
-
-/// Release memory allocated for the specified aspect.
-void BaseLink::releaseAspect(int aspect)
-{
-    m_counters[size_t(aspect)] = -1;
 }
 
 bool BaseLink::ParseString(const std::string& text, std::string* path, std::string* data, Base* owner)
@@ -234,6 +222,25 @@ std::string BaseLink::CreateString(BaseData* data, Base* from)
 std::string BaseLink::CreateString(Base* object, BaseData* data, Base* from)
 {
     return CreateString(CreateStringPath(object,from),CreateStringData(data));
+}
+
+void BaseLink::setLinkedBase(Base* link)
+{
+    auto owner = getOwnerBase();
+    BaseNode* n = dynamic_cast<BaseNode*>(link);
+    BaseObject* o = dynamic_cast<BaseObject*>(link);
+    if (!n && !o)
+    {
+        read("@");
+        return;
+    }
+    auto pathname = n != nullptr ? n->getPathName() : o->getPathName();
+    if (!this->read("@" + pathname))
+    {
+        if (!owner)
+            msg_error("BaseLink (" + getName() + ")") << "Could not read link from" << pathname;
+        else msg_error(owner) << "Could not read link from" << pathname;
+    }
 }
 
 } // namespace objectmodel

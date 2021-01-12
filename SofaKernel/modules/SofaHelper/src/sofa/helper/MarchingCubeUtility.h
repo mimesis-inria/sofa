@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef MARCHINGCUBEUTILITY_H
 #define MARCHINGCUBEUTILITY_H
 
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 
 #include <sofa/defaulttype/Vec.h>
 #include <sofa/helper/vector.h>
@@ -41,7 +41,7 @@ using sofa::helper::vector;
 class SOFA_HELPER_API MarchingCubeUtility
 {
 public:
-    typedef unsigned int PointID;
+    typedef sofa::Index PointID;
     typedef Vec<3, int> Vec3i;
     typedef Vec<6, int> Vec6i;
 

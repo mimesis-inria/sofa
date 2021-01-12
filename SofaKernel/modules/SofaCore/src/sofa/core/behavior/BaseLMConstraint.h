@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -23,7 +23,7 @@
 #define SOFA_COMPONENT_CONSTRAINT_BASELMCONSTRAINT_H
 
 #include <sofa/core/behavior/BaseConstraintSet.h>
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 
 namespace sofa
 {

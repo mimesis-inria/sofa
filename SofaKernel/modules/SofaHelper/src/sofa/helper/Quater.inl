@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -715,7 +715,7 @@ template<class Real>
 inline void Quater<Real>::setFromUnitVectors(const defaulttype::Vec<3, Real>& vFrom, const defaulttype::Vec<3, Real>& vTo)
 {
     sofa::defaulttype::Vec<3, Real> v1;
-    Real epsilon = 0.0001;
+    Real epsilon = Real(0.0001);
     
     Real res_dot = sofa::defaulttype::dot(vFrom, vTo) + 1;
     if (res_dot < epsilon)

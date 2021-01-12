@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -44,7 +44,7 @@ OglGrid::OglGrid()
     : plane(initData(&plane, std::string("z"),  "plane", "Plane of the grid"))
     , size(initData(&size, 10.0f,  "size", "Size of the squared grid"))
     , nbSubdiv(initData(&nbSubdiv, 16,  "nbSubdiv", "Number of subdivisions"))
-    , color(initData(&color, defaulttype::RGBAColor(0.34117647058f,0.34117647058f,0.34117647058f,1.0f),  "color", "Color of the lines in the grid. default=(0.34,0.34,0.34,1.0)"))
+    , color(initData(&color, sofa::helper::types::RGBAColor(0.34117647058f,0.34117647058f,0.34117647058f,1.0f),  "color", "Color of the lines in the grid. default=(0.34,0.34,0.34,1.0)"))
     , thickness(initData(&thickness, 1.0f,  "thickness", "Thickness of the lines in the grid"))
     , draw(initData(&draw, true,  "draw", "Display the grid or not"))
 {}
@@ -90,7 +90,7 @@ void OglGrid::updateVisual()
     }
     else
     {
-        serr << "Plane parameter " << plane.getValue() << " not recognized. Set to z instead" << sendl;
+        msg_error() << "Plane parameter " << plane.getValue() << " not recognized. Set to z instead";
         plane.setValue("z");
         internalPlane = PLANE_Z;
     }
@@ -98,7 +98,7 @@ void OglGrid::updateVisual()
     int nb = nbSubdiv.getValue();
     if (nb < 2)
     {
-        serr << "nbSubdiv should be > 2" << sendl;
+        msg_error() << "nbSubdiv should be > 2";
         nbSubdiv.setValue(2);
     }
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SofaCore)
 
 set(SRC_ROOT "src/sofa/core")
@@ -24,7 +24,9 @@ set(HEADER_FILES
     ${SRC_ROOT}/MultiMapping.inl
     ${SRC_ROOT}/MultiVecId.h
     ${SRC_ROOT}/ObjectFactory.h
+    ${SRC_ROOT}/PathResolver.h
     ${SRC_ROOT}/SofaLibrary.h
+    ${SRC_ROOT}/sptr.h
     ${SRC_ROOT}/State.h
     ${SRC_ROOT}/State.inl
     ${SRC_ROOT}/VecId.h
@@ -85,6 +87,7 @@ set(HEADER_FILES
     ${SRC_ROOT}/collision/IntersectorFactory.h
     ${SRC_ROOT}/collision/NarrowPhaseDetection.h
     ${SRC_ROOT}/collision/Pipeline.h
+    ${SRC_ROOT}/config.h.in
     ${SRC_ROOT}/core.h
     ${SRC_ROOT}/init.h
     ${SRC_ROOT}/loader/BaseLoader.h
@@ -94,6 +97,7 @@ set(HEADER_FILES
     ${SRC_ROOT}/loader/PrimitiveGroup.h
     ${SRC_ROOT}/loader/SceneLoader.h
     ${SRC_ROOT}/loader/VoxelLoader.h
+    ${SRC_ROOT}/objectmodel/AbstractDataLink.h
     ${SRC_ROOT}/objectmodel/AspectPool.h
     ${SRC_ROOT}/objectmodel/Base.h
     ${SRC_ROOT}/objectmodel/BaseClass.h
@@ -110,7 +114,9 @@ set(HEADER_FILES
     ${SRC_ROOT}/objectmodel/ContextObject.h
     ${SRC_ROOT}/objectmodel/DDGNode.h
     ${SRC_ROOT}/objectmodel/Data.h
+    ${SRC_ROOT}/objectmodel/DataContentValue.h
     ${SRC_ROOT}/objectmodel/DataFileName.h
+    ${SRC_ROOT}/objectmodel/DataLink.h
     ${SRC_ROOT}/objectmodel/DetachNodeEvent.h
     ${SRC_ROOT}/objectmodel/Event.h
     ${SRC_ROOT}/objectmodel/GUIEvent.h
@@ -162,8 +168,7 @@ set(SOURCE_FILES
     ${SRC_ROOT}/Multi2Mapping.cpp
     ${SRC_ROOT}/MultiMapping.cpp
     ${SRC_ROOT}/ObjectFactory.cpp
-    # ${SRC_ROOT}/Plugin.cpp
-    # ${SRC_ROOT}/PluginManager.cpp
+    ${SRC_ROOT}/PathResolver.cpp
     ${SRC_ROOT}/SofaLibrary.cpp
     ${SRC_ROOT}/State.cpp
     ${SRC_ROOT}/behavior/BaseAnimationLoop.cpp
@@ -201,6 +206,7 @@ set(SOURCE_FILES
     ${SRC_ROOT}/loader/MeshLoader.cpp
     ${SRC_ROOT}/loader/SceneLoader.cpp
     ${SRC_ROOT}/loader/VoxelLoader.cpp
+    ${SRC_ROOT}/objectmodel/AbstractDataLink.cpp
     ${SRC_ROOT}/objectmodel/AspectPool.cpp
     ${SRC_ROOT}/objectmodel/Base.cpp
     ${SRC_ROOT}/objectmodel/BaseClass.cpp
@@ -217,8 +223,10 @@ set(SOURCE_FILES
     ${SRC_ROOT}/objectmodel/Context.cpp
     ${SRC_ROOT}/objectmodel/DDGNode.cpp
     ${SRC_ROOT}/objectmodel/Data.cpp
+    ${SRC_ROOT}/objectmodel/DataContentValue.cpp
     ${SRC_ROOT}/objectmodel/DataCallback.cpp
     ${SRC_ROOT}/objectmodel/DataFileName.cpp
+    ${SRC_ROOT}/objectmodel/DataLink.cpp
     ${SRC_ROOT}/objectmodel/DetachNodeEvent.cpp
     ${SRC_ROOT}/objectmodel/Event.cpp
     ${SRC_ROOT}/objectmodel/GUIEvent.cpp
@@ -252,21 +260,15 @@ if(NOT SOFA_NO_OPENGL)
     list(APPEND SOURCE_FILES ${SRC_ROOT}/visual/DrawToolGL.cpp)
 endif()
 
-
-
-# # TODO?
-# if(SOFA-MISC_SUPPORT_MOVING_FRAMES)
-#     list(APPEND HEADER_FILES behavior/InertiaForce.h)
-# endif()
-
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaHelper SofaDefaultType)
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>")
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_d")
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${SOFAFRAMEWORK_VERSION}")
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_CORE")
 
-sofa_install_targets(SofaFramework ${PROJECT_NAME} "SofaFramework/sofa/core" ${SRC_ROOT})
+sofa_add_targets_to_package(
+    PACKAGE_NAME SofaFramework
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
+    INCLUDE_INSTALL_DIR "SofaFramework"
+    )
 
 if(SOFA_BUILD_TESTS)
     add_subdirectory(SofaCore_test)

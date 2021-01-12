@@ -1,21 +1,14 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(runSofa)
 
-set(RESOURCE_FILES
-    resources/docs/runsofa.html
-    )
-
-if(APPLE)
-    set(RC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/runSofa.icns")
-else()
-    set(RC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/runSofa.rc")
-endif()
-
+###################################
+# Generate plugin_list.conf.default
 include(cmake/GeneratePluginConfig.cmake)
-# if MSVC then plugins are located in bin/ instead of lib/ on Mac and Linux
 if(MSVC)
+    # plugins are located in bin/
     set(_pluginLocation "bin")
 else()
+    # plugins are located in lib/
     set(_pluginLocation "lib")
 endif()
 set(_configPluginFileName plugin_list.conf)
@@ -23,23 +16,56 @@ set(_defaultConfigPluginFileName "${_configPluginFileName}.default")
 set(_defaultConfigPluginFilePath "${CMAKE_BINARY_DIR}/${_pluginLocation}/${_defaultConfigPluginFileName}")
 sofa_generate_plugin_config(${_defaultConfigPluginFilePath})
 message("Write Plugin list at ${_defaultConfigPluginFilePath}")
+configure_file(${_defaultConfigPluginFilePath} ${PROJECT_BINARY_DIR}/${_defaultConfigPluginFileName} COPYONLY)
+install(FILES "${_defaultConfigPluginFilePath}" DESTINATION ${_pluginLocation}/ COMPONENT applications)
+###################################
 
+find_package(SofaValidation QUIET)
+find_package(SofaGraphComponent REQUIRED)
+
+set(HEADER_FILES
+    runSofaValidation.h
+    )
+set(SOURCE_FILES
+    Main.cpp
+    )
+
+if(SofaValidation_FOUND)
+    list(APPEND SOURCE_FILES runSofaValidation.cpp)
+else()
+    list(APPEND SOURCE_FILES runSofaNoValidation.cpp)
+endif()
+
+set(RESOURCE_FILES
+    resources/docs/runsofa.html
+    ${PROJECT_BINARY_DIR}/${_defaultConfigPluginFileName}
+    )
 if(APPLE)
+    set(RC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/runSofa.icns")
     set_source_files_properties(${RC_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+else()
+    set(RC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/runSofa.rc")
 endif()
 
 if(APPLE AND SOFA_BUILD_APP_BUNDLE)
-    add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${RC_FILES} ${RESOURCE_FILES} Main.cpp )
+    add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${RC_FILES} ${RESOURCE_FILES} ${HEADER_FILES} ${SOURCE_FILES})
     set_target_properties(${PROJECT_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/runSofa.plist")
 else()
-    add_executable(${PROJECT_NAME} ${RC_FILES} ${RESOURCE_FILES} Main.cpp)
+    add_executable(${PROJECT_NAME} ${RC_FILES} ${RESOURCE_FILES} ${HEADER_FILES} ${SOURCE_FILES})
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC "CONFIG_PLUGIN_FILENAME=${_configPluginFileName}")
 target_compile_definitions(${PROJECT_NAME} PUBLIC "DEFAULT_CONFIG_PLUGIN_FILENAME=${_defaultConfigPluginFileName}")
-target_link_libraries(${PROJECT_NAME} SofaComponentAdvanced SofaComponentMisc)
+
 target_link_libraries(${PROJECT_NAME} SofaSimulationGraph)
 target_link_libraries(${PROJECT_NAME} SofaGuiMain)
+target_link_libraries(${PROJECT_NAME} SofaGraphComponent)
+
+if(SofaValidation_FOUND)
+    target_link_libraries(${PROJECT_NAME} SofaValidation)
+else()
+    message(WARNING "runSofa: SofaValidation not found, disabling validation feature.")
+endif()
 
 if(SOFA_BUILD_TESTS)
     find_package(SofaTest QUIET)
@@ -56,36 +82,10 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/etc/${PROJECT_NAME}.ini.in" "${CMAKE
 install(FILES "${CMAKE_BINARY_DIR}/etc/installed${PROJECT_NAME}.ini" DESTINATION etc RENAME ${PROJECT_NAME}.ini COMPONENT applications)
 
 install(DIRECTORY "resources/" DESTINATION "share/sofa/gui/runSofa" COMPONENT resources)
-install(FILES "${_defaultConfigPluginFilePath}" DESTINATION ${_pluginLocation}/ COMPONENT applications)
 
-sofa_install_targets(SofaGui runSofa runSofa)
-
-# Post-install scripts
-if(SOFA_BUILD_RELEASE_PACKAGE)
-    if(UNIX AND NOT APPLE) # Linux
-        install(CODE "file(WRITE
-            \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/qt.conf\"
-            \"[Paths]\\n  Prefix = ..\\n  LibraryExecutables = bin\"
-            )"
-            COMPONENT applications)
-        install(CODE "execute_process(COMMAND /bin/bash
-            \"${CMAKE_SOURCE_DIR}/scripts/linux-postinstall-fixup.sh\"
-            \"${CMAKE_BINARY_DIR}\"
-            \"\$ENV{DESTDIR\}\${CMAKE_INSTALL_PREFIX\}\"
-            )"
-            COMPONENT applications)
-    elseif(APPLE) # MacOS
-        if(SOFA_BUILD_APP_BUNDLE)
-            install(CODE "file(WRITE
-                \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/../Resources/qt.conf\"
-                \"[Paths]\\n  Plugins = MacOS/bin\"
-                )"
-                COMPONENT applications)
-        endif()
-        install(CODE "execute_process(COMMAND /bin/bash
-            \"${CMAKE_SOURCE_DIR}/scripts/macos-postinstall-fixup.sh\"
-            \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}\"
-            )"
-            COMPONENT applications)
-    endif()
-endif()
+sofa_add_targets_to_package(
+    PACKAGE_NAME SofaGui
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
+    INCLUDE_INSTALL_DIR "SofaGui/runSofa"
+    )

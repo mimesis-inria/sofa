@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_CORE_BEHAVIOR_LMCONSTRAINT_H
 #define SOFA_CORE_BEHAVIOR_LMCONSTRAINT_H
 
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 #include <sofa/core/behavior/BaseLMConstraint.h>
 #include <sofa/core/behavior/MechanicalState.h>
 
@@ -97,15 +97,22 @@ public:
     {
         if (arg->getAttribute("object1") || arg->getAttribute("object2"))
         {
-            if (dynamic_cast<MechanicalState<DataTypes1>*>(arg->findObject(arg->getAttribute("object1",".."))) == nullptr)
+            if (dynamic_cast<MechanicalState<DataTypes1>*>(arg->findObject(arg->getAttribute("object1",".."))) == nullptr) {
+                arg->logError("Data attribute 'object1' must point the a valid mechanical state of datatype '" + std::string(DataTypes1::Name()) + "'.");
                 return false;
-            if (dynamic_cast<MechanicalState<DataTypes2>*>(arg->findObject(arg->getAttribute("object2",".."))) == nullptr)
+            }
+
+            if (dynamic_cast<MechanicalState<DataTypes2>*>(arg->findObject(arg->getAttribute("object2",".."))) == nullptr) {
+                arg->logError("Data attribute 'object2' must point the a valid mechanical state of datatype '" + std::string(DataTypes2::Name()) + "'.");
                 return false;
+            }
         }
         else
         {
-            if (dynamic_cast<MechanicalState<DataTypes1>*>(context->getMechanicalState()) == nullptr)
+            if (dynamic_cast<MechanicalState<DataTypes1>*>(context->getMechanicalState()) == nullptr) {
+                arg->logError("No mechanical state with the datatype '" + std::string(DataTypes1::Name()) + "' found in the context node.");
                 return false;
+            }
         }
         return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
@@ -129,16 +136,6 @@ public:
         }
 
         return obj;
-    }
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const LMConstraint<DataTypes1,DataTypes2>* = nullptr)
-    {
-        return DataTypes1::Name() + std::string(",") + DataTypes2::Name();
     }
 
 protected:

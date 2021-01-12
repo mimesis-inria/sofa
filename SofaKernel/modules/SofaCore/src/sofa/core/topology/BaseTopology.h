@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -27,7 +27,6 @@
 #include <sofa/core/VecId.h>
 
 
-
 namespace sofa
 {
 
@@ -40,10 +39,7 @@ using core::topology::BaseMeshTopology;
 
 // forward declarations:
 
-/// Provides high-level topology algorithms (e.g. CutAlongPlane, DecimateTopology, etc).
-class TopologyAlgorithms;
-
-/// Provides some geometric functions (e.g. ComputeTriangleNormal, ComputeShell, etc).
+/// Provides some geometric functions (e.g. ComputeTriangleNormal, ComputeShell, etc) and high-level topology algorithms (e.g. CutAlongPlane, DecimateTopology, etc).
 class GeometryAlgorithms;
 
 /// Provides low-level topology methods (e.g. AddPoint, RemoveEdge, etc).
@@ -58,36 +54,6 @@ class TopologicalMapping;
 /// Allow topological handle events
 class TopologyEngine;
 
-
-/** A class that contains a set of high-level (user frisendly) methods that perform topological changes */
-class SOFA_CORE_API TopologyAlgorithms : public sofa::core::topology::BaseTopologyObject
-{
-public:
-    SOFA_CLASS(TopologyAlgorithms, BaseTopologyObject);
-
-protected:
-    /** \brief Constructor.
-    *
-    */
-    TopologyAlgorithms()
-    {}
-
-
-    /// Destructor
-    ~TopologyAlgorithms() override
-    {}
-public:
-    void init() override;
-
-protected:
-    /** \brief Adds a TopologyChange object to the list of the topology this object describes.
-    */
-    void addTopologyChange(const TopologyChange *topologyChange);
-
-protected:
-    /// Contains the actual topology data and give acces to it (nature of these data heavily depends on the kind of topology).
-    TopologyContainer *m_topologyContainer;
-};
 
 /** A class that contains a set of methods that describes the geometry of the object */
 class SOFA_CORE_API GeometryAlgorithms : public sofa::core::topology::BaseTopologyObject
@@ -114,7 +80,7 @@ public:
     *
     * \param ancestorElems are the ancestors topology info used in the points modifications
     */
-    virtual void initPointsAdded(const helper::vector< unsigned int > &indices, const helper::vector< PointAncestorElem > &ancestorElems
+    virtual void initPointsAdded(const helper::vector< sofa::Index > &indices, const helper::vector< PointAncestorElem > &ancestorElems
         , const helper::vector< core::VecCoordId >& coordVecs, const helper::vector< core::VecDerivId >& derivVecs );
 };
 
@@ -122,6 +88,8 @@ public:
 class SOFA_CORE_API TopologyModifier : public sofa::core::topology::BaseTopologyObject
 {
 public:
+    typedef sofa::Index Index;
+
     SOFA_CLASS(TopologyModifier, BaseTopologyObject);
 
 protected:
@@ -167,7 +135,7 @@ public:
 
     /** \brief Generic method to remove a list of items.
     */
-    virtual void removeItems(const sofa::helper::vector<unsigned int> & /*items*/);
+    virtual void removeItems(const sofa::helper::vector<Index> & /*items*/);
 
 protected:
     /** \brief Adds a TopologyChange object to the list of the topology this object describes.

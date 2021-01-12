@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -60,8 +60,8 @@ void MeshOBJ::init (std::string filename)
 
 void MeshOBJ::readOBJ (std::istream &stream, const std::string &filename)
 {
-    vector< vector<int> > vertNormTexIndices;
-    vector<int>vIndices, nIndices, tIndices;
+    vector< vector<PointID> > vertNormTexIndices;
+    vector<PointID>vIndices, nIndices, tIndices;
     int vtn[3];
     Vec3d result;
     Vec3d texCoord;

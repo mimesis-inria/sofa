@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -38,6 +38,7 @@ public:
         sofa::simpleapi::importPlugin("SofaComponentAll") ;
         auto simulation = sofa::simpleapi::createSimulation();
         Node::SPtr root = sofa::simpleapi::createRootNode(simulation, "root");
+        sofa::simpleapi::createObject(root, "RequiredPlugin", { { "name","SofaGeneralLoader" } });
 
         /// no need of gravity, the file .data is just read
         root->setGravity(Vec3(0.0,0.0,0.0));

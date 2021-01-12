@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,14 +19,12 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include <sofa/helper/system/config.h>
 #include <SofaComponentAll/initComponentAll.h>
 
-#include <SofaComponentBase/initComponentBase.h>
-#include <SofaComponentCommon/initComponentCommon.h>
-#include <SofaComponentGeneral/initComponentGeneral.h>
-#include <SofaComponentAdvanced/initComponentAdvanced.h>
-#include <SofaComponentMisc/initComponentMisc.h>
+#include <SofaBase/initSofaBase.h>
+#include <SofaCommon/initSofaCommon.h>
+#include <SofaGeneral/initSofaGeneral.h>
+#include <SofaMisc/initSofaMisc.h>
 
 #include <sofa/helper/logging/Messaging.h>
 
@@ -52,16 +50,10 @@ void initExternalModule()
     if(!first) return;
     first = false;
 
-/// TODO: remove SofaAllCommonComponents backward compatibility at SOFA v20.06
-#ifdef SOFACOMPONENTALL_USING_DEPRECATED_NAME
-    msg_deprecated("SofaAllCommonComponents") << "This plugin was renamed into SofaComponentAll. Backward compatiblity will be stopped at SOFA v20.06";
-#endif
-
-    sofa::component::initComponentBase();
-    sofa::component::initComponentCommon();
-    sofa::component::initComponentGeneral();
-    sofa::component::initComponentAdvanced();
-    sofa::component::initComponentMisc();
+    sofa::component::initSofaBase();
+    sofa::component::initSofaCommon();
+    sofa::component::initSofaGeneral();
+    sofa::component::initSofaMisc();
 }
 
 const char* getModuleName()

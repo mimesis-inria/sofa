@@ -31,7 +31,7 @@ struct MonitorTest : public Monitor<Rigid3Types>
         EXPECT_TRUE(i1.size() == i2.size());
         for (size_t i = 0; i < i1.size(); ++i) EXPECT_EQ(i1[i], i2[i]);
 
-        EXPECT_EQ(d_fileName, std::string("./") + getName());
+        EXPECT_EQ(d_fileName.getValue(), std::string("./") + getName());
     }
 
     void testModif(MechanicalObject<Rigid3Types>* mo)
@@ -139,6 +139,7 @@ struct Monitor_test : public sofa::Sofa_test<>
                 "<Node name='root' gravity='0 -9.81 0'>"
                 "<DefaultAnimationLoop/>"
                 "<Node name='node'>"
+                "<RequiredPlugin name = 'SofaValidation' />"
                 "<EulerImplicit rayleighStiffness='0' printLog='false' rayleighMass='0.1'/>"
                 "<CGLinearSolver iterations='100' threshold='0.00000001' "
                 "tolerance='1e-5'/>"

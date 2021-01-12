@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -111,7 +111,10 @@ public:
       Typically, M is the (generalized) mass matrix of the whole system, offset is the starting index of the local state in this global matrix, and P is the identity matrix with a block on the diagonal replaced by the projection matrix.
       If M is the matrix of the local state, then offset should be 0.
       */
-    virtual void projectMatrix( sofa::defaulttype::BaseMatrix* /*M*/, unsigned /*offset*/ ) { serr<<"projectMatrix not implemented, projection will not be handled appropriately"<<sendl; }
+    virtual void projectMatrix( sofa::defaulttype::BaseMatrix* /*M*/, unsigned /*offset*/ ) 
+    { 
+        msg_error() << "projectMatrix not implemented, projection will not be handled appropriately";
+    }
 
     /// @}
 

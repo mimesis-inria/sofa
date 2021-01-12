@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -21,7 +21,7 @@
 ******************************************************************************/
 #ifndef SOFA_HELPER_ADVANCEDTIMER_H
 #define SOFA_HELPER_ADVANCEDTIMER_H
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 #include <sofa/simulation/Simulation.h>
 #include <sofa/helper/system/thread/thread_specific_ptr.h>
 
@@ -349,9 +349,9 @@ public:
     static std::map<AdvancedTimer::IdStep, StepData> getStepData(IdTimer id, bool processData = false);
 
     /**
-     * @brief getRecords the vector of \sa Record of the AdvancedTimer given execution id.
+     * @brief getRecords the vector of Record of the AdvancedTimer given execution id.
      * @param id IdTimer, id of the timer
-     * @return The timer full records inside a vector of \sa Record
+     * @return The timer full records inside a vector of Record
      */
     static helper::vector<Record> getRecords(IdTimer id);
 

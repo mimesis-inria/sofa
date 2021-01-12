@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -144,18 +144,11 @@ public:
     template<class T>
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
-        if (dynamic_cast<MState *>(context->getMechanicalState()) == nullptr) return false;
+        if (dynamic_cast<sofa::core::behavior::MechanicalState<TDataTypes> *>(context->getMechanicalState()) == nullptr) {
+            arg->logError(std::string("No mechanical state with the datatype '") + TDataTypes::Name() + "' found in the context node.");
+            return false;
+        }
         return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
-    }
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const PrecomputedWarpPreconditioner<DataTypes>* = nullptr)
-    {
-        return DataTypes::Name();
     }
 
 protected :

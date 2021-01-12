@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -53,12 +53,12 @@ namespace simulation
 class SOFA_SIMULATION_CORE_API MechanicalGetMatrixDimensionVisitor : public BaseMechanicalVisitor
 {
 public:
-    unsigned int * const nbRow;
-    unsigned int * const nbCol;
+    sofa::Size* const nbRow;
+    sofa::Size* const nbCol;
     sofa::core::behavior::MultiMatrixAccessor* matrix;
 
     MechanicalGetMatrixDimensionVisitor(
-        const core::ExecParams* params, unsigned int * const _nbRow, unsigned int * const _nbCol,
+        const core::ExecParams* params, sofa::Size* const _nbRow, sofa::Size* const _nbCol,
         sofa::core::behavior::MultiMatrixAccessor* _matrix = nullptr )
         : BaseMechanicalVisitor(params) , nbRow(_nbRow), nbCol(_nbCol), matrix(_matrix)
     {}
@@ -66,7 +66,7 @@ public:
     Result fwdMechanicalState(simulation::Node* /*node*/, core::behavior::BaseMechanicalState* ms) override
     {
         //ms->contributeToMatrixDimension(nbRow, nbCol);
-        size_t n = ms->getMatrixSize();
+        auto n = ms->getMatrixSize();
         if (nbRow) *nbRow += n;
         if (nbCol) *nbCol += n;
         if (matrix) matrix->addMechanicalState(ms);
@@ -223,18 +223,6 @@ public:
         return RESULT_CONTINUE;
     }
 
-    //Masses are now added in the addMBKToMatrix call for all ForceFields
-
-    Result fwdProjectiveConstraintSet(simulation::Node* /*node*/, core::behavior::BaseProjectiveConstraintSet* c) override
-    {
-        if (matrix != nullptr)
-        {
-            c->applyConstraint(this->mparams, matrix);
-        }
-
-        return RESULT_CONTINUE;
-    }
-
     bool stopAtMechanicalMapping(simulation::Node* node, core::BaseMapping* map) override
     {
         SOFA_UNUSED(node);
@@ -276,7 +264,29 @@ public:
     }
 
     //Masses are now added in the addMBKToMatrix call for all ForceFields
+};
 
+/** Apply projective constaints of the whole scene */
+class SOFA_SIMULATION_CORE_API MechanicalApplyProjectiveConstraint_ToMatrixVisitor : public MechanicalVisitor
+{
+public:
+    const sofa::core::behavior::MultiMatrixAccessor* matrix;
+
+    MechanicalApplyProjectiveConstraint_ToMatrixVisitor(const core::MechanicalParams* mparams /* PARAMS FIRST  = core::MechanicalParams::defaultInstance()*/, const sofa::core::behavior::MultiMatrixAccessor* _matrix )
+        : MechanicalVisitor(mparams) ,  matrix(_matrix) //,m(_m),b(_b),k(_k)
+    {
+    }
+
+    /// Return a class name for this visitor
+    /// Only used for debugging / profiling purposes
+    virtual const char* getClassName() const override { return "MechanicalApplyProjectiveConstraint_ToMatrixVisitor"; }
+
+    virtual Result fwdMechanicalState(simulation::Node* /*node*/, core::behavior::BaseMechanicalState* /*ms*/) override
+    {
+        //ms->setOffset(offsetOnExit);
+        return RESULT_CONTINUE;
+    }
+    
     Result fwdProjectiveConstraintSet(simulation::Node* /*node*/, core::behavior::BaseProjectiveConstraintSet* c) override
     {
         if (matrix != nullptr)
@@ -325,7 +335,7 @@ public:
 class SOFA_SIMULATION_CORE_API MechanicalMultiVectorPeqBaseVectorVisitor : public BaseMechanicalVisitor
 {
 public:
-    sofa::defaulttype::BaseVector *src;
+    const sofa::defaulttype::BaseVector *src;
     sofa::core::MultiVecDerivId dest;
     const sofa::core::behavior::MultiMatrixAccessor* matrix;
     int offset;
@@ -335,7 +345,7 @@ public:
     const char* getClassName() const override { return "MechanicalMultiVectorPeqBaseVectorVisitor"; }
 
     MechanicalMultiVectorPeqBaseVectorVisitor(
-        const core::ExecParams* params, sofa::core::MultiVecDerivId _dest, defaulttype::BaseVector * _src,
+        const core::ExecParams* params, sofa::core::MultiVecDerivId _dest, const defaulttype::BaseVector * _src,
         const sofa::core::behavior::MultiMatrixAccessor* _matrix = nullptr )
         : BaseMechanicalVisitor(params) , src(_src), dest(_dest), matrix(_matrix), offset(0)
     {
@@ -359,7 +369,7 @@ public:
 class SOFA_SIMULATION_CORE_API MechanicalMultiVectorFromBaseVectorVisitor : public BaseMechanicalVisitor
 {
 public:
-    sofa::defaulttype::BaseVector *src;
+    const sofa::defaulttype::BaseVector *src;
     sofa::core::MultiVecId dest;
     const sofa::core::behavior::MultiMatrixAccessor* matrix;
     int offset;
@@ -370,7 +380,7 @@ public:
 
     MechanicalMultiVectorFromBaseVectorVisitor(
         const core::ExecParams* params, sofa::core::MultiVecId _dest,
-        defaulttype::BaseVector * _src,
+        const defaulttype::BaseVector * _src,
         const sofa::core::behavior::MultiMatrixAccessor* _matrix = nullptr )
         : BaseMechanicalVisitor(params) , src(_src), dest(_dest), matrix(_matrix), offset(0)
     {

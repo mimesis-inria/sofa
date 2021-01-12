@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,6 @@
 #ifndef SOFA_HELPER_SYSTEM_THREAD_THREAD_SPECIFIC_PTR_H
 #define SOFA_HELPER_SYSTEM_THREAD_THREAD_SPECIFIC_PTR_H
 
-#include <sofa/helper/system/config.h>
 
 
 #if defined(__GNUC__) && (defined(__linux__) || defined(WIN32))
@@ -53,7 +52,7 @@ template<class T> class thread_specific_ptr;
 
 #if defined(SOFA_TLS_KEYWORD)
 
-#define SOFA_THREAD_SPECIFIC_PTR(type,name) static SOFA_TLS_KEYWORD type * name = 0
+#define SOFA_THREAD_SPECIFIC_PTR(type,name) static SOFA_TLS_KEYWORD type * name = nullptr
 
 #elif defined(SOFA_TLS_PTHREAD)
 

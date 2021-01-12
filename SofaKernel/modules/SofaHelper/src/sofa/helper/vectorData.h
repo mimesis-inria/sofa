@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -27,7 +27,7 @@
 #include <sofa/core/objectmodel/Base.h>
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/core/DataEngine.h>
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 
 #include <sofa/helper/StringUtils.h>
 using sofa::helper::getAStringCopy ;
@@ -93,7 +93,6 @@ public:
         const char* p = arg->getAttribute(size.getName().c_str());
         if (p) {
             std::string nbStr = p;
-            //            sout << "parse: setting " << size.getName() << "="<<nbStr<<sendl;
             size.read(nbStr);
             resize(size.getValue());
         }
@@ -106,7 +105,6 @@ public:
         if (it != str.end() && it->second)
         {
             std::string nbStr = *it->second;
-            //            sout << "parseFields: setting "<< size.getName() << "=" <<nbStr<<sendl;
             size.read(nbStr);
             resize(size.getValue());
         }

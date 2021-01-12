@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -241,11 +241,18 @@ public:
         backup_led=led;
         backup_tiltangle=tiltAngle.getValue();
 
-        // init context and device
-        if (freenect_init(&f_ctx, NULL) < 0) { serr<<"freenect_init() failed"<<sendl; return ; }
-        //freenect_set_log_level(f_ctx, FREENECT_LOG_DEBUG);
-        int nr_devices = freenect_num_devices (f_ctx); sout<<"Number of devices found: "<<nr_devices<<sendl;
-        if (nr_devices < 1) {serr<<"No Kinect found"<<sendl; return; }
+        if (freenect_init(&f_ctx, NULL) < 0) {
+            msg_error()<<"freenect_init() failed";
+            return ;
+        }
+        int nr_devices = freenect_num_devices (f_ctx);
+        msg_info()<<"Number of devices found: "<<nr_devices;
+
+        if (nr_devices < 1)
+        {
+            msg_error()<<"No Kinect found";
+            return;
+        }
         int user_device_number = (int)this->deviceID.getValue();
         if (freenect_open_device(f_ctx, &f_dev, user_device_number) < 0) { serr<<"Could not open device "<<user_device_number<<sendl; return; }
 
@@ -497,7 +504,7 @@ protected:
                 if(bbmin[j]>c[i][j]) bbmin[j]=c[i][j];
                 if(bbmax[j]<c[i][j]) bbmax[j]=c[i][j];
             }
-        this->f_bbox.setValue(params,sofa::defaulttype::TBoundingBox<Real>(bbmin,bbmax));
+        this->f_bbox.setValue(sofa::defaulttype::TBoundingBox<Real>(bbmin,bbmax));
     }
 
     void draw(const core::visual::VisualParams* vparams)

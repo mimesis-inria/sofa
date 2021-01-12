@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -101,10 +101,10 @@ void Constraint<DataTypes>::updateForceMask()
 }
 
 template<class DataTypes>
-void Constraint<DataTypes>::storeLambda(const ConstraintParams* cParams, Data<VecDeriv>& result, const Data<MatrixDeriv>& jacobian, const sofa::defaulttype::BaseVector* lambda)
+void Constraint<DataTypes>::storeLambda(const ConstraintParams*, Data<VecDeriv>& result, const Data<MatrixDeriv>& jacobian, const sofa::defaulttype::BaseVector* lambda)
 {
-    auto res = sofa::helper::write(result, cParams);
-    const MatrixDeriv& j = jacobian.getValue(cParams);
+    auto res = sofa::helper::write(result);
+    const MatrixDeriv& j = jacobian.getValue();
     j.multTransposeBaseVector(res, lambda ); // lambda is a vector of scalar value so block size is one.
 }
 

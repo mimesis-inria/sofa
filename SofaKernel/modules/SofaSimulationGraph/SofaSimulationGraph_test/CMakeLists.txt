@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SofaSimulationGraph_test)
 
 find_package(SofaGTestMain REQUIRED)
@@ -11,6 +11,7 @@ set(SOURCE_FILES
     Node_test.cpp
     SimpleApi_test.cpp
     Simulation_test.cpp
+    Link_test.cpp
     )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})

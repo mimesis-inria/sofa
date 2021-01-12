@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -52,10 +52,8 @@ void GetVectorVisitor::setIndependentOnly(bool b){ independentOnly=b; }
 
 Visitor::Result GetVectorVisitor::processNodeTopDown( simulation::Node* gnode )
 {
-//    cerr << "GetVectorVisitor::processNodeTopDown, node "<< gnode->getName() << endl;
     if (gnode->mechanicalState != nullptr && ( gnode->mechanicalMapping ==nullptr || independentOnly==false) )
     {
-//        cerr << "GetVectorVisitor::processNodeTopDown, node has mechanical state "<< endl;
         gnode->mechanicalState->copyToBaseVector(vec,src,offset);
     }
     return Visitor::RESULT_CONTINUE;

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -76,12 +76,9 @@ public:
 
     /// The trick is here, this function is called as soon as the input data changes
     /// and can then trigger the callback
-    void notifyEndEdit(const core::ExecParams* params) override ;
+    void notifyEndEdit() override ;
 
     void update() override;
-    const std::string& getName() const override ;
-    Base* getOwner() const override ;
-    BaseData* getData() const override ;
 
 private:
     bool m_updating {false};

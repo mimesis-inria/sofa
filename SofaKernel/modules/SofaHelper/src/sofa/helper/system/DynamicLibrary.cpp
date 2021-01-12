@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -49,6 +49,12 @@ DynamicLibrary::Handle::Handle(const Handle& that)
 
 DynamicLibrary::Handle::Handle(): m_realHandle(nullptr)
 {
+}
+
+DynamicLibrary::Handle& DynamicLibrary::Handle::operator= (const Handle& other) {
+    m_realHandle = other.m_realHandle;
+    m_filename = other.m_filename;
+    return *this;
 }
 
 bool DynamicLibrary::Handle::isValid() const

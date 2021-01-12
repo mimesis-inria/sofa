@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,14 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-/*
- * CompositingVisualLoop.cpp
- *
- *  Created on: 16 janv. 2012
- *      Author: Jeremy Ringard
- */
-
-
 #include <SofaOpenglVisual/CompositingVisualLoop.h>
 #include <sofa/core/ObjectFactory.h>
 #include <SofaBaseVisual/VisualStyle.h>
@@ -104,7 +96,7 @@ void CompositingVisualLoop::drawStep(sofa::core::visual::VisualParams* vparams)
     //should not happen: the compositing loop relies on one or more rendered passes done by the VisualManagerPass component
     if (gRoot->visualManager.empty())
     {
-        serr << "CompositingVisualLoop: no VisualManagerPass found. Disable multipass rendering." << sendl;
+        msg_error() << "CompositingVisualLoop: no VisualManagerPass found. Disable multipass rendering.";
         defaultRendering(vparams);
     }
 

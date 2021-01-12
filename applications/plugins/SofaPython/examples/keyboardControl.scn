@@ -6,6 +6,7 @@
 
 <Node name="root" dt="0.005" >
     <RequiredPlugin name="SofaOpenglVisual"/>
+    <RequiredPlugin pluginName='SofaHaptics'/>
 	<VisualStyle displayFlags="hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
 	<RequiredPlugin name="SofaPython" pluginName="SofaPython" />
 	<Gravity name="G" gravity="10 0 0" />
@@ -19,7 +20,7 @@
 	<Node name="Raptor">
 		<EulerImplicitSolver name="odesolver" />
 		<CGLinearSolver iterations="10" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
-		<SparseGrid n="5 5 10" fileTopology="mesh/raptor_8kp.obj" />
+		<SparseGridTopology n="5 5 10" fileTopology="mesh/raptor_8kp.obj" />
 		<HexahedronSetGeometryAlgorithms />
 		<MechanicalObject name="mecaRaptor"  rotation="0 0 90"/>
 		<PrecomputedConstraintCorrection recompute="true"/>
@@ -34,11 +35,11 @@
 
 		<Node name="CollisionModel" >
 			<MeshObjLoader filename="mesh/raptor_8kp.obj"  name="loader"/>
-			<Mesh src="@loader" name="raptorVisualModel"  />
+			<MeshTopology src="@loader" name="raptorVisualModel"  />
 			<MechanicalObject src="@loader" name="raptorState"/>		
-			<TriangleCollisionModel name="raptor" contactStiffness="100"/>
-			<LineCollisionModel name="raptor" contactStiffness="100"/>	
-			<PointCollisionModel name="raptor" contactStiffness="100"/>	
+			<TriangleCollisionModel contactStiffness="100"/>
+			<LineCollisionModel contactStiffness="100"/>	
+			<PointCollisionModel contactStiffness="100"/>	
 			<BarycentricMapping name="tongueMapping" input="@../mecaRaptor" output="@raptorState" mapForces="false"/>
 		</Node>
 	</Node>
@@ -46,7 +47,7 @@
 	<!-- The PythonScriptController gathers events from input devices and populates the Mechanical state -->
 	<Node name="Input">
 		<PythonScriptController filename="keyboardControl.py" classname="KeyboardControl"/>
-		<MechanicalObject template="Rigid" name="DOFs" position="0 0 0  0  0  0  1.0"/>
+		<MechanicalObject template="Rigid3d" name="DOFs" position="0 0 0  0  0  0  1.0"/>
 		<Node name="VisuAvatar" activated="false" >
 			<MeshObjLoader name="meshLoader_0" filename="mesh/sphere.obj" scale="0.1" handleSeams="1" />
 			<OglModel name="Visual" src="@meshLoader_0" color="gray"/>
@@ -54,7 +55,7 @@
 		</Node>
 		<Node name="RefModel">
 			<MeshObjLoader filename="dental_instrument_centerline.obj"  name="loader"/>
-			<Mesh src="@loader"  />
+			<MeshTopology src="@loader"  />
 			<MechanicalObject src="@loader" name="instrumentCollisionState" ry="-180" rz="-90" dz="3.5" dx="-0.3" />
 			<RigidMapping />
 		</Node>
@@ -63,7 +64,7 @@
 	<Node name="Instrument" >
 		<EulerImplicitSolver name="ODE solver" rayleighStiffness="0.05" rayleighMass="1.0" />
 		<CGLinearSolver name="linear solver" iterations="25" tolerance="1e-10" threshold="10e-10" /> 
-		<MechanicalObject name="instrumentState" template="Rigid" />
+		<MechanicalObject name="instrumentState" template="Rigid3d" />
 		<UniformMass name="mass" totalMass="0.05" />
 		<LCPForceFeedback activate="true" forceCoef="0.001"/> <!-- ADDED : Compute a force-feedback for the device -->
 		<UncoupledConstraintCorrection/>
@@ -74,10 +75,10 @@
 		</Node>
 		<Node name="CollisionModel" >
 			<MeshObjLoader filename="dental_instrument_centerline.obj"  name="loader"/>
-			<Mesh src="@loader" name="InstrumentCollisionModel" />
+			<MeshTopology src="@loader" name="InstrumentCollisionModel" />
 			<MechanicalObject src="@loader" name="instrumentCollisionState"  ry="-180" rz="-90" dz="3.5" dx="-0.3" />
-			<LineCollisionModel name="instrument" contactStiffness="10" />
-			<PointCollisionModel name="instrument" contactStiffness="10" /> 
+			<LineCollisionModel contactStiffness="10" />
+			<PointCollisionModel contactStiffness="10" /> 
 			<RigidMapping name="MM->CM mapping" input="@instrumentState" output="@instrumentCollisionState" />
 		</Node>
 		<VectorSpringForceField  object1="@Input/RefModel/instrumentCollisionState" object2="@Instrument/CollisionModel/instrumentCollisionState" stiffness="10" viscosity="0" />

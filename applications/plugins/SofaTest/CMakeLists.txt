@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SofaTest VERSION 0.1)
 
 set(HEADER_FILES
@@ -29,6 +29,8 @@ list(APPEND HEADER_FILES
 list(APPEND SOURCE_FILES
     Elasticity_test.cpp
     PrimitiveCreation.cpp
+    LinearElasticity_test.cpp
+    AffinePatch_test.cpp
     )
 
 if(SOFA_WITH_DEPRECATED_COMPONENTS)
@@ -42,7 +44,9 @@ if(SOFA_WITH_DEPRECATED_COMPONENTS)
 endif()
 
 find_package(SofaFramework REQUIRED)
-find_package(SofaMisc REQUIRED)
+find_package(SofaMiscForceField REQUIRED)
+find_package(SofaMiscMapping REQUIRED)
+find_package(SofaMiscFem REQUIRED)
 find_package(SceneCreator REQUIRED)
 
 find_package(SofaPython QUIET)
@@ -65,18 +69,12 @@ add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${PYTHON_FILE
 if(SofaPython_FOUND)
     target_link_libraries(${PROJECT_NAME} SofaPython)
 endif()
-target_link_libraries(${PROJECT_NAME} SceneCreator SofaComponentBase SofaComponentCommon SofaComponentGeneral SofaComponentAdvanced SofaComponentMisc)
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_TEST -DSOFA_SRC_DIR=\"${CMAKE_SOURCE_DIR}\"")
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_d")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_link_libraries(${PROJECT_NAME} SceneCreator SofaBase SofaCommon SofaGeneral SofaMiscForceField SofaMiscMapping SofaMiscFem)
 
 ## Install rules for the library and headers; CMake package configurations files
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    TARGETS ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    PACKAGE_VERSION ${PROJECT_VERSION}
     RELOCATABLE "plugins"
     )

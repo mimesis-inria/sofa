@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SofaSphFluid VERSION 1.0)
 
 find_package(SofaBase REQUIRED)
@@ -20,8 +20,6 @@ set(HEADER_FILES
     ${PLUGIN_SPH_SRC_DIR}/SPHFluidSurfaceMapping.inl
     ${PLUGIN_SPH_SRC_DIR}/SpatialGridContainer.h
     ${PLUGIN_SPH_SRC_DIR}/SpatialGridContainer.inl
-    ${PLUGIN_SPH_SRC_DIR}/OglFluidModel.h
-    ${PLUGIN_SPH_SRC_DIR}/OglFluidModel.inl
 )
 
 set(SOURCE_FILES
@@ -32,8 +30,19 @@ set(SOURCE_FILES
     ${PLUGIN_SPH_SRC_DIR}/SPHFluidForceField.cpp
     ${PLUGIN_SPH_SRC_DIR}/SPHFluidSurfaceMapping.cpp
     ${PLUGIN_SPH_SRC_DIR}/SpatialGridContainer.cpp
-    ${PLUGIN_SPH_SRC_DIR}/OglFluidModel.cpp
 )
+
+if(SofaOpenglVisual_FOUND)
+    list(APPEND HEADER_FILES
+            ${PLUGIN_SPH_SRC_DIR}/OglFluidModel.h
+            ${PLUGIN_SPH_SRC_DIR}/OglFluidModel.inl
+        )
+
+    list(APPEND SOURCE_FILES
+            ${PLUGIN_SPH_SRC_DIR}/OglFluidModel.cpp
+        )
+endif()
+
 
 set(README_FILES
     README.md
@@ -52,16 +61,13 @@ if(SofaOpenglVisual_FOUND)
     target_link_libraries(${PROJECT_NAME} SofaOpenglVisual)
 endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
 
 
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    TARGETS ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
-    INCLUDE_SOURCE_DIR ${PLUGIN_SPH_SRC_DIR}
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
     INCLUDE_INSTALL_DIR ${PROJECT_NAME}
     RELOCATABLE "plugins"
     )

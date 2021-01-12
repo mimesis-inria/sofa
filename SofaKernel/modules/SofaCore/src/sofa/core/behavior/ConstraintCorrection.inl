@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -150,9 +150,9 @@ void ConstraintCorrection< DataTypes >::addConstraintForceInMotionSpace(const co
 
 
 template< class DataTypes >
-void ConstraintCorrection< DataTypes >::addConstraintForceInMotionSpace(const core::ConstraintParams* cparams, Data< VecDeriv > &f, const Data< MatrixDeriv>& j, const defaulttype::BaseVector *lambda)
+void ConstraintCorrection< DataTypes >::addConstraintForceInMotionSpace(const core::ConstraintParams*, Data< VecDeriv > &f, const Data< MatrixDeriv>& j, const defaulttype::BaseVector *lambda)
 {
-    VecDeriv& force = *f.beginEdit(cparams);
+    VecDeriv& force = *f.beginEdit();
 
     const size_t numDOFs = mstate->getSize();
     const size_t fPrevSize = force.size();
@@ -164,7 +164,7 @@ void ConstraintCorrection< DataTypes >::addConstraintForceInMotionSpace(const co
             force[i] = Deriv();
     }
 
-    const MatrixDeriv& c = j.getValue(cparams);
+    const MatrixDeriv& c = j.getValue();
 
     MatrixDerivRowConstIterator rowItEnd = c.end();
 
@@ -183,7 +183,7 @@ void ConstraintCorrection< DataTypes >::addConstraintForceInMotionSpace(const co
         }
     }
 
-    f.endEdit(cparams);
+    f.endEdit();
 }
 
 } // namespace behavior

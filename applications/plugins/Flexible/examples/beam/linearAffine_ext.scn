@@ -14,7 +14,7 @@
 
 
        <MechanicalObject template="Vec3d" name="Triangles"   />
-       <RegularGrid 
+       <RegularGridTopology 
                    n="5 5 21"
                    min="-0.2 -0.2  -1"
                    max=" 0.2  0.2   1"/> 
@@ -44,12 +44,11 @@
     <CGLinearSolver iterations="200" tolerance="1e-15" threshold="1e-15"/>
 
        <MechanicalObject template="Vec3d" name="Triangles"   />
-       <RegularGrid 
+       <RegularGridTopology 
                    n="5 5 21"
                    min="-0.2 -0.2  -1"
                    max=" 0.2  0.2   1"/> 
        <TriangleSetTopologyModifier name="Modifier" />
-       <TriangleSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
        <TriangleSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
        <TriangleCollisionModel name="CollisionModel" />
 
@@ -101,7 +100,7 @@
         </Node>
 
 	    <Node 	name="collision"   >
-		<Mesh name="mesh" src="@../mesh" /> 
+		<MeshTopology name="mesh" src="@../mesh" /> 
 		<MechanicalObject  template="Vec3d" name="pts"    />
 		<UniformMass totalMass="10" />
 
@@ -155,7 +154,7 @@
 
 		<Node name="Collision">
 			<MeshObjLoader name="MeshLoader" filename="beam.obj"/>
-      			<Mesh name="mesh" src="@MeshLoader"  /> 
+      			<MeshTopology name="mesh" src="@MeshLoader"  /> 
       			<MechanicalObject  name="PointSet"/>
       			<TriangleCollisionModel />
 			<FrameBlendingMapping template="Affine,Vec3d" input="@../DOFs"  output="@PointSet" showStrain="false"/>

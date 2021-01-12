@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -81,8 +81,8 @@ void ParticleSink<DataTypes>::animateBegin(double /*dt*/, double time)
     
     const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
     const VecDeriv& v = this->mstate->read(core::ConstVecDerivId::velocity())->getValue();
-    int n = x.size();
-    helper::vector<unsigned int> remove;
+    int n = int(x.size());
+    helper::vector<Index> remove;
     for (int i=n-1; i>=0; --i) // always remove points in reverse order
     {
         Real d = x[i]*d_planeNormal.getValue()-d_planeD1.getValue();
@@ -134,25 +134,29 @@ void ParticleSink<DataTypes>::projectResponse(const sofa::core::MechanicalParams
 template<class DataTypes>
 void ParticleSink<DataTypes>::projectVelocity(const sofa::core::MechanicalParams* mparams, DataVecDeriv&  v )
 {
+    SOFA_UNUSED(mparams);
+
     if (!this->mstate) return;
 
-    VecDeriv& vel = *v.beginEdit(mparams);
+    VecDeriv& vel = *v.beginEdit();
     helper::ReadAccessor< Data<SetIndexArray> > _fixed = this->d_fixed;
     Deriv v0 = Deriv();
     for (unsigned int s = 0; s<_fixed.size(); s++)
     {
         vel[_fixed[s]] = v0;
     }    
-    v.endEdit(mparams);
+    v.endEdit();
 }
 
 
 template<class DataTypes>
 void ParticleSink<DataTypes>::projectPosition(const sofa::core::MechanicalParams* mparams, DataVecCoord& xData)
 {
+    SOFA_UNUSED(mparams);
+
     if (!this->mstate) return;
 
-    VecCoord& x = *xData.beginEdit(mparams);
+    VecCoord& x = *xData.beginEdit();
 
     helper::WriteAccessor< Data< SetIndexArray > > _fixed = d_fixed;
 
@@ -167,7 +171,7 @@ void ParticleSink<DataTypes>::projectPosition(const sofa::core::MechanicalParams
         }
     }
 
-    xData.endEdit(mparams);
+    xData.endEdit();
 }
 
 
@@ -226,7 +230,7 @@ void ParticleSink<DataTypes>::draw(const core::visual::VisualParams* vparams)
     vertices.push_back(sofa::defaulttype::Vector3(corners[1]));
     vertices.push_back(sofa::defaulttype::Vector3(corners[2]));
     vertices.push_back(sofa::defaulttype::Vector3(corners[3]));
-    vparams->drawTool()->drawQuad(vertices[0],vertices[1],vertices[2],vertices[3], cross((vertices[1] - vertices[0]), (vertices[2] - vertices[0])), defaulttype::RGBAColor(0.0f, 0.5f, 0.2f, 1.0f));
+    vparams->drawTool()->drawQuad(vertices[0],vertices[1],vertices[2],vertices[3], cross((vertices[1] - vertices[0]), (vertices[2] - vertices[0])), sofa::helper::types::RGBAColor(0.0f, 0.5f, 0.2f, 1.0f));
 
     vparams->drawTool()->restoreLastState();
 }

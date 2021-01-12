@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -38,6 +38,7 @@
 #include <sofa/helper/OptionsGroup.h>
 #include <sofa/helper/kdTree.h>
 
+#include <SofaBaseVisual/VisualModelImpl.h>
 #include <SofaEigen2Solver/EigenSparseMatrix.h>
 
 #include "BaseDeformationMapping.h"
@@ -286,8 +287,8 @@ protected:
     SparseKMatrixEigen1 K;  ///< Assembled geometric stiffness matrix
 
     const core::topology::BaseMeshTopology::SeqTriangles *triangles; // Used for visualization
-    const defaulttype::ResizableExtVector<core::topology::BaseMeshTopology::Triangle> *extTriangles;
-    const defaulttype::ResizableExtVector<int> *extvertPosIdx;
+    const helper::vector<component::visualmodel::VisualModelImpl::VisualTriangle> *extTriangles;
+    const helper::vector<component::visualmodel::VisualModelImpl::visual_index_type> *extvertPosIdx;
     Data< float > showDeformationGradientScale; ///< Scale for deformation gradient display
     Data< helper::OptionsGroup > showDeformationGradientStyle; ///< Visualization style for deformation gradients
     Data< helper::OptionsGroup > showColorOnTopology; ///< Color mapping method

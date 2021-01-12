@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -1406,8 +1406,33 @@ std::map<AdvancedTimer::IdStep, StepData> AdvancedTimer::getStepData(IdTimer id,
 helper::vector<Record> AdvancedTimer::getRecords(IdTimer id)
 {
     TimerData& data = timers[id];
-    for (unsigned int i=0; i<data.records.size(); ++i)
-        data.records[i].label = std::string(AdvancedTimer::IdStep(data.records[i].id));
+    for (Record & r : data.records) {
+        switch (r.type) {
+            case Record::RBEGIN: // Timer begins
+            case Record::REND: // Timer ends
+                r.label = IdTimer::IdFactory::getName(r.id);
+                if (r.obj != 0 || (!IdObj::IdFactory::getName(r.obj).empty() && IdObj::IdFactory::getName(r.obj) != "0")) {
+                    r.label += " (" + IdObj::IdFactory::getName(r.obj) + ")";
+                }
+                break;
+            case Record::RSTEP_BEGIN: // Step begins
+            case Record::RSTEP_END: // Step ends
+            case Record::RSTEP: // Step
+                r.label = IdStep::IdFactory::getName(r.id);
+                if (r.obj != 0 || (!IdObj::IdFactory::getName(r.obj).empty() && IdObj::IdFactory::getName(r.obj) != "0")) {
+                    r.label += " (" + IdObj::IdFactory::getName(r.obj) + ")";
+                }
+                break;
+            case Record::RVAL_SET: // Sets a value
+            case Record::RVAL_ADD: // Adds a value
+                r.label = IdVal::IdFactory::getName(r.id);
+                break;
+            default:
+                r.label = "Unknown";
+                break;
+        }
+    }
+
     return data.records;
 }
 

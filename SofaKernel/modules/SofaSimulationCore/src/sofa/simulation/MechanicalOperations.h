@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_SIMULATION_CORE_MECHANICALOPERATIONS_H
 #define SOFA_SIMULATION_CORE_MECHANICALOPERATIONS_H
 
-#include <sofa/simulation/simulationcore.h>
+#include <sofa/simulation/config.h>
 #include <sofa/core/objectmodel/BaseContext.h>
 #include <sofa/core/MultiVecId.h>
 #include <sofa/core/MechanicalParams.h>
@@ -126,7 +126,7 @@ public:
     /// @{
 
     // BaseMatrix & BaseVector Computations
-    void getMatrixDimension(unsigned int * const, unsigned int * const, sofa::core::behavior::MultiMatrixAccessor* matrix = nullptr);
+    void getMatrixDimension(sofa::Size* const, sofa::Size* const, sofa::core::behavior::MultiMatrixAccessor* matrix = nullptr);
     void getMatrixDimension(sofa::core::behavior::MultiMatrixAccessor* matrix)
     {
         getMatrixDimension(nullptr, nullptr, matrix);
@@ -136,7 +136,8 @@ public:
     void addSubMBK_ToMatrix(const sofa::core::behavior::MultiMatrixAccessor* matrix, const helper::vector<unsigned> & subMatrixIndex, SReal mFact, SReal bFact, SReal kFact);
 
     void multiVector2BaseVector(core::ConstMultiVecId src, defaulttype::BaseVector *dest, const sofa::core::behavior::MultiMatrixAccessor* matrix);
-    void multiVectorPeqBaseVector(core::MultiVecDerivId dest, defaulttype::BaseVector *src, const sofa::core::behavior::MultiMatrixAccessor* matrix);
+    void baseVector2MultiVector(const defaulttype::BaseVector *src, core::MultiVecId dest, const sofa::core::behavior::MultiMatrixAccessor* matrix);
+    void multiVectorPeqBaseVector(core::MultiVecDerivId dest, const defaulttype::BaseVector *src, const sofa::core::behavior::MultiMatrixAccessor* matrix);
 
     /// @}
 

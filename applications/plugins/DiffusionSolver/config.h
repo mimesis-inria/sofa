@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,13 +22,13 @@
 #ifndef INITDIFFUSIONSOLVER_H
 #define INITDIFFUSIONSOLVER_H
 
-#include <sofa/helper/system/config.h>
+#include <sofa/config.h>
 
 #ifdef SOFA_BUILD_DIFFUSIONSOLVER
-#define SOFA_TARGET DiffusionSolver
-#define SOFA_DIFFUSIONSOLVER_API SOFA_EXPORT_DYNAMIC_LIBRARY
+#  define SOFA_TARGET DiffusionSolver
+#  define SOFA_DIFFUSIONSOLVER_API SOFA_EXPORT_DYNAMIC_LIBRARY
 #else
-#define SOFA_DIFFUSIONSOLVER_API SOFA_IMPORT_DYNAMIC_LIBRARY
+#  define SOFA_DIFFUSIONSOLVER_API SOFA_IMPORT_DYNAMIC_LIBRARY
 #endif
 
 #endif // INITDIFFUSIONSOLVER_H

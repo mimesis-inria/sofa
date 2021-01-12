@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -23,7 +23,7 @@
 #define SOFA_CORE_MULTI2MAPPING_H
 
 #include <sofa/core/BaseMapping.h>
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 
 
 namespace sofa
@@ -142,36 +142,32 @@ public:
     /// The size of InDeriv vector is the same as the number of fromModels.
     /// The size of OutDeriv vector is the same as the number of OutModels.
     virtual void applyJ(
-        const MechanicalParams* mparams, const helper::vector< OutDataVecDeriv*>& dataVecOutVel,
+        const MechanicalParams*, const helper::vector< OutDataVecDeriv*>& dataVecOutVel,
         const helper::vector<const In1DataVecDeriv*>& dataVecIn1Vel,
         const helper::vector<const In2DataVecDeriv*>& dataVecIn2Vel)
-#ifdef SOFA_DEPRECATE_OLD_API
-        = 0;
-#else
     {
         //Not optimized at all...
         helper::vector<OutVecDeriv*> vecOutVel;
         for(unsigned int i=0; i<dataVecOutVel.size(); i++)
-            vecOutVel.push_back(dataVecOutVel[i]->beginEdit(mparams));
+            vecOutVel.push_back(dataVecOutVel[i]->beginEdit());
 
         helper::vector<const In1VecDeriv*> vecIn1Vel;
         for(unsigned int i=0; i<dataVecIn1Vel.size(); i++)
-            vecIn1Vel.push_back(&dataVecIn1Vel[i]->getValue(mparams));
+            vecIn1Vel.push_back(&dataVecIn1Vel[i]->getValue());
         helper::vector<const In2VecDeriv*> vecIn2Vel;
         for(unsigned int i=0; i<dataVecIn2Vel.size(); i++)
-            vecIn2Vel.push_back(&dataVecIn2Vel[i]->getValue(mparams));
+            vecIn2Vel.push_back(&dataVecIn2Vel[i]->getValue());
         this->applyJ(vecOutVel, vecIn1Vel, vecIn2Vel);
 
         //Really Not optimized at all...
         for(unsigned int i=0; i<dataVecOutVel.size(); i++)
-            dataVecOutVel[i]->endEdit(mparams);
+            dataVecOutVel[i]->endEdit();
     }
     /// Compat Method
     /// @deprecated
     virtual void applyJ(const helper::vector< OutVecDeriv*>& /* outDeriv */,
             const helper::vector<const In1VecDeriv*>& /* inDeriv1 */,
             const helper::vector<const In2VecDeriv*>& /* inDeriv2 */) {}
-#endif //SOFA_DEPRECATE_OLD_API
 
     /// ApplyJT (Force)///
     /// Apply the mapping to Force vectors.
@@ -195,7 +191,7 @@ public:
         const helper::vector< In2DataMatrixDeriv*>&  /* dataMatOut2Const */,
         const helper::vector<const OutDataMatrixDeriv*>& /* dataMatInConst */)
     {
-        serr << "This mapping does not support constraint because Multi2Mapping::applyJT(const ConstraintParams*, const helper::vector< In1DataMatrixDeriv*>&, const helper::vector< In2DataMatrixDeriv*>&, const helper::vector<const OutDataMatrixDeriv*>&) is not overloaded." << sendl;
+        msg_error() << "This mapping does not support constraint because Multi2Mapping::applyJT(const ConstraintParams*, const helper::vector< In1DataMatrixDeriv*>&, const helper::vector< In2DataMatrixDeriv*>&, const helper::vector<const OutDataMatrixDeriv*>&) is not overloaded.";
     }
 
     /// computeAccFromMapping
@@ -217,13 +213,6 @@ public:
     ///
     /// It is for instance used in RigidMapping to get the local coordinates of the object.
     void disable() override;
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const Multi2Mapping<TIn1,TIn2, TOut>* = nullptr);
 
     /// Pre-construction check method called by ObjectFactory.
     ///

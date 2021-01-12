@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,7 +22,7 @@
 #ifndef SOFA_CORE_BEHAVIOR_MASS_H
 #define SOFA_CORE_BEHAVIOR_MASS_H
 
-#include <sofa/core/core.h>
+#include <sofa/core/config.h>
 #include <sofa/core/behavior/BaseMass.h>
 #include <sofa/core/behavior/ForceField.h>
 
@@ -165,8 +165,8 @@ public:
 
 
     /// recover the mass of an element
-    SReal getElementMass(unsigned int) const override;
-    void getElementMass(unsigned int index, defaulttype::BaseMatrix *m) const override;
+    SReal getElementMass(sofa::Index) const override;
+    void getElementMass(sofa::Index index, defaulttype::BaseMatrix *m) const override;
 
 protected:
     /// stream to export Kinematic, Potential and Mechanical Energy to gnuplot files

@@ -1,30 +1,46 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SofaAdvanced)
-
-## Dependencies
-find_package(SofaGeneral REQUIRED)
 
 ## Version
 set(SOFAADVANCED_VERSION ${SofaFramework_VERSION})
 
 ## Subdirectories
-set(SOFAADVANCED_TARGETS
+set(SOFAADVANCED_MODULES
     SofaNonUniformFem
-)
+    )
 
-foreach(TARGET ${SOFAADVANCED_TARGETS})
-    add_subdirectory(../modules/${TARGET} ${CMAKE_CURRENT_BINARY_DIR}/${TARGET})
-    target_include_directories(${TARGET} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules>")
-    target_include_directories(${TARGET} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-    target_include_directories(${TARGET} PUBLIC "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
-    set_target_properties(${TARGET} PROPERTIES DEBUG_POSTFIX _d)
-    set_target_properties(${TARGET} PROPERTIES FOLDER SofaAdvanced) # IDE folder
-    set_target_properties(${TARGET} PROPERTIES VERSION  ${SOFAADVANCED_VERSION})
+foreach(module ${SOFAADVANCED_MODULES})
+    find_package(${module} QUIET)
+    if(NOT ${module}_FOUND)
+        string(TOUPPER module_${module} MODULE_TO_CHECK)
+        list(APPEND LIST_MODULES_TO_CHECK ${MODULE_TO_CHECK})
+    endif()
 endforeach()
+if(LIST_MODULES_TO_CHECK)
+    message(FATAL_ERROR
+        " If you still want to use ${PROJECT_NAME}, please enable the following CMake option(s): \n"
+        " ${LIST_MODULES_TO_CHECK}"
+        )
+endif()
 
-## SofaAdvanced/config.h
-configure_file(config.h.in "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/config.h")
-install(FILES "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/config.h" DESTINATION "include/${PROJECT_NAME}/${PROJECT_NAME}" COMPONENT headers)
+set(SOFAADVANCED_SRC src/${PROJECT_NAME})
 
-## CMake package configurations files
-sofa_write_package_config_files(SofaAdvanced ${SOFAADVANCED_VERSION})
+set(HEADER_FILES
+    ${SOFAADVANCED_SRC}/config.h.in 
+    ${SOFAADVANCED_SRC}/initSofaAdvanced.h
+    )
+
+set(SOURCE_FILES
+    ${SOFAADVANCED_SRC}/initSofaAdvanced.cpp
+    )
+
+add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${SOFAADVANCED_MODULES})
+
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${Sofa_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
+    INCLUDE_INSTALL_DIR "${PROJECT_NAME}"
+    )

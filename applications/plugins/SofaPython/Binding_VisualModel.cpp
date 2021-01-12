@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -73,9 +73,9 @@ static PyObject * VisualModel_exportOBJ(PyObject *self, PyObject * args)
 
     std::ofstream outfile(filename);
 
-    int vindex = 0;
-    int nindex = 0;
-    int tindex = 0;
+    sofa::Index vindex = 0;
+    sofa::Index nindex = 0;
+    sofa::Index tindex = 0;
     int count = 0;
 
     obj->exportOBJ(obj->getName(),&outfile,NULL,vindex,nindex,tindex,count);

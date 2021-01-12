@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -101,7 +101,7 @@ class SOFA_Compliant_gui_API CompliantAttachPerformer: public TInteractionPerfor
     SReal _compliance;
     bool _isCompliance;
     SReal _arrowSize;
-    defaulttype::RGBAColor _color;
+    sofa::helper::types::RGBAColor _color;
     bool _visualmodel;  // to be able to export the mouse spring in obj
 
 

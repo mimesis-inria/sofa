@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -67,7 +67,7 @@ void ParticleSource<DataTypes>::init()
 {
     this->core::behavior::ProjectiveConstraintSet<DataTypes>::init();
     if (!this->mstate) {
-        //sofa::core::objectmodel::ComponentState::d_componentstate.setValue(sofa::core::objectmodel::ComponentState::Invalid);
+        //sofa::core::objectmodel::ComponentState::d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
         return;
     }
 
@@ -111,6 +111,8 @@ void ParticleSource<DataTypes>::reset()
 template<class DataTypes>
 void ParticleSource<DataTypes>::projectResponse(const sofa::core::MechanicalParams* mparams, DataVecDeriv& dxData)
 {
+    SOFA_UNUSED(mparams);
+
     if (!this->mstate || m_lastparticles.getValue().empty()) {
         return;
     }
@@ -120,19 +122,21 @@ void ParticleSource<DataTypes>::projectResponse(const sofa::core::MechanicalPara
         return;
     }
 
-    VecDeriv& dx = *dxData.beginEdit(mparams);
+    VecDeriv& dx = *dxData.beginEdit();
     helper::ReadAccessor<Data<VecIndex> > _lastparticles = this->m_lastparticles;
     for (unsigned int s = 0; s<_lastparticles.size(); s++)
     {
         dx[_lastparticles[s]] = Deriv();
     }    
-    dxData.endEdit(mparams);
+    dxData.endEdit();
 }
 
 
 template<class DataTypes>
 void ParticleSource<DataTypes>::projectPosition(const sofa::core::MechanicalParams* mparams, DataVecCoord& xData)
 {
+    SOFA_UNUSED(mparams);
+
     if (!this->mstate || m_lastparticles.getValue().empty()) {
         return;
     }
@@ -143,7 +147,7 @@ void ParticleSource<DataTypes>::projectPosition(const sofa::core::MechanicalPara
     }
 
     // constraint the most recent particles
-    VecCoord& x = *xData.beginEdit(mparams);       
+    VecCoord& x = *xData.beginEdit();
     Deriv dpos = d_velocity.getValue()*(time - m_lastTime);
     helper::ReadAccessor<Data<VecIndex> > _lastparticles = this->m_lastparticles;    
     msg_info() << "projectPosition: " << _lastparticles;
@@ -152,13 +156,15 @@ void ParticleSource<DataTypes>::projectPosition(const sofa::core::MechanicalPara
         x[_lastparticles[s]] = m_lastpos[s];
         x[_lastparticles[s]] += dpos; // account for particle initial motion
     }
-    xData.endEdit(mparams);
+    xData.endEdit();
 }
 
 
 template<class DataTypes>
 void ParticleSource<DataTypes>::projectVelocity(const sofa::core::MechanicalParams* mparams, DataVecDeriv&  vData)
-{    
+{
+    SOFA_UNUSED(mparams);
+
     if (!this->mstate || m_lastparticles.getValue().empty()) {
         return;
     }
@@ -169,14 +175,14 @@ void ParticleSource<DataTypes>::projectVelocity(const sofa::core::MechanicalPara
     }
     
     // constraint the most recent particles with the initial Velocity
-    VecDeriv& res = *vData.beginEdit(mparams);    
+    VecDeriv& res = *vData.beginEdit();
     Deriv v0 = d_velocity.getValue();
     helper::ReadAccessor<Data<VecIndex> > _lastparticles = this->m_lastparticles;
     for (unsigned int s = 0; s<_lastparticles.size(); s++)
     {
         res[_lastparticles[s]] = v0;
     }
-    vData.endEdit(mparams);
+    vData.endEdit();
 }
 
 
@@ -195,7 +201,7 @@ void ParticleSource<DataTypes>::animateBegin(double /*dt*/, double time)
         return;
     }
 
-    int i0 = this->mstate->getSize();    
+    size_t i0 = this->mstate->getSize();
     if (i0 == 1) // ignore the first point if it is the only one
     {
         i0 = 0;
@@ -208,7 +214,7 @@ void ParticleSource<DataTypes>::animateBegin(double /*dt*/, double time)
         }
     }
 
-    int nbParticlesToCreate = (int)((time - m_lastTime) / d_delay.getValue());    
+    size_t nbParticlesToCreate = (int)((time - m_lastTime) / d_delay.getValue());    
     if (nbParticlesToCreate > 0)
     {
         msg_info() << "ParticleSource: animate begin time= " << time << " | size: " << i0 << sendl;
@@ -221,19 +227,19 @@ void ParticleSource<DataTypes>::animateBegin(double /*dt*/, double time)
         newX.reserve(nbParticlesToCreate * m_numberParticles);
         newV.reserve(nbParticlesToCreate * m_numberParticles);
         const Deriv v0 = d_velocity.getValue();
-        for (int i = 0; i < nbParticlesToCreate; i++)
+        for (size_t i = 0; i < nbParticlesToCreate; i++)
         {
             m_lastTime += d_delay.getValue();
             m_maxdist += d_delay.getValue() * d_velocity.getValue().norm() / d_scale.getValue();
 
             //int lastparticle = i0 + i * N;
 
-            int lp0 = _lastparticles.empty() ? 0 : _lastparticles.size() / 2;
+            size_t lp0 = _lastparticles.empty() ? 0 : _lastparticles.size() / 2;
             if (lp0 > 0)
             {
-                int shift = _lastparticles.size() - lp0;
+                size_t shift = _lastparticles.size() - lp0;
                 Deriv dpos = v0 * d_delay.getValue();
-                for (int s = 0; s < lp0; s++)
+                for (size_t s = 0; s < lp0; s++)
                 {
                     _lastparticles[s] = _lastparticles[s + shift];
                     m_lastpos[s] = m_lastpos[s + shift] + dpos;
@@ -243,14 +249,15 @@ void ParticleSource<DataTypes>::animateBegin(double /*dt*/, double time)
             _lastparticles.resize(lp0);
             m_lastpos.resize(lp0);
 
-            for (int s = 0; s < m_numberParticles; s++)
+            for (size_t s = 0; s < m_numberParticles; s++)
             {
                 Coord p = d_center.getValue()[s] * d_scale.getValue() + d_translation.getValue();
 
                 for (unsigned int c = 0; c < p.size(); c++)
                     p[c] += d_radius.getValue()[c] * rrand();
+               
                 m_lastpos.push_back(p);
-                _lastparticles.push_back(i0 + newX.size());
+                _lastparticles.push_back((Index)(i0 + newX.size()));
                 newX.push_back(p + v0 * (time - m_lastTime)); // account for particle initial motion
                 newV.push_back(v0);
             }
@@ -268,7 +275,16 @@ void ParticleSource<DataTypes>::animateBegin(double /*dt*/, double time)
         // Particles creation.
         if (pointMod != nullptr)
         {
-            int n = i0 + nbParticlesToCreate - this->mstate->getSize();
+            size_t n = i0 + nbParticlesToCreate;
+            if (n < this->mstate->getSize())
+            {
+                msg_error() << "Less particle to create than the number of dof in the current mstate: " << n << " vs " << this->mstate->getSize();
+                n = 0;
+            }
+            else
+            {
+                n -= this->mstate->getSize();
+            }            
             pointMod->addPoints(n);
         }
         else
@@ -278,7 +294,7 @@ void ParticleSource<DataTypes>::animateBegin(double /*dt*/, double time)
 
         helper::WriteAccessor< Data<VecCoord> > x = *this->mstate->write(core::VecCoordId::position());
         helper::WriteAccessor< Data<VecDeriv> > v = *this->mstate->write(core::VecDerivId::velocity());
-        for (int s = 0; s < nbParticlesToCreate; ++s)
+        for (size_t s = 0; s < nbParticlesToCreate; ++s)
         {
             x[i0 + s] = newX[s];
             v[i0 + s] = newV[s];

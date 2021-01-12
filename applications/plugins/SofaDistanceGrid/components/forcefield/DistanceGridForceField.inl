@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,7 +25,6 @@
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/simulation/Simulation.h>
 #include "DistanceGridForceField.h"
-#include <sofa/helper/system/config.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/helper/gl/template.h>
 #include <cassert>
@@ -80,7 +79,7 @@ void DistanceGridForceField<DataTypes>::init()
             pOnBorder.resize(p1.size(), false);
             for (unsigned int ti = 0; ti < triangles.size(); ++ti)
             {
-                helper::fixed_array<unsigned int,3> t = triangles[ti];
+                const auto& t = triangles[ti];
                 Coord B = p1[t[1]]-p1[t[0]];
                 Coord C = p1[t[2]]-p1[t[0]];
                 Coord tN = cross(B, C);
@@ -111,7 +110,7 @@ void DistanceGridForceField<DataTypes>::init()
             const VecCoord& p1 = this->mstate->read(core::ConstVecCoordId::restPosition())->getValue();
             for (unsigned int ti = 0; ti < tetrahedra.size(); ++ti)
             {
-                helper::fixed_array<unsigned int,4> t = tetrahedra[ti];
+                const auto & t = tetrahedra[ti];
                 Coord A = p1[t[1]]-p1[t[0]];
                 Coord B = p1[t[2]]-p1[t[0]];
                 Coord C = p1[t[3]]-p1[t[0]];
@@ -209,7 +208,7 @@ void DistanceGridForceField<DataTypes>::addForce(const sofa::core::MechanicalPar
             const core::topology::BaseMeshTopology::SeqTriangles& triangles = topology->getTriangles();
             for (unsigned int ti = 0; ti < triangles.size(); ++ti)
             {
-                helper::fixed_array<unsigned int,3> t = triangles[ti];
+                const auto& t = triangles[ti];
                 Coord B = p1[t[1]]-p1[t[0]];
                 Coord C = p1[t[2]]-p1[t[0]];
                 Coord tN = cross(B, C);
@@ -264,7 +263,7 @@ void DistanceGridForceField<DataTypes>::addForce(const sofa::core::MechanicalPar
             const Real v1_6 = (Real)(1.0/6.0);
             for (unsigned int ti = 0; ti < tetrahedra.size(); ++ti)
             {
-                helper::fixed_array<unsigned int,4> t = tetrahedra[ti];
+                const auto& t = tetrahedra[ti];
                 Coord A = p1[t[1]]-p1[t[0]];
                 Coord B = p1[t[2]]-p1[t[0]];
                 Coord C = p1[t[3]]-p1[t[0]];
@@ -495,7 +494,7 @@ void DistanceGridForceField<DataTypes>::drawDistanceGrid(const core::visual::Vis
                 pointsTri.push_back(p);
             }
         }
-        vparams->drawTool()->drawTriangles(pointsTri, defaulttype::Vec<4,double>(1.0,0.2,0.2,0.5));
+        vparams->drawTool()->drawTriangles(pointsTri, sofa::helper::types::RGBAColor{ 1.0f,0.2f,0.2f,0.5f });
     }
     const sofa::helper::vector<VContact>& vcontacts = this->vcontacts.getValue();
     if (!vcontacts.empty())
@@ -526,7 +525,7 @@ void DistanceGridForceField<DataTypes>::drawDistanceGrid(const core::visual::Vis
             pointsTet.push_back(p[3]);
             pointsTet.push_back(p[2]);
         }
-        vparams->drawTool()->drawTriangles(pointsTet, defaulttype::Vec<4,double>(0.8,0.8,0,0.25));
+        vparams->drawTool()->drawTriangles(pointsTet, sofa::helper::types::RGBAColor{ 0.8f,0.8f,0.0f,0.25f });
     }
 
     if (drawPoints.getValue())
@@ -546,9 +545,9 @@ void DistanceGridForceField<DataTypes>::drawDistanceGrid(const core::visual::Vis
                 }
 
         if (distancePointsIn.size())
-            vparams->drawTool()->drawPoints(distancePointsIn, (float)drawSize.getValue(), defaulttype::Vec<4,double>(0.8,0.2,0.2,1.0));
+            vparams->drawTool()->drawPoints(distancePointsIn, (float)drawSize.getValue(), sofa::helper::types::RGBAColor{ 0.8f,0.2f,0.2f,1.0f });
         if (distancePointsOut.size())
-            vparams->drawTool()->drawPoints(distancePointsOut, (float)drawSize.getValue()*1.2f, defaulttype::Vec<4,double>(0.2,0.8,0.2,1.0));
+            vparams->drawTool()->drawPoints(distancePointsOut, (float)drawSize.getValue() * 1.2f, sofa::helper::types::RGBAColor{ 0.2f,0.8f,0.2f,1.0f });
     }
 
 }

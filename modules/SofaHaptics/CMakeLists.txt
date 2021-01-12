@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.1)
-project(SofaHaptics VERSION 1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.12)
+project(SofaHaptics LANGUAGES CXX)
 
-find_package(SofaGeneral REQUIRED) # To have SofaConstraint
+find_package(SofaConstraint REQUIRED)
 
 set(HEADER_FILES
     src/SofaHaptics/config.h
@@ -28,15 +28,19 @@ set(EXTRA_FILES
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaConstraint)
-target_compile_definitions(${PROJECT_NAME} PRIVATE "-DSOFA_BUILD_SOFAHAPTICS")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
 
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
-    TARGETS ${PROJECT_NAME}
-    INCLUDE_SOURCE_DIR "src/SofaHaptics"
-    INCLUDE_INSTALL_DIR "SofaHaptics"
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${Sofa_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
+    INCLUDE_INSTALL_DIR "${PROJECT_NAME}"
     RELOCATABLE "plugins"
     )
+    
+# Tests
+cmake_dependent_option(SOFAHAPTICS_BUILD_TESTS "Compile the automatic tests" ON "SOFA_BUILD_TESTS OR NOT DEFINED SOFA_BUILD_TESTS" OFF)
+if(SOFAHAPTICS_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(SofaHaptics_test)
+endif()

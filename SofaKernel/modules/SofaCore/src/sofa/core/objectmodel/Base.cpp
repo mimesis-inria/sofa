@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -23,6 +23,9 @@
 #include <sofa/core/objectmodel/Base.h>
 #include <sofa/helper/Factory.h>
 #include <sofa/core/ObjectFactory.h>
+#include <sofa/core/PathResolver.h>
+using sofa::core::PathResolver;
+
 #include <sofa/helper/logging/Messaging.h>
 using sofa::helper::logging::MessageDispatcher ;
 using sofa::helper::logging::Message ;
@@ -46,8 +49,6 @@ namespace objectmodel
 using std::string;
 static const std::string unnamed_label=std::string("unnamed");
 
-
-
 Base::Base()
     : ref_counter(0)
     , serr(_serr)
@@ -56,24 +57,28 @@ Base::Base()
     , f_printLog(initData(&f_printLog, false, "printLog", "if true, emits extra messages at runtime."))
     , f_tags(initData( &f_tags, "tags", "list of the subsets the objet belongs to"))
     , f_bbox(initData( &f_bbox, "bbox", "this object bounding box"))
-    , d_componentstate(initData(&d_componentstate, ComponentState::Undefined, "componentState", "The state of the component among (Dirty, Valid, Undefined, Loading, Invalid)."))
+    , d_componentState(initData(&d_componentState, ComponentState::Undefined, "componentState", "The state of the component among (Dirty, Valid, Undefined, Loading, Invalid)."))
 {
     name.setOwnerClass("Base");
     name.setAutoLink(false);
-    name.setReadOnly(true);
-    d_componentstate.setAutoLink(false);
-    d_componentstate.setReadOnly(true);
-    d_componentstate.setOwnerClass("Base");
+    d_componentState.setAutoLink(false);
+    d_componentState.setReadOnly(true);
+    d_componentState.setOwnerClass("Base");
     f_printLog.setOwnerClass("Base");
     f_printLog.setAutoLink(false);
     f_tags.setOwnerClass("Base");
     f_tags.setAutoLink(false);
     f_bbox.setOwnerClass("Base");
     f_bbox.setReadOnly(true);
-    f_bbox.setPersistent(false);
     f_bbox.setDisplayed(false);
     f_bbox.setAutoLink(false);
     sendl.setParent(this);
+
+    /// name change => component state update
+    addUpdateCallback("name", {&name}, [this](const DataTracker&){
+        /// Increment the state counter but without changing the state.
+        return d_componentState.getValue();
+    }, {&d_componentState});
 }
 
 Base::~Base()
@@ -92,6 +97,45 @@ void Base::release()
         delete this;
     }
 }
+
+
+void Base::addUpdateCallback(const std::string& name,
+                             std::initializer_list<BaseData*> inputs,
+                             std::function<sofa::core::objectmodel::ComponentState(const DataTracker&)> func,
+                             std::initializer_list<BaseData*> outputs)
+{
+    // But what if 2 callback functions return 2 different states?
+    // won't the 2nd overwrite the state set by the second, potentially masking the invalidity of the component?
+    auto& engine = m_internalEngine[name];
+    engine.setOwner(this);
+    engine.addInputs(inputs);
+    engine.setCallback([func, name](const DataTracker& tracker) {
+        return func(tracker);
+    });
+    engine.addOutputs(outputs);
+
+    for(auto& i : engine.getInputs())
+        if( i == &d_componentState ) {
+            msg_error(this) << "The componentstate cannot be set as an input of a callbackEngine.";
+            engine.delInput(&d_componentState);
+        }
+
+    if(std::find(engine.getOutputs().begin(), engine.getOutputs().end(), &d_componentState) == engine.getOutputs().end())
+        engine.addOutput(&d_componentState);
+
+    for (auto i : inputs)
+        i->cleanDirty();
+    engine.cleanDirty();
+    for (auto o : outputs)
+        o->cleanDirty();
+}
+
+void Base::addOutputsToCallback(const std::string& name, std::initializer_list<BaseData*> outputs)
+{
+    if (m_internalEngine.find(name) != m_internalEngine.end())
+        m_internalEngine[name].addOutputs(outputs);
+}
+
 
 /// Helper method used by initData()
 void Base::initData0( BaseData* field, BaseData::BaseInitData& res, const char* name, const char* help, bool isDisplayed, bool isReadOnly )
@@ -171,53 +215,28 @@ void Base::addAlias( BaseLink* link, const char* alias)
     m_aliasLink.insert(std::make_pair(std::string(alias),link));
 }
 
-/// Copy the source aspect to the destination aspect for each Data in the component.
-void Base::copyAspect(int destAspect, int srcAspect)
-{
-    for(VecData::const_iterator iData = m_vecData.begin(); iData != m_vecData.end(); ++iData)
-    {
-        (*iData)->copyAspect(destAspect, srcAspect);
-    }
-    for(VecLink::const_iterator iLink = m_vecLink.begin(); iLink != m_vecLink.end(); ++iLink)
-    {
-        (*iLink)->copyAspect(destAspect, srcAspect);
-    }
-}
-
-/// Release memory allocated for the specified aspect.
-void Base::releaseAspect(int aspect)
-{
-    for(VecData::const_iterator iData = m_vecData.begin(); iData != m_vecData.end(); ++iData)
-    {
-        (*iData)->releaseAspect(aspect);
-    }
-    for(VecLink::const_iterator iLink = m_vecLink.begin(); iLink != m_vecLink.end(); ++iLink)
-    {
-        (*iLink)->releaseAspect(aspect);
-    }
-}
-
 /// Get the type name of this object (i.e. class and template types)
 std::string Base::getTypeName() const
 {
-    std::string c = getClassName();
-    std::string t = getTemplateName();
-    if (t.empty())
-        return c;
-    else
-        return c + std::string("<") + t + std::string(">");
+    return getClass()->typeName;
 }
 
 /// Get the class name of this object
 std::string Base::getClassName() const
 {
-    return BaseClass::decodeClassName(typeid(*this));
+    return getClass()->className;
 }
 
 /// Get the template type names (if any) used to instantiate this object
 std::string Base::getTemplateName() const
 {
-    return BaseClass::decodeTemplateName(typeid(*this));
+    return getClass()->templateName;
+}
+
+/// Get the template type names (if any) used to instantiate this object
+std::string Base::getNameSpaceName() const
+{
+    return getClass()->namespaceName;
 }
 
 void Base::setName(const std::string& na)
@@ -320,8 +339,7 @@ void Base::removeTag(Tag t)
 void Base::removeData(BaseData* d)
 {
     m_vecData.erase(std::find(m_vecData.begin(), m_vecData.end(), d));
-    typedef MapData::const_iterator mapIterator;
-    std::pair< mapIterator, mapIterator> range = m_aliasData.equal_range(d->getName());
+    auto range = m_aliasData.equal_range(d->getName());
     m_aliasData.erase(range.first, range.second);
 }
 
@@ -332,8 +350,7 @@ BaseData* Base::findData( const std::string &name ) const
     //Search in the aliases
     if(m_aliasData.size())
     {
-        typedef MapData::const_iterator mapIterator;
-        std::pair< mapIterator, mapIterator> range = m_aliasData.equal_range(name);
+        auto range = m_aliasData.equal_range(name);
         if (range.first != range.second)
             return range.first->second;
         else
@@ -342,14 +359,14 @@ BaseData* Base::findData( const std::string &name ) const
     else return nullptr;
 }
 
+
 /// Find fields given a name: several can be found as we look into the alias map
 std::vector< BaseData* > Base::findGlobalField( const std::string &name ) const
 {
     std::vector<BaseData*> result;
     //Search in the aliases
-    typedef MapData::const_iterator mapIterator;
-    std::pair< mapIterator, mapIterator> range = m_aliasData.equal_range(name);
-    for (mapIterator itAlias=range.first; itAlias!=range.second; ++itAlias)
+    auto range = m_aliasData.equal_range(name);
+    for (auto itAlias=range.first; itAlias!=range.second; ++itAlias)
         result.push_back(itAlias->second);
     return result;
 }
@@ -360,8 +377,7 @@ std::vector< BaseData* > Base::findGlobalField( const std::string &name ) const
 BaseLink* Base::findLink( const std::string &name ) const
 {
     //Search in the aliases
-    typedef MapLink::const_iterator mapIterator;
-    std::pair< mapIterator, mapIterator> range = m_aliasLink.equal_range(name);
+    auto range = m_aliasLink.equal_range(name);
     if (range.first != range.second)
         return range.first->second;
     else
@@ -373,9 +389,8 @@ std::vector< BaseLink* > Base::findLinks( const std::string &name ) const
 {
     std::vector<BaseLink*> result;
     //Search in the aliases
-    typedef MapLink::const_iterator mapIterator;
-    std::pair< mapIterator, mapIterator> range = m_aliasLink.equal_range(name);
-    for (mapIterator itAlias=range.first; itAlias!=range.second; ++itAlias)
+    auto range = m_aliasLink.equal_range(name);
+    for (auto itAlias=range.first; itAlias!=range.second; ++itAlias)
         result.push_back(itAlias->second);
     return result;
 }
@@ -430,16 +445,19 @@ bool Base::parseField( const std::string& attribute, const std::string& value)
         return false; // no field found
     }
     bool ok = true;
+
     for (unsigned int d=0; d<dataVec.size(); ++d)
     {
-        // test if data is a link and can be linked
+        /// test if data is a link and can be linked
         if (value.length() > 0 && value[0] == '@' && dataVec[d]->canBeLinked())
         {
             if (!dataVec[d]->setParent(value))
             {
                 BaseData* data = nullptr;
                 BaseLink* bl = nullptr;
-                dataVec[d]->findDataLinkDest(data, value, bl);
+
+                PathResolver::FindBaseDataFromPath(dataVec[d] , value);
+
                 if (data != nullptr && dynamic_cast<EmptyData*>(data) != nullptr)
                 {
                     Base* owner = data->getOwner();

@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(SofaSimulationCore)
 
 set(SRC_ROOT "src/sofa/simulation")
 
 set(HEADER_FILES
+    ${SRC_ROOT}/config.h.in
+    ${SRC_ROOT}/simulationcore.h
     ${SRC_ROOT}/AnimateBeginEvent.h
     ${SRC_ROOT}/AnimateEndEvent.h
     ${SRC_ROOT}/AnimateVisitor.h
@@ -16,7 +18,6 @@ set(HEADER_FILES
     ${SRC_ROOT}/CollisionEndEvent.h
     ${SRC_ROOT}/CollisionVisitor.h
     ${SRC_ROOT}/Colors.h
-    ${SRC_ROOT}/CopyAspectVisitor.h
     ${SRC_ROOT}/DeactivatedNodeVisitor.h
     ${SRC_ROOT}/DefaultAnimationLoop.h
     ${SRC_ROOT}/DefaultVisualManagerLoop.h
@@ -41,7 +42,6 @@ set(HEADER_FILES
     ${SRC_ROOT}/PositionEvent.h
     ${SRC_ROOT}/PrintVisitor.h
     ${SRC_ROOT}/PropagateEventVisitor.h
-    ${SRC_ROOT}/ReleaseAspectVisitor.h
     ${SRC_ROOT}/ResetVisitor.h
     ${SRC_ROOT}/SceneLoaderFactory.h
     ${SRC_ROOT}/Simulation.h
@@ -88,7 +88,6 @@ set(SOURCE_FILES
     ${SRC_ROOT}/CollisionBeginEvent.cpp
     ${SRC_ROOT}/CollisionEndEvent.cpp
     ${SRC_ROOT}/CollisionVisitor.cpp
-    ${SRC_ROOT}/CopyAspectVisitor.cpp
     ${SRC_ROOT}/DeactivatedNodeVisitor.cpp
     ${SRC_ROOT}/DefaultAnimationLoop.cpp
     ${SRC_ROOT}/DefaultVisualManagerLoop.cpp
@@ -110,7 +109,6 @@ set(SOURCE_FILES
     ${SRC_ROOT}/PositionEvent.cpp
     ${SRC_ROOT}/PrintVisitor.cpp
     ${SRC_ROOT}/PropagateEventVisitor.cpp
-    ${SRC_ROOT}/ReleaseAspectVisitor.cpp
     ${SRC_ROOT}/ResetVisitor.cpp
     ${SRC_ROOT}/SceneLoaderFactory.cpp
     ${SRC_ROOT}/Simulation.cpp
@@ -142,7 +140,7 @@ set(SOURCE_FILES
     ${SRC_ROOT}/events/SimulationStartEvent.cpp
     ${SRC_ROOT}/events/SimulationStopEvent.cpp
 )
-if(SOFA_BUILD_TESTS)
+if(SOFA_BUILD_TESTS OR SOFA_BUILD_RELEASE_PACKAGE)
     list(APPEND HEADER_FILES
         ${SRC_ROOT}/testing/Node_test.h
         )
@@ -150,9 +148,6 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaCore)
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>")
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_SIMULATION_CORE")
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_d")
 
 # is this a compiler/linker version specific problem?
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
@@ -161,7 +156,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread" )
 endif()
 
-sofa_install_targets(SofaFramework ${PROJECT_NAME} "SofaFramework/sofa/simulation" ${SRC_ROOT})
+sofa_add_targets_to_package(
+    PACKAGE_NAME SofaFramework
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
+    INCLUDE_INSTALL_DIR "SofaFramework"
+    )
 
 if(SOFA_BUILD_TESTS)
     add_subdirectory(SofaSimulationCore_test)

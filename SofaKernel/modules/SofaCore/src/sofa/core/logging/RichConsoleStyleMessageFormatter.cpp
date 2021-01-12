@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -30,7 +30,7 @@
 #include <sofa/helper/logging/Message.h>
 
 #include <sofa/core/objectmodel/Base.h>
-using sofa::helper::logging::SofaComponentInfo ;
+using sofa::helper::logging::SofaComponentInfo;
 
 #include <sofa/helper/system/console.h>
 #include <sofa/helper/fixed_array.h>

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -391,17 +391,14 @@ void MechanicalOperations::solveConstraint(MultiVecId id, core::ConstraintParams
 {
     cparams.setOrder(order);
 
-//	ctx->serr << "MechanicalOperations::solveConstraint" << ctx->sendl;
     helper::vector< core::behavior::ConstraintSolver* > constraintSolverList;
 
     ctx->get<core::behavior::ConstraintSolver>(&constraintSolverList, ctx->getTags(), BaseContext::Local);
     if (constraintSolverList.empty())
     {
-        //ctx->sout << "No ConstraintSolver found." << ctx->sendl;
         return;
     }
 
-//	ctx->serr << "MechanicalOperations::solveConstraint found solvers" << ctx->sendl;
     for (helper::vector< core::behavior::ConstraintSolver* >::iterator it=constraintSolverList.begin(); it!=constraintSolverList.end(); ++it)
     {
         (*it)->solveConstraint(&cparams, id);
@@ -413,7 +410,7 @@ void MechanicalOperations::m_resetSystem()
     LinearSolver* s = ctx->get<LinearSolver>(ctx->getTags(), BaseContext::SearchDown);
     if (!s)
     {
-        ctx->serr << "ERROR: requires a LinearSolver."<<ctx->sendl;
+        msg_error(ctx) << "Requires a LinearSolver.";
         return;
     }
     s->resetSystem();
@@ -424,7 +421,7 @@ void MechanicalOperations::m_setSystemMBKMatrix(SReal mFact, SReal bFact, SReal 
     LinearSolver* s = ctx->get<LinearSolver>(ctx->getTags(), BaseContext::SearchDown);
     if (!s)
     {
-        ctx->serr << "ERROR:  requires a LinearSolver."<<ctx->sendl;
+        msg_error(ctx) << "Requires a LinearSolver.";
         return;
     }
     mparams.setMFactor(mFact);
@@ -438,7 +435,7 @@ void MechanicalOperations::m_setSystemRHVector(core::MultiVecDerivId v)
     LinearSolver* s = ctx->get<LinearSolver>(ctx->getTags(), BaseContext::SearchDown);
     if (!s)
     {
-        ctx->serr << "ERROR:  requires a LinearSolver."<<ctx->sendl;
+        msg_error(ctx) << "Requires a LinearSolver.";
         return;
     }
     s->setSystemRHVector(v);
@@ -449,7 +446,7 @@ void MechanicalOperations::m_setSystemLHVector(core::MultiVecDerivId v)
     LinearSolver* s = ctx->get<LinearSolver>(ctx->getTags(), BaseContext::SearchDown);
     if (!s)
     {
-        ctx->serr << "ERROR:  requires a LinearSolver."<<ctx->sendl;
+        msg_error(ctx) << "Requires a LinearSolver.";
         return;
     }
     s->setSystemLHVector(v);
@@ -461,7 +458,7 @@ void MechanicalOperations::m_solveSystem()
     LinearSolver* s = ctx->get<LinearSolver>(ctx->getTags(), BaseContext::SearchDown);
     if (!s)
     {
-        ctx->serr << "ERROR:  requires a LinearSolver."<<ctx->sendl;
+        msg_error(ctx) << "Requires a LinearSolver.";
         return;
     }
     s->solveSystem();
@@ -472,19 +469,19 @@ void MechanicalOperations::m_print( std::ostream& out )
     LinearSolver* s = ctx->get<LinearSolver>(ctx->getTags(), BaseContext::SearchDown);
     if (!s)
     {
-        ctx->serr << "ERROR: requires a LinearSolver."<<ctx->sendl;
+        msg_error(ctx) << "Requires a LinearSolver.";
         return;
     }
     defaulttype::BaseMatrix* m = s->getSystemBaseMatrix();
     if (!m) return;
     //out << *m;
-    int ny = m->rowSize();
-    int nx = m->colSize();
+    auto ny = m->rowSize();
+    auto nx = m->colSize();
     out << "[";
-    for (int y=0; y<ny; ++y)
+    for (defaulttype::BaseMatrix::Index y=0; y<ny; ++y)
     {
         out << "[";
-        for (int x=0; x<nx; x++)
+        for (defaulttype::BaseMatrix::Index x=0; x<nx; x++)
             out << ' ' << m->element(x,y);
         out << "]";
     }
@@ -493,7 +490,7 @@ void MechanicalOperations::m_print( std::ostream& out )
 
 
 // BaseMatrix & BaseVector Computations
-void MechanicalOperations::getMatrixDimension(unsigned int *  const nbRow, unsigned int * const nbCol, sofa::core::behavior::MultiMatrixAccessor* matrix)
+void MechanicalOperations::getMatrixDimension(sofa::Size*  const nbRow, sofa::Size* const nbCol, sofa::core::behavior::MultiMatrixAccessor* matrix)
 {
     executeVisitor( MechanicalGetMatrixDimensionVisitor(&mparams, nbRow, nbCol, matrix) );
 }
@@ -506,6 +503,7 @@ void MechanicalOperations::addMBK_ToMatrix(const sofa::core::behavior::MultiMatr
     if (matrix != nullptr)
     {
         executeVisitor( MechanicalAddMBK_ToMatrixVisitor(&mparams, matrix) );
+        executeVisitor( MechanicalApplyProjectiveConstraint_ToMatrixVisitor(&mparams, matrix) );
     }
 }
 
@@ -517,10 +515,17 @@ void MechanicalOperations::addSubMBK_ToMatrix(const sofa::core::behavior::MultiM
     if (matrix != nullptr)
     {
         executeVisitor( MechanicalAddSubMBK_ToMatrixVisitor(&mparams, matrix, subMatrixIndex) );
+        executeVisitor( MechanicalApplyProjectiveConstraint_ToMatrixVisitor(&mparams, matrix) );
     }
 }
 
-
+void MechanicalOperations::baseVector2MultiVector(const defaulttype::BaseVector *src, core::MultiVecId dest, const sofa::core::behavior::MultiMatrixAccessor* matrix)
+{
+    if (src != nullptr)
+    {
+        executeVisitor( MechanicalMultiVectorFromBaseVectorVisitor(&mparams, dest, src, matrix) );
+    }
+}
 
 void MechanicalOperations::multiVector2BaseVector(core::ConstMultiVecId src, defaulttype::BaseVector *dest, const sofa::core::behavior::MultiMatrixAccessor* matrix)
 {
@@ -531,7 +536,7 @@ void MechanicalOperations::multiVector2BaseVector(core::ConstMultiVecId src, def
 }
 
 
-void MechanicalOperations::multiVectorPeqBaseVector(core::MultiVecDerivId dest, defaulttype::BaseVector *src, const sofa::core::behavior::MultiMatrixAccessor* matrix)
+void MechanicalOperations::multiVectorPeqBaseVector(core::MultiVecDerivId dest, const defaulttype::BaseVector *src, const sofa::core::behavior::MultiMatrixAccessor* matrix)
 {
     if (src != nullptr)
     {

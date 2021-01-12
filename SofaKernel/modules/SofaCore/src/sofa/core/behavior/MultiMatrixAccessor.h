@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -41,6 +41,8 @@ namespace behavior
 class SOFA_CORE_API MultiMatrixAccessor
 {
 public:
+    using Index = defaulttype::BaseMatrix::Index;
+
     virtual ~MultiMatrixAccessor();
 
     /// Simple structure holding a reference to the submatrix related to one MechanicalState
@@ -73,7 +75,7 @@ public:
     virtual void addMechanicalMapping(BaseMapping* mapping);
     virtual void addMappedMechanicalState(const BaseMechanicalState* mstate);
 
-    virtual int getGlobalDimension() const = 0;
+    virtual Index getGlobalDimension() const = 0;
     virtual int getGlobalOffset(const BaseMechanicalState* mstate) const = 0;
 
     virtual MatrixRef getMatrix(const BaseMechanicalState* mstate) const = 0;

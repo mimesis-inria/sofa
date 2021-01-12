@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -21,6 +21,7 @@
 ******************************************************************************/
 #include "DataTracker.h"
 #include "objectmodel/BaseData.h"
+#include "objectmodel/Base.h"
 
 namespace sofa
 {
@@ -37,14 +38,16 @@ void DataTracker::trackData( const objectmodel::BaseData& data )
     m_dataTrackers[&data] = data.getCounter();
 }
 
-bool DataTracker::hasChanged( const objectmodel::BaseData& data )
+bool DataTracker::hasChanged( const objectmodel::BaseData& data ) const
 {
-    return m_dataTrackers[&data] != data.getCounter();
+    if (m_dataTrackers.find(&data) != m_dataTrackers.end())
+        return m_dataTrackers.at(&data) != data.getCounter();
+    return false;
 }
 
-bool DataTracker::hasChanged()
+bool DataTracker::hasChanged() const
 {
-    for( DataTrackers::iterator it=m_dataTrackers.begin(),itend=m_dataTrackers.end() ; it!=itend ; ++it )
+    for( DataTrackers::const_iterator it=m_dataTrackers.begin(),itend=m_dataTrackers.end() ; it!=itend ; ++it )
         if( it->second != it->first->getCounter() ) return true;
     return false;
 }
@@ -65,8 +68,10 @@ void DataTracker::clean()
 ////////////////////
 void DataTrackerDDGNode::addInputs(std::initializer_list<sofa::core::objectmodel::BaseData*> datas)
 {
-    for(sofa::core::objectmodel::BaseData* d : datas)
+    for(sofa::core::objectmodel::BaseData* d : datas) {
+        m_dataTracker.trackData(*d);
         addInput(d);
+    }
 }
 
 void DataTrackerDDGNode::addOutputs(std::initializer_list<sofa::core::objectmodel::BaseData*> datas)
@@ -75,9 +80,9 @@ void DataTrackerDDGNode::addOutputs(std::initializer_list<sofa::core::objectmode
         addOutput(d);
 }
 
-void DataTrackerDDGNode::cleanDirty(const core::ExecParams* params)
+void DataTrackerDDGNode::cleanDirty(const core::ExecParams*)
 {
-    core::objectmodel::DDGNode::cleanDirty(params);
+    core::objectmodel::DDGNode::cleanDirty();
 
     /// it is also time to clean the tracked Data
     m_dataTracker.clean();
@@ -86,24 +91,51 @@ void DataTrackerDDGNode::cleanDirty(const core::ExecParams* params)
 void DataTrackerDDGNode::updateAllInputsIfDirty()
 {
     const DDGLinkContainer& inputs = DDGNode::getInputs();
-    for(size_t i=0, iend=inputs.size() ; i<iend ; ++i )
+    for(auto input : inputs)
     {
-        static_cast<core::objectmodel::BaseData*>(inputs[i])->updateIfDirty();
+        static_cast<core::objectmodel::BaseData*>(input)->updateIfDirty();
     }
 }
+
 ///////////////////////
-void DataTrackerEngine::addCallback( std::function<void(DataTrackerEngine*)> f)
+
+void DataTrackerCallback::setCallback( std::function<sofa::core::objectmodel::ComponentState(const DataTracker&)> f)
+{
+    m_callback = f;
+}
+
+void DataTrackerCallback::update()
+{
+    updateAllInputsIfDirty();
+
+    auto cs = m_callback(m_dataTracker);
+    if (m_owner)
+        m_owner->d_componentState.setValue(cs); // but what if the state of the component was invalid for a reason that doesn't depend on this update?
+    cleanDirty();
+}
+
+
+void DataTrackerEngine::addCallback( std::function<sofa::core::objectmodel::ComponentState(void)> f)
 {
     m_callbacks.push_back(f);
 }
 
+/// Each callback in the engine is called, setting its owner's component state to the value returned by the last callback.
+/// Because each callback overwrites the state of the same component, it is important that within a component, all
+/// callbacks perform the same checks to determine the value of the ComponentState.
 void DataTrackerEngine::update()
 {
+    updateAllInputsIfDirty();
+    core::objectmodel::ComponentState cs = core::objectmodel::ComponentState::Valid;
+
     for(auto& callback : m_callbacks)
-    {
-        callback(this);
-    }
+        cs = callback();
+
+    if (m_owner)
+        m_owner->d_componentState.setValue(cs);
+    cleanDirty();
 }
+
 
 
 }

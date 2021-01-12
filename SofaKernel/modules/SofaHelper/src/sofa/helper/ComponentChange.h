@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -26,7 +26,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
-#include <sofa/helper/helper.h>
+#include <sofa/helper/config.h>
 
 namespace sofa
 {
@@ -43,11 +43,14 @@ public:
         std::stringstream output;
         output << "This component changed since SOFA " << sinceVersion;
         m_message = output.str();
+        m_changeVersion = sinceVersion;
     }
     virtual ~ComponentChange() {}
 
     std::string m_message;
+    std::string m_changeVersion;
     const std::string& getMessage() { return m_message; }
+    const std::string& getVersion() { return m_changeVersion; }
 };
 
 class SOFA_HELPER_API Deprecated : public ComponentChange
@@ -62,6 +65,7 @@ public:
                   "If this component is crucial to you please report that to sofa-dev@ so we can  "
                   "reconsider this component for future re-integration.";
         m_message = output.str();
+        m_changeVersion = untilVersion;
     }
 };
 
@@ -74,6 +78,7 @@ public:
                   "To continue using this component you need to update you scene "
                   "and add <RequiredPlugin name='" <<  plugin << "'/>";
         m_message = output.str();
+        m_changeVersion = sinceVersion;
     }
 };
 
@@ -88,6 +93,7 @@ public:
                   "If this component is crucial to you please report that to sofa-dev@ so that we can "
                   "reconsider this component for future re-integration.";
         m_message = output.str();
+        m_changeVersion = atVersion;
     }
 };
 

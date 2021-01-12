@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -58,9 +58,6 @@ void initExternalModule()
         first = false;
 
         component::collision::CompliantSolverMerger::add();
-
-        // previous Eigen versions have a critical bug (v.noalias()+=w does not work in some situations)
-        static_assert( EIGEN_WORLD_VERSION>=3 && EIGEN_MAJOR_VERSION>=2 && EIGEN_MINOR_VERSION>=5, "" );
 
 #if COMPLIANT_HAVE_SOFAPYTHON
         static std::string docstring=R"(

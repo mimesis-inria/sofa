@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -152,7 +152,7 @@ public:
     /// This method must be reimplemented by all mappings if they need to support constraints.
     virtual void applyJT( const ConstraintParams* /* mparams */, InDataMatrixDeriv& /* out */, const OutDataMatrixDeriv& /* in */)
     {
-        serr << "This mapping does not support certain constraints because Mapping::applyJT( const ConstraintParams* , InDataMatrixDeriv&, const OutDataMatrixDeriv&) is not overloaded." << sendl;
+        msg_error() << "This mapping does not support certain constraints because Mapping::applyJT( const ConstraintParams* , InDataMatrixDeriv&, const OutDataMatrixDeriv&) is not overloaded.";
     }
 
     /// computeAccFromMapping
@@ -217,19 +217,20 @@ public:
 
         if (stin == nullptr)
         {
+            arg->logError("Data attribute 'input' does not point to a mechanical state of data type '"+std::string(In::Name())+"' and none can be found in the parent node context.");
             return false;
         }
 
         if (stout == nullptr)
         {
+            arg->logError("Data attribute 'output' does not point to a mechanical state of data type '"+std::string(Out::Name())+"' and none can be found in the parent node context.");
             return false;
         }
 
-        if (static_cast<BaseObject*>(stin) == static_cast<BaseObject*>(stout))
+        if (dynamic_cast<BaseObject*>(stin) == dynamic_cast<BaseObject*>(stout))
         {
             // we should refuse to create mappings with the same input and output model, which may happen if a State object is missing in the child node
-            context->serr << "Creation of " << className(obj) << " mapping failed because the same object \"" << stin->getName() << "\" is linked as both input and output." << context->sendl;
-            context->serr << "  Maybe a MechanicalObject should be added before this mapping." << context->sendl;
+            arg->logError("Both the input and the output point to the same mechanical state ('"+stin->getName()+"').");
             return false;
         }
 
@@ -269,14 +270,6 @@ public:
 
         return obj;
     }
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const Mapping<TIn, TOut>* = nullptr);
-
 
     template<class T>
     static std::string shortName(const T* ptr = nullptr, objectmodel::BaseObjectDescription* arg = nullptr)

@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,11 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-/******************************************************************************
- * Contributors:
- *     - damien.marchal@univ-lille1.fr
- *****************************************************************************/
-
 #include <sofa/simulation/Node.h>
 using sofa::simulation::Node ;
 
@@ -31,7 +26,7 @@ using sofa::simulation::Node ;
 using sofa::helper::testing::BaseSimulationTest ;
 using sofa::simulation::Node ;
 
-#include <SofaComponentBase/InfoComponent.h>
+#include <SofaBaseUtils/InfoComponent.h>
 using sofa::component::InfoComponent;
 
 #include <sofa/helper/system/PluginManager.h>

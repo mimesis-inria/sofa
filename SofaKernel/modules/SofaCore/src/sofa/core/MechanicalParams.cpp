@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -47,6 +47,25 @@ MechanicalParams::MechanicalParams(const sofa::core::ExecParams& p)
     , m_symmetricMatrix(true)
     , m_implicitVelocity(1)
     , m_implicitPosition(1)
+{
+}
+
+MechanicalParams::MechanicalParams(const MechanicalParams& p)
+    : sofa::core::ExecParams(p)
+    , m_dt(p.m_dt)
+    , m_implicit(p.m_implicit)
+    , m_energy(p.m_energy)
+    , m_x (p.m_x)
+    , m_v (p.m_v)
+    , m_f (p.m_f)
+    , m_dx(p.m_dx)
+    , m_df(p.m_df)
+    , m_mFactor(p.m_mFactor)
+    , m_bFactor(p.m_bFactor)
+    , m_kFactor(p.m_kFactor)
+    , m_symmetricMatrix(p.m_symmetricMatrix)
+    , m_implicitVelocity(p.m_implicitVelocity)
+    , m_implicitPosition(p.m_implicitPosition)
 {
 }
 

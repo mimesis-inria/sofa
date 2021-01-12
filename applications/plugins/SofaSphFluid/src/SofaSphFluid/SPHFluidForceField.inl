@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
+*                 SOFA, Simulation Open-Framework Architecture                *
+*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -25,12 +25,11 @@
 #include <SofaSphFluid/SPHFluidForceField.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <SofaSphFluid/SpatialGridContainer.inl>
-#include <sofa/helper/system/config.h>
 #include <cmath>
 #include <iostream>
 #include <sofa/helper/AdvancedTimer.h>
 
-#if __cplusplus >= 201703L
+#if __has_include(<execution>) && !defined(__APPLE__)
 #include <execution>
 #endif
 
@@ -74,13 +73,12 @@ void SPHFluidForceField<DataTypes>::init()
     if (!Kp.CheckAll(1, sout.ostringstream(), serr.ostringstream())) serr << sendl;
     SPHKernel<SPH_KERNEL_DEFAULT_VISCOSITY,Deriv> Kv(4);
     if (!Kv.CheckAll(2, sout.ostringstream(), serr.ostringstream())) serr << sendl;
-    sout << sendl;
 
     this->getContext()->get(m_grid); //new Grid(d_particleRadius.getValue());
     if (m_grid==nullptr)
         msg_error() << "SpatialGridContainer not found by SPHFluidForceField, slow O(n2) method will be used !!!";
 
-    const unsigned n = this->mstate->getSize();
+    size_t n = this->mstate->getSize();
     m_particles.resize(n);
     for (unsigned i=0u; i<n; i++)
     {
@@ -144,9 +142,9 @@ void SPHFluidForceField<DataTypes>::computeNeighbors(const core::MechanicalParam
     const Real h = d_particleRadius.getValue();
     const Real h2 = h*h;
 
-    const int n = x.size();
+    size_t n = x.size();
     m_particles.resize(n);
-    for (int i=0; i<n; i++) {
+    for (size_t i=0; i<n; i++) {
         m_particles[i].neighbors.clear();
     }
 
@@ -154,39 +152,39 @@ void SPHFluidForceField<DataTypes>::computeNeighbors(const core::MechanicalParam
     // This is an O(n2) step, except if a hash-grid is used to optimize it
     if (m_grid == nullptr)
     {
-#if __cplusplus < 201703L
-        for (int i=0; i<n; i++)
-        {
-            const Coord& ri = x[i];
-            for (int j=i+1; j<n; j++)
-            {
-                const Coord& rj = x[j];
-                Real r2 = (rj-ri).norm2();
-                if (r2 < h2)
-                {
-                    Real r_h = (Real)sqrt(r2/h2);
-                    m_particles[i].neighbors.push_back(std::make_pair(j,r_h));
-                    //m_particles[j].neighbors.push_back(std::make_pair(i,r_h));
-                }
-            }
-        }
-#else
+#if __has_include(<execution>) && !defined(__APPLE__)
         std::for_each(std::execution::par, x.begin(), x.end(), [&](const auto& ri)
         {
-            int i = &ri - &x[0]; // only possible with vector, etc.
+            auto i = &ri - &x[0]; // only possible with vector, etc.
 
-            for (int j=i+1; j<n; j++)
+            for (size_t j = i + 1; j<n; j++)
             {
                 const Coord& rj = x[j];
-                Real r2 = (rj- ri).norm2();
+                Real r2 = (rj - ri).norm2();
                 if (r2 < h2)
                 {
-                    Real r_h = (Real)sqrt(r2/h2);
-                    m_particles[i].neighbors.push_back(std::make_pair(j,r_h));
+                    Real r_h = (Real)sqrt(r2 / h2);
+                    m_particles[i].neighbors.push_back(std::make_pair(j, r_h));
                 }
             }
 
         });
+#else
+        for (size_t i = 0; i<n; i++)
+        {
+            const Coord& ri = x[i];
+            for (size_t j = i + 1; j<n; j++)
+            {
+                const Coord& rj = x[j];
+                Real r2 = (rj - ri).norm2();
+                if (r2 < h2)
+                {
+                    Real r_h = (Real)sqrt(r2 / h2);
+                    m_particles[i].neighbors.push_back(std::make_pair(j, r_h));
+                    //m_particles[j].neighbors.push_back(std::make_pair(i,r_h));
+                }
+            }
+        }
 #endif
     }
     else
@@ -197,15 +195,15 @@ void SPHFluidForceField<DataTypes>::computeNeighbors(const core::MechanicalParam
         if (!d_debugGrid.getValue())
             return;
 
-        for (int i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             m_particles[i].neighbors2.clear();
         }
 
         // Check grid info
-        for (int i=0; i<n; i++)
+        for (size_t i=0; i<n; i++)
         {
             const Coord& ri = x[i];
-            for (int j=i+1; j<n; j++)
+            for (size_t j=i+1; j<n; j++)
             {
                 const Coord& rj = x[j];
                 Real r2 = (rj-ri).norm2();
@@ -216,7 +214,7 @@ void SPHFluidForceField<DataTypes>::computeNeighbors(const core::MechanicalParam
                 }
             }
         }
-        for (int i=0; i<n; i++)
+        for (size_t i=0; i<n; i++)
         {
             if (m_particles[i].neighbors.size() != m_particles[i].neighbors2.size())
             {
@@ -271,14 +269,14 @@ void SPHFluidForceField<DataTypes>::computeForce(const core::MechanicalParams* /
     //const Real dt = (Real)this->getContext()->getDt();
     m_lastTime = time;
 
-    const int n = x.size();
+    size_t n = x.size();
 
     // Initialization
     f.resize(n);
     dforces.clear();
     //int n0 = m_particles.size();
     m_particles.resize(n);
-    for (int i=0; i<n; i++)
+    for (size_t i=0; i<n; i++)
     {
         m_particles[i].density = 0;
         m_particles[i].pressure = 0;
@@ -292,7 +290,7 @@ void SPHFluidForceField<DataTypes>::computeForce(const core::MechanicalParams* /
     TKc Kc(h);
 
     // Compute density and pressure
-    for (int i=0; i<n; i++)
+    for (size_t i=0; i<n; i++)
     {
         Particle& Pi = m_particles[i];
         Real density = Pi.density;
@@ -316,7 +314,7 @@ void SPHFluidForceField<DataTypes>::computeForce(const core::MechanicalParams* /
     // Compute surface normal and curvature
     if (surfaceTensionT == 1)
     {
-        for (int i=0; i<n; i++)
+        for (size_t i=0; i<n; i++)
         {
             Particle& Pi = m_particles[i];
             for (typename std::vector< std::pair<int,Real> >::const_iterator it = Pi.neighbors.begin(); it != Pi.neighbors.end(); ++it)
@@ -335,7 +333,7 @@ void SPHFluidForceField<DataTypes>::computeForce(const core::MechanicalParams* /
     }
 
     // Compute the forces
-    for (int i = 0; i < n; i++)
+    for (size_t i = 0; i < n; i++)
     {
         const Particle& Pi = m_particles[i];
         // Gravity
@@ -449,7 +447,7 @@ void SPHFluidForceField<DataTypes>::draw(const core::visual::VisualParams* vpara
 
     const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
 
-    std::vector<sofa::defaulttype::Vec4f> colorVector;
+    std::vector<sofa::helper::types::RGBAColor> colorVector;
     std::vector<sofa::defaulttype::Vector3> vertices;
     if (d_debugGrid.getValue())
     {
@@ -458,7 +456,7 @@ void SPHFluidForceField<DataTypes>::draw(const core::visual::VisualParams* vpara
             Particle& Pi = m_particles[i];
             if (Pi.neighbors.size() != Pi.neighbors2.size())
             {
-                colorVector.push_back(sofa::defaulttype::Vec4f(1, 0, 0, 1));
+                colorVector.push_back(sofa::helper::types::RGBAColor::red());
                 for (unsigned int j = 0; j < Pi.neighbors.size(); j++)
                 {
                     int index = Pi.neighbors[j].first;
@@ -475,7 +473,7 @@ void SPHFluidForceField<DataTypes>::draw(const core::visual::VisualParams* vpara
                 vertices.clear();
                 colorVector.clear();
 
-                colorVector.push_back(sofa::defaulttype::Vec4f(1, 0, 1, 1));
+                colorVector.push_back(sofa::helper::types::RGBAColor::magenta());
                 for (unsigned int j = 0; j < Pi.neighbors2.size(); j++)
                 {
                     int index = Pi.neighbors2[j].first;
@@ -506,11 +504,11 @@ void SPHFluidForceField<DataTypes>::draw(const core::visual::VisualParams* vpara
                 float f = r_h * 2;
                 if (f < 1)
                 {
-                    colorVector.push_back(sofa::defaulttype::Vec4f(0, 1 - f, f, 1 - r_h));
+                    colorVector.push_back({0.0f, 1.0f - f, f, 1.0f - r_h});
                 }
                 else
                 {
-                    colorVector.push_back(sofa::defaulttype::Vec4f(f - 1, 0, 2 - f, 1 - r_h));
+                    colorVector.push_back({f - 1.0f, 0.0f, 2.0f - f, 1.0f - r_h});
                 }
                 vertices.push_back(sofa::defaulttype::Vector3(x[i]));
                 vertices.push_back(sofa::defaulttype::Vector3(x[j]));
@@ -531,11 +529,11 @@ void SPHFluidForceField<DataTypes>::draw(const core::visual::VisualParams* vpara
         f = 1+10*(f-1);
         if (f < 1)
         {
-            colorVector.push_back(sofa::defaulttype::Vec4f(0,1-f,f,1));
+            colorVector.push_back({0.0f, 1.0f - f, f, 1.0f});
         }
         else
         {
-            colorVector.push_back(sofa::defaulttype::Vec4f(f-1,0,2-f,1));
+            colorVector.push_back( { f - 1.0f, 0.0f, 2.0f - f, 1.0f});
         }
         vertices.push_back(sofa::defaulttype::Vector3(x[i]));
     }

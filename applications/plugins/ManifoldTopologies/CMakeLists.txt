@@ -1,18 +1,16 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(ManifoldTopologies VERSION 0.1)
 
 set(HEADER_FILES
     ManifoldEdgeSetGeometryAlgorithms.h
     ManifoldEdgeSetGeometryAlgorithms.inl
-    ManifoldEdgeSetTopologyAlgorithms.h
-    ManifoldEdgeSetTopologyAlgorithms.inl
     ManifoldEdgeSetTopologyContainer.h
     ManifoldEdgeSetTopologyModifier.h
     ManifoldTetrahedronSetTopologyContainer.h
     ManifoldTopologyObject_double.h
     ManifoldTopologyObject_float.h
-    ManifoldTriangleSetTopologyAlgorithms.h
-    ManifoldTriangleSetTopologyAlgorithms.inl
+    ManifoldTriangleSetGeometryAlgorithms.h
+    ManifoldTriangleSetGeometryAlgorithms.inl
     ManifoldTriangleSetTopologyContainer.h
     ManifoldTriangleSetTopologyModifier.h
     config.h
@@ -20,11 +18,10 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
     ManifoldEdgeSetGeometryAlgorithms.cpp
-    ManifoldEdgeSetTopologyAlgorithms.cpp
     ManifoldEdgeSetTopologyContainer.cpp
     ManifoldEdgeSetTopologyModifier.cpp
     ManifoldTetrahedronSetTopologyContainer.cpp
-    ManifoldTriangleSetTopologyAlgorithms.cpp
+    ManifoldTriangleSetGeometryAlgorithms.cpp
     ManifoldTriangleSetTopologyContainer.cpp
     ManifoldTriangleSetTopologyModifier.cpp
     initManifoldTopologies.cpp
@@ -35,15 +32,11 @@ set(README_FILES ManifoldTopologies.txt)
 find_package(SofaBase REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_d")
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_MANIFOLD_TOPOLOGIES")
 target_link_libraries(${PROJECT_NAME} SofaBaseTopology)
 
-sofa_generate_package(
-    NAME ${PROJECT_NAME}
-    TARGETS ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
     RELOCATABLE "plugins"
     )
