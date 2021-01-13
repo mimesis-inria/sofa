@@ -85,7 +85,7 @@ protected:
         , m_toTopology(toTopology)
     {}
 
-    ~TopologyBarycentricMapper() override {}
+    virtual ~TopologyBarycentricMapper() override {}
 
     core::topology::BaseMeshTopology*    m_fromTopology;
     topology::PointSetTopologyContainer* m_toTopology;

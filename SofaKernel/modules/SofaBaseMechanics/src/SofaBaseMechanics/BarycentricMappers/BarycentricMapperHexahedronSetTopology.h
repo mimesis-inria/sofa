@@ -49,19 +49,19 @@ public:
 
     typedef typename Inherit1::Real Real;
 
-    ~BarycentricMapperHexahedronSetTopology() override ;
+    virtual ~BarycentricMapperHexahedronSetTopology() override ;
     virtual helper::vector<Hexahedron> getElements() override;
     virtual helper::vector<SReal> getBaryCoef(const Real* f) override;
     helper::vector<SReal> getBaryCoef(const Real fx, const Real fy, const Real fz);
-    void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Hexahedron& element) override;
-    void computeCenter(Vector3& center, const typename In::VecCoord& in, const Hexahedron& element) override;
-    void computeDistance(double& d, const Vector3& v) override;
-    void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
+    virtual void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Hexahedron& element) override;
+    virtual void computeCenter(Vector3& center, const typename In::VecCoord& in, const Hexahedron& element) override;
+    virtual void computeDistance(double& d, const Vector3& v) override;
+    virtual void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
 
-    Index addPointInCube(const Index index, const SReal* baryCoords) override;
-    Index setPointInCube(const Index pointIndex, const Index cubeIndex, const SReal* baryCoords) override;
-    void applyOnePoint( const Index& hexaId, typename Out::VecCoord& out, const typename In::VecCoord& in) override;
-    void handleTopologyChange(core::topology::Topology* t) override;
+    virtual Index addPointInCube(const Index index, const SReal* baryCoords) override;
+    virtual Index setPointInCube(const Index pointIndex, const Index cubeIndex, const SReal* baryCoords) override;
+    virtual void applyOnePoint( const Index& hexaId, typename Out::VecCoord& out, const typename In::VecCoord& in) override;
+    virtual void handleTopologyChange(core::topology::Topology* t) override;
 
 protected:
     BarycentricMapperHexahedronSetTopology();

@@ -46,8 +46,8 @@ public:
                SOFA_TEMPLATE4(BarycentricMapperTopologyContainer,In,Out,MappingData,Quad));
     typedef typename Inherit1::Real Real;
 
-    Index addPointInQuad(const Index index, const SReal* baryCoords) override;
-    Index createPointInQuad(const typename Out::Coord& p, Index index, const typename In::VecCoord* points) override;
+    virtual Index addPointInQuad(const Index index, const SReal* baryCoords) override;
+    virtual Index createPointInQuad(const typename Out::Coord& p, Index index, const typename In::VecCoord* points) override;
 
     virtual ~BarycentricMapperQuadSetTopology();
 protected:
@@ -57,10 +57,10 @@ protected:
     virtual helper::vector<Quad> getElements() override;
     virtual helper::vector<SReal> getBaryCoef(const Real* f) override;
     helper::vector<SReal> getBaryCoef(const Real fx, const Real fy);
-    void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Quad& element) override;
-    void computeCenter(Vector3& center, const typename In::VecCoord& in, const Quad& element) override;
-    void computeDistance(double& d, const Vector3& v) override;
-    void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
+    virtual void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Quad& element) override;
+    virtual void computeCenter(Vector3& center, const typename In::VecCoord& in, const Quad& element) override;
+    virtual void computeDistance(double& d, const Vector3& v) override;
+    virtual void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
 
     topology::QuadSetTopologyContainer*			m_fromContainer;
     topology::QuadSetGeometryAlgorithms<In>*	m_fromGeomAlgo;

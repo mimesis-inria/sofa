@@ -55,20 +55,20 @@ public:
     typedef typename In::VecCoord VecCoord;
     using Inherit1::m_toTopology;
 
-    index_type addPointInTetra(const index_type index, const SReal* baryCoords) override ;
+    virtual index_type addPointInTetra(const index_type index, const SReal* baryCoords) override ;
 
 protected:
     BarycentricMapperTetrahedronSetTopology(topology::TetrahedronSetTopologyContainer* fromTopology,
                                             topology::PointSetTopologyContainer* toTopology);
-    ~BarycentricMapperTetrahedronSetTopology() override {}
+    virtual ~BarycentricMapperTetrahedronSetTopology() override {}
 
     virtual helper::vector<Tetrahedron> getElements() override;
     virtual helper::vector<SReal> getBaryCoef(const Real* f) override;
     helper::vector<SReal> getBaryCoef(const Real fx, const Real fy, const Real fz);
-    void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Tetrahedron& element) override;
-    void computeCenter(Vector3& center, const typename In::VecCoord& in, const Tetrahedron& element) override;
-    void computeDistance(double& d, const Vector3& v) override;
-    void addPointInElement(const index_type elementIndex, const SReal* baryCoords) override;
+    virtual void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Tetrahedron& element) override;
+    virtual void computeCenter(Vector3& center, const typename In::VecCoord& in, const Tetrahedron& element) override;
+    virtual void computeDistance(double& d, const Vector3& v) override;
+    virtual void addPointInElement(const index_type elementIndex, const SReal* baryCoords) override;
 
     //handle topology changes depending on the topology
     void processTopologicalChanges(const typename Out::VecCoord& out, const typename In::VecCoord& in, core::topology::Topology* t);
@@ -85,7 +85,7 @@ protected:
 };
 
 #if !defined(SOFA_COMPONENT_MAPPING_BARYCENTRICMAPPERTETRAHEDRONSETTOPOLOGY_CPP)
-extern template class SOFA_BASE_MECHANICS_API BarycentricMapperTetrahedronSetTopology< Vec3dTypes, Vec3dTypes >;
+extern template class BarycentricMapperTetrahedronSetTopology< Vec3dTypes, Vec3dTypes >;
 #endif
 
 } // namespace mapping

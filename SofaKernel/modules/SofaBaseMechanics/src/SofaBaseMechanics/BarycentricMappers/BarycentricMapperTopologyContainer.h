@@ -64,17 +64,17 @@ public:
 
 public:
 
-    void init(const typename Out::VecCoord& out, const typename In::VecCoord& in) override;
-    void draw(const core::visual::VisualParams*,const typename Out::VecCoord& out, const typename In::VecCoord& in) override;
+    virtual void init(const typename Out::VecCoord& out, const typename In::VecCoord& in) override;
+    virtual void draw(const core::visual::VisualParams*,const typename Out::VecCoord& out, const typename In::VecCoord& in) override;
 
-    void clear(std::size_t size=0) override;
-    void resize( core::State<Out>* toModel ) override;
+    virtual void clear(std::size_t size=0) override;
+    virtual void resize( core::State<Out>* toModel ) override;
 
-    void apply( typename Out::VecCoord& out, const typename In::VecCoord& in ) override;
-    void applyJ( typename Out::VecDeriv& out, const typename In::VecDeriv& in ) override;
-    void applyJT( typename In::VecDeriv& out, const typename Out::VecDeriv& in ) override;
-    void applyJT( typename In::MatrixDeriv& out, const typename Out::MatrixDeriv& in ) override;
-    const sofa::defaulttype::BaseMatrix* getJ(int outSize, int inSize) override;
+    virtual void apply( typename Out::VecCoord& out, const typename In::VecCoord& in ) override;
+    virtual void applyJ( typename Out::VecDeriv& out, const typename In::VecDeriv& in ) override;
+    virtual void applyJT( typename In::VecDeriv& out, const typename Out::VecDeriv& in ) override;
+    virtual void applyJT( typename In::MatrixDeriv& out, const typename Out::MatrixDeriv& in ) override;
+    virtual const sofa::defaulttype::BaseMatrix* getJ(int outSize, int inSize) override;
 
     template<class I, class O, class MDType, class E>
     friend std::istream& operator >> ( std::istream& in, BarycentricMapperTopologyContainer<I, O, MDType, E> &b );
@@ -147,7 +147,7 @@ protected:
 
     BarycentricMapperTopologyContainer(core::topology::BaseMeshTopology* fromTopology, topology::PointSetTopologyContainer* toTopology);
 
-    ~BarycentricMapperTopologyContainer() override {}
+    virtual ~BarycentricMapperTopologyContainer() override {}
 
     virtual helper::vector<Element> getElements()=0;
     virtual helper::vector<SReal> getBaryCoef(const Real* f)=0;

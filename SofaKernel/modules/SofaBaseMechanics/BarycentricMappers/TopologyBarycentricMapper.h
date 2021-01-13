@@ -23,6 +23,7 @@
 #define SOFA_COMPONENT_MAPPING_TOPOLOGYBARYCENTRICMAPPER_H
 #include <SofaBaseMechanics/BarycentricMappers/BarycentricMapper.h>
 #include <SofaBaseTopology/PointSetTopologyContainer.h>
+#include <sofa/helper/StateMask.h>
 
 namespace sofa
 {
@@ -48,30 +49,32 @@ public:
                SOFA_TEMPLATE2(BarycentricMapper,In,Out));
 
     typedef typename Inherit1::Real Real;
-    typedef typename core::behavior::BaseMechanicalState::ForceMask ForceMask;
+    typedef typename helper::StateMask ForceMask;
+
+    using Index = sofa::Index;
 
     ForceMask *maskFrom;
     ForceMask *maskTo;
 
-    virtual int addPointInLine(const int lineIndex, const SReal* baryCoords);
-    virtual int setPointInLine(const int pointIndex, const int lineIndex, const SReal* baryCoords);
-    virtual int createPointInLine(const typename Out::Coord& p, int lineIndex, const typename In::VecCoord* points);
+    virtual Index addPointInLine(const Index lineIndex, const SReal* baryCoords);
+    virtual Index setPointInLine(const Index pointIndex, const Index lineIndex, const SReal* baryCoords);
+    virtual Index createPointInLine(const typename Out::Coord& p, Index lineIndex, const typename In::VecCoord* points);
 
-    virtual int addPointInTriangle(const int triangleIndex, const SReal* baryCoords);
-    virtual int setPointInTriangle(const int pointIndex, const int triangleIndex, const SReal* baryCoords);
-    virtual int createPointInTriangle(const typename Out::Coord& p, int triangleIndex, const typename In::VecCoord* points);
+    virtual Index addPointInTriangle(const Index triangleIndex, const SReal* baryCoords);
+    virtual Index setPointInTriangle(const Index pointIndex, const Index triangleIndex, const SReal* baryCoords);
+    virtual Index createPointInTriangle(const typename Out::Coord& p, Index triangleIndex, const typename In::VecCoord* points);
 
-    virtual int addPointInQuad(const int quadIndex, const SReal* baryCoords);
-    virtual int setPointInQuad(const int pointIndex, const int quadIndex, const SReal* baryCoords);
-    virtual int createPointInQuad(const typename Out::Coord& p, int quadIndex, const typename In::VecCoord* points);
+    virtual Index addPointInQuad(const Index quadIndex, const SReal* baryCoords);
+    virtual Index setPointInQuad(const Index pointIndex, const Index quadIndex, const SReal* baryCoords);
+    virtual Index createPointInQuad(const typename Out::Coord& p, Index quadIndex, const typename In::VecCoord* points);
 
-    virtual int addPointInTetra(const int tetraIndex, const SReal* baryCoords);
-    virtual int setPointInTetra(const int pointIndex, const int tetraIndex, const SReal* baryCoords);
-    virtual int createPointInTetra(const typename Out::Coord& p, int tetraIndex, const typename In::VecCoord* points);
+    virtual Index addPointInTetra(const Index tetraIndex, const SReal* baryCoords);
+    virtual Index setPointInTetra(const Index pointIndex, const Index tetraIndex, const SReal* baryCoords);
+    virtual Index createPointInTetra(const typename Out::Coord& p, Index tetraIndex, const typename In::VecCoord* points);
 
-    virtual int addPointInCube(const int cubeIndex, const SReal* baryCoords);
-    virtual int setPointInCube(const int pointIndex, const int cubeIndex, const SReal* baryCoords);
-    virtual int createPointInCube(const typename Out::Coord& p, int cubeIndex, const typename In::VecCoord* points);
+    virtual Index addPointInCube(const Index cubeIndex, const SReal* baryCoords);
+    virtual Index setPointInCube(const Index pointIndex, const Index cubeIndex, const SReal* baryCoords);
+    virtual Index createPointInCube(const typename Out::Coord& p, Index cubeIndex, const typename In::VecCoord* points);
 
     virtual void setToTopology( topology::PointSetTopologyContainer* toTopology) {this->m_toTopology = toTopology;}
     const topology::PointSetTopologyContainer *getToTopology() const {return m_toTopology;}
@@ -92,14 +95,14 @@ protected:
         , m_toTopology(toTopology)
     {}
 
-    ~TopologyBarycentricMapper() override {}
+    virtual ~TopologyBarycentricMapper() override {}
 
     core::topology::BaseMeshTopology*    m_fromTopology;
     topology::PointSetTopologyContainer* m_toTopology;
 };
 
 #if !defined(SOFA_COMPONENT_MAPPING_TOPOLOGYBARYCENTRICMAPPER_CPP)
-extern template class SOFA_BASE_MECHANICS_API TopologyBarycentricMapper< Vec3dTypes, Vec3dTypes >;
+extern template class TopologyBarycentricMapper< Vec3dTypes, Vec3dTypes >;
 
 
 #endif
