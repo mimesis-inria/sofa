@@ -123,14 +123,14 @@ void DefaultMultiMatrixAccessor::setupMatrices()
     auto it = realStateOffsets.begin(), itend = realStateOffsets.end();
     while (it != itend)
     {
-        if (it->second < 0)
-        {
-            auto it2 = it;
-            ++it;
-            realStateOffsets.erase(it2);
-        }
-        else
-        {
+//        if (it->second < 0)
+//        {
+//            auto it2 = it;
+//            ++it;
+//            realStateOffsets.erase(it2);
+//        }
+//        else
+//        {
             if (globalMatrix)
             {
                 MatrixRef& r = diagonalStiffnessBloc[it->first];
@@ -138,7 +138,7 @@ void DefaultMultiMatrixAccessor::setupMatrices()
                 r.offset = it->second;
             }
             ++it;
-        }
+//        }
     }
 
     if(m_doPrintInfo)
