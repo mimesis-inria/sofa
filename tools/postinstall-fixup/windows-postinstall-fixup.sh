@@ -51,3 +51,9 @@ grep -v $disabled_plugins "$INSTALL_DIR_BIN/plugin_list.conf.default" >> "$INSTA
 cd "$INSTALL_DIR" && find -name "*.dll" -path "*/plugins/*" | while read lib; do
     cp "$lib" "$INSTALL_DIR_BIN"
 done
+
+# Link all plugin libs in install/bin to make them easily findable
+cd "$INSTALL_DIR" && find "plugins" -name "*.dll" | while read lib; do
+    libname="$(basename $lib)"
+    ln -s "../$lib" "bin/$libname"
+done
