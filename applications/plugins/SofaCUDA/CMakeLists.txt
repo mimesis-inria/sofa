@@ -216,8 +216,8 @@ else()
     message(STATUS "SofaCUDA: SofaDistanceGrid was not enabled, therefore CudaDistanceGridCollisionModel will not be compiled.")
 endif()
 
+find_package(SofaSphFluid QUIET)
 if (PLUGIN_SOFASPHFLUID)
-    find_package(SofaSphFluid QUIET)
     if(SofaSphFluid_FOUND)
         list(APPEND HEADER_FILES
             sofa/gpu/cuda/CudaParticleSource.h

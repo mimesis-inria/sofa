@@ -1,6 +1,6 @@
 /******************************************************************************
-*                 SOFA, Simulation Open-Framework Architecture                *
-*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
+*       SOFA, Simulation Open-Framework Architecture, development version     *
+*                (c) 2006-2019 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
 * This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -19,12 +19,22 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#pragma once
+#ifndef SOFA_COMPONENT_MAPPING_TOPOLOGYBARYCENTRICMAPPER_H
+#define SOFA_COMPONENT_MAPPING_TOPOLOGYBARYCENTRICMAPPER_H
 #include <SofaBaseMechanics/BarycentricMappers/BarycentricMapper.h>
 #include <SofaBaseTopology/PointSetTopologyContainer.h>
-#include <sofa/core/behavior/BaseMechanicalState.h>
+#include <sofa/helper/StateMask.h>
 
-namespace sofa::component::mapping::_topologybarycentricmapper_
+namespace sofa
+{
+
+namespace component
+{
+
+namespace mapping
+{
+
+namespace _topologybarycentricmapper_
 {
 
 using sofa::defaulttype::Vec3dTypes;
@@ -39,7 +49,7 @@ public:
                SOFA_TEMPLATE2(BarycentricMapper,In,Out));
 
     typedef typename Inherit1::Real Real;
-    typedef typename core::behavior::BaseMechanicalState::ForceMask ForceMask;
+    typedef typename helper::StateMask ForceMask;
 
     using Index = sofa::Index;
 
@@ -92,16 +102,16 @@ protected:
 };
 
 #if !defined(SOFA_COMPONENT_MAPPING_TOPOLOGYBARYCENTRICMAPPER_CPP)
-extern template class SOFA_SOFABASEMECHANICS_API TopologyBarycentricMapper< Vec3dTypes, Vec3dTypes >;
+extern template class TopologyBarycentricMapper< Vec3dTypes, Vec3dTypes >;
 
 
 #endif
 
-} // namespace sofa::component::mapping::_topologybarycentricmapper_
-
-namespace sofa::component::mapping
-{
+}
 
 using _topologybarycentricmapper_::TopologyBarycentricMapper;
 
-} // namespace sofa::component::mapping
+}}}
+
+
+#endif

@@ -19,14 +19,22 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#pragma once
-#include <SofaBaseMechanics/BarycentricMappers/BarycentricMapperTopologyContainer.h>
+#ifndef SOFA_COMPONENT_MAPPING_BARYCENTRICMAPPERTETRAHEDRONSETTOPOLOGY_H
+#define SOFA_COMPONENT_MAPPING_BARYCENTRICMAPPERTETRAHEDRONSETTOPOLOGY_H
 
+#include <SofaBaseMechanics/BarycentricMappers/BarycentricMapperTopologyContainer.h>
 #include <SofaBaseTopology/TetrahedronSetTopologyContainer.h>
 #include <SofaBaseTopology/TetrahedronSetGeometryAlgorithms.h>
 
-namespace sofa::component::mapping
+namespace sofa
 {
+
+namespace component
+{
+
+namespace mapping
+{
+
 
 using sofa::defaulttype::Vec3dTypes;
 using sofa::defaulttype::Vec3fTypes;
@@ -39,7 +47,7 @@ template<class In, class Out>
 class BarycentricMapperTetrahedronSetTopology : public BarycentricMapperTopologyContainer<In,Out,typename BarycentricMapper<In,Out>::MappingData3D,Tetrahedron>
 {
     typedef typename BarycentricMapper<In,Out>::MappingData3D MappingData;
-    using Index = sofa::Index;
+    using index_type = sofa::defaulttype::index_type;
 
 public:
     SOFA_CLASS(SOFA_TEMPLATE2(BarycentricMapperTetrahedronSetTopology,In,Out),SOFA_TEMPLATE4(BarycentricMapperTopologyContainer,In,Out,MappingData,Tetrahedron));
@@ -47,7 +55,7 @@ public:
     typedef typename In::VecCoord VecCoord;
     using Inherit1::m_toTopology;
 
-    virtual Index addPointInTetra(const Index index, const SReal* baryCoords) override ;
+    virtual index_type addPointInTetra(const index_type index, const SReal* baryCoords) override ;
 
 protected:
     BarycentricMapperTetrahedronSetTopology(topology::TetrahedronSetTopologyContainer* fromTopology,
@@ -60,7 +68,7 @@ protected:
     virtual void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Tetrahedron& element) override;
     virtual void computeCenter(Vector3& center, const typename In::VecCoord& in, const Tetrahedron& element) override;
     virtual void computeDistance(double& d, const Vector3& v) override;
-    virtual void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
+    virtual void addPointInElement(const index_type elementIndex, const SReal* baryCoords) override;
 
     //handle topology changes depending on the topology
     void processTopologicalChanges(const typename Out::VecCoord& out, const typename In::VecCoord& in, core::topology::Topology* t);
@@ -77,7 +85,13 @@ protected:
 };
 
 #if !defined(SOFA_COMPONENT_MAPPING_BARYCENTRICMAPPERTETRAHEDRONSETTOPOLOGY_CPP)
-extern template class SOFA_SOFABASEMECHANICS_API BarycentricMapperTetrahedronSetTopology< Vec3dTypes, Vec3dTypes >;
+extern template class BarycentricMapperTetrahedronSetTopology< Vec3dTypes, Vec3dTypes >;
 #endif
 
-} // namespace sofa::component::mapping
+} // namespace mapping
+
+} // namespace component
+
+} // namespace sofa
+
+#endif // SOFA_COMPONENT_MAPPING_BARYCENTRICMAPPERTETRAHEDRONSETTOPOLOGY_H

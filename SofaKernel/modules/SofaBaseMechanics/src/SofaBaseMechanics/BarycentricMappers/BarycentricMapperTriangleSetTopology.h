@@ -47,10 +47,10 @@ public:
                SOFA_TEMPLATE4(BarycentricMapperTopologyContainer,In,Out,MappingData,Triangle));
     typedef typename Inherit1::Real Real;
 
-    ~BarycentricMapperTriangleSetTopology() override {}
+    virtual ~BarycentricMapperTriangleSetTopology() override {}
 
-    Index addPointInTriangle(const Index triangleIndex, const SReal* baryCoords) override;
-    Index createPointInTriangle(const typename Out::Coord& p, Index triangleIndex, const typename In::VecCoord* points) override;
+    virtual Index addPointInTriangle(const Index triangleIndex, const SReal* baryCoords) override;
+    virtual Index createPointInTriangle(const typename Out::Coord& p, Index triangleIndex, const typename In::VecCoord* points) override;
 
 protected:
     BarycentricMapperTriangleSetTopology();
@@ -63,10 +63,10 @@ protected:
     virtual helper::vector<Triangle> getElements() override;
     virtual helper::vector<SReal> getBaryCoef(const Real* f) override;
     helper::vector<SReal> getBaryCoef(const Real fx, const Real fy);
-    void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Triangle& element) override;
-    void computeCenter(Vector3& center, const typename In::VecCoord& in, const Triangle& element) override;
-    void computeDistance(double& d, const Vector3& v) override;
-    void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
+    virtual void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Triangle& element) override;
+    virtual void computeCenter(Vector3& center, const typename In::VecCoord& in, const Triangle& element) override;
+    virtual void computeDistance(double& d, const Vector3& v) override;
+    virtual void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
 
     using Inherit1::d_map;
     using Inherit1::m_fromTopology;

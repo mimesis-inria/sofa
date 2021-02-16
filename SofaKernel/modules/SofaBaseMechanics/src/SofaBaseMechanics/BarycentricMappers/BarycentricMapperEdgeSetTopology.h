@@ -46,29 +46,29 @@ public:
 
 public:
 
-    void init(const typename Out::VecCoord& out, const typename In::VecCoord& in) override
+    virtual void init(const typename Out::VecCoord& out, const typename In::VecCoord& in) override
     {
         SOFA_UNUSED(out);
         SOFA_UNUSED(in);
         msg_warning() << "BarycentricMapping not implemented for EdgeSetTopologyContainer.";
     }
-    Index addPointInLine(const Index edgeIndex, const SReal* baryCoords) override;
-    Index createPointInLine(const typename Out::Coord& p, Index edgeIndex, const typename In::VecCoord* points) override;
+    virtual Index addPointInLine(const Index edgeIndex, const SReal* baryCoords) override;
+    virtual Index createPointInLine(const typename Out::Coord& p, Index edgeIndex, const typename In::VecCoord* points) override;
 
 
 protected:
     BarycentricMapperEdgeSetTopology(topology::EdgeSetTopologyContainer* fromTopology,
                                      topology::PointSetTopologyContainer* toTopology);
 
-    ~BarycentricMapperEdgeSetTopology() override {}
+    virtual ~BarycentricMapperEdgeSetTopology() override {}
 
     virtual helper::vector<Edge> getElements() override;
     virtual helper::vector<SReal> getBaryCoef(const Real* f) override;
     helper::vector<SReal> getBaryCoef(const Real fx);
-    void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Edge& element) override;
-    void computeCenter(Vector3& center, const typename In::VecCoord& in, const Edge& element) override;
-    void computeDistance(double& d, const Vector3& v) override;
-    void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
+    virtual void computeBase(Mat3x3d& base, const typename In::VecCoord& in, const Edge& element) override;
+    virtual void computeCenter(Vector3& center, const typename In::VecCoord& in, const Edge& element) override;
+    virtual void computeDistance(double& d, const Vector3& v) override;
+    virtual void addPointInElement(const Index elementIndex, const SReal* baryCoords) override;
 
     topology::EdgeSetTopologyContainer*	m_fromContainer;
     topology::EdgeSetGeometryAlgorithms<In>* m_fromGeomAlgo;
