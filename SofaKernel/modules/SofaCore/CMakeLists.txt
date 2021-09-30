@@ -46,6 +46,7 @@ set(HEADER_FILES
     ${SRC_ROOT}/behavior/BaseMechanicalState.h
     ${SRC_ROOT}/behavior/BaseProjectiveConstraintSet.h
     ${SRC_ROOT}/behavior/BaseRotationFinder.h
+    ${SRC_ROOT}/behavior/RotationFinder.h
     ${SRC_ROOT}/behavior/BaseVectorOperations.h
     ${SRC_ROOT}/behavior/Constraint.h
     ${SRC_ROOT}/behavior/Constraint.inl
