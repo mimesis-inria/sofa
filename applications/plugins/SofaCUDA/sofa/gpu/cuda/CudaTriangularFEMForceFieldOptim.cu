@@ -237,44 +237,44 @@ void TriangularFEMForceFieldOptimCuda3f_addDForce(unsigned int size, void* df, c
 }
 
 
-#ifdef SOFA_GPU_CUDA_DOUBLE
-void TriangularFEMForceFieldOptimCuda3d_addForce(unsigned int size, void* f, const void* x, const void* v,
-    void* triangleState, const void* triangleInfo,
-    unsigned int nbTriangles,
-    const void* gpuTriangleInfo,
-    double gamma, double mu)
-{
+//#ifdef SOFA_GPU_CUDA_DOUBLE
+//void TriangularFEMForceFieldOptimCuda3d_addForce(unsigned int size, void* f, const void* x, const void* v,
+//    void* triangleState, const void* triangleInfo,
+//    unsigned int nbTriangles,
+//    const void* gpuTriangleInfo,
+//    double gamma, double mu)
+//{
 
-    dim3 threads(BSIZE, 1);
-    dim3 grid((nbTriangles + BSIZE - 1) / BSIZE, 1);
-    {
+//    dim3 threads(BSIZE, 1);
+//    dim3 grid((nbTriangles + BSIZE - 1) / BSIZE, 1);
+//    {
 
-        TriangularFEMForceFieldOptimCudaVec3_addForce_kernel<double> <<< grid, threads >>> (size, (CudaVec3d*)f, (const CudaVec3d*)x, (const CudaVec3d*)v,
-            (TriangleState<double>*)triangleState,
-            (const TriangleInfo<double>*)triangleInfo,
-            nbTriangles,
-            (const GPUTriangleInfo*)gpuTriangleInfo,
-            gamma, mu
-            ); mycudaDebugError("TriangularFEMForceFieldOptimCuda3f_addForce_kernel"); }
-}
+//        TriangularFEMForceFieldOptimCudaVec3_addForce_kernel<double> <<< grid, threads >>> (size, (CudaVec3d*)f, (const CudaVec3d*)x, (const CudaVec3d*)v,
+//            (TriangleState<double>*)triangleState,
+//            (const TriangleInfo<double>*)triangleInfo,
+//            nbTriangles,
+//            (const GPUTriangleInfo*)gpuTriangleInfo,
+//            gamma, mu
+//            ); mycudaDebugError("TriangularFEMForceFieldOptimCuda3f_addForce_kernel"); }
+//}
 
-void TriangularFEMForceFieldOptimCuda3d_addDForce(unsigned int size, void* df, const void* dx, float kFactor,
-    const void* triangleState, const void* triangleInfo,
-    unsigned int nbTriangles,
-    const void* gpuTriangleInfo,
-    double gamma, double mu) //, const void* dfdx)
-{
-    dim3 threads(BSIZE, 1);
-    dim3 grid((nbTriangles + BSIZE - 1) / BSIZE, 1);
-    {TriangularFEMForceFieldOptimCudaVec3_addDForce_kernel<double> <<< grid, threads >>> (size, (CudaVec3d*)df, (const CudaVec3d*)dx, kFactor,
-        (const TriangleState<double>*)triangleState,
-        (const TriangleInfo<double>*)triangleInfo,
-        nbTriangles,
-        (const GPUTriangleInfo*)gpuTriangleInfo,
-        gamma, mu
-        ); mycudaDebugError("TriangularFEMForceFieldOptimCuda3f_addDForce_kernel"); }
-}
-#endif
+//void TriangularFEMForceFieldOptimCuda3d_addDForce(unsigned int size, void* df, const void* dx, float kFactor,
+//    const void* triangleState, const void* triangleInfo,
+//    unsigned int nbTriangles,
+//    const void* gpuTriangleInfo,
+//    double gamma, double mu) //, const void* dfdx)
+//{
+//    dim3 threads(BSIZE, 1);
+//    dim3 grid((nbTriangles + BSIZE - 1) / BSIZE, 1);
+//    {TriangularFEMForceFieldOptimCudaVec3_addDForce_kernel<double> <<< grid, threads >>> (size, (CudaVec3d*)df, (const CudaVec3d*)dx, kFactor,
+//        (const TriangleState<double>*)triangleState,
+//        (const TriangleInfo<double>*)triangleInfo,
+//        nbTriangles,
+//        (const GPUTriangleInfo*)gpuTriangleInfo,
+//        gamma, mu
+//        ); mycudaDebugError("TriangularFEMForceFieldOptimCuda3f_addDForce_kernel"); }
+//}
+//#endif
 
 } // extern "C"
 

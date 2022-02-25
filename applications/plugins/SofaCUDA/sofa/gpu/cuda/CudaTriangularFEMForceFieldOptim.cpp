@@ -27,9 +27,9 @@ namespace sofa::component::forcefield
 {
 
 template class SOFA_GPU_CUDA_API TriangularFEMForceFieldOptim<sofa::gpu::cuda::CudaVec3fTypes>;
-#ifdef SOFA_GPU_CUDA_DOUBLE
-template class SOFA_GPU_CUDA_API TriangularFEMForceFieldOptim<sofa::gpu::cuda::CudaVec3dTypes>;
-#endif // SOFA_GPU_CUDA_DOUBLE
+//#ifdef SOFA_GPU_CUDA_DOUBLE
+//template class SOFA_GPU_CUDA_API TriangularFEMForceFieldOptim<sofa::gpu::cuda::CudaVec3dTypes>;
+//#endif // SOFA_GPU_CUDA_DOUBLE
 
 } // sofa::component::forcefield
 
@@ -39,9 +39,9 @@ namespace sofa::gpu::cuda
 
 int TriangularFEMForceFieldOptimCudaClass = core::RegisterObject("Supports GPU-side computations using CUDA")
     .add< component::forcefield::TriangularFEMForceFieldOptim<CudaVec3fTypes> >()
-#ifdef SOFA_GPU_CUDA_DOUBLE
-    .add< component::forcefield::TriangularFEMForceFieldOptim<CudaVec3dTypes> >()
-#endif // SOFA_GPU_CUDA_DOUBLE
+//#ifdef SOFA_GPU_CUDA_DOUBLE
+//    .add< component::forcefield::TriangularFEMForceFieldOptim<CudaVec3dTypes> >()
+//#endif // SOFA_GPU_CUDA_DOUBLE
     ;
 
 } // sofa::gpu::cuda
