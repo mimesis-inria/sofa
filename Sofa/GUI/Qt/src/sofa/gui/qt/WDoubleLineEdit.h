@@ -27,6 +27,8 @@
 
 #include <QKeyEvent>
 
+#define SOFA_GUI_QT_API
+
 /* -------------------------------------------------------- */
 class SOFA_GUI_QT_API WDoubleLineEdit : public QLineEdit
 {

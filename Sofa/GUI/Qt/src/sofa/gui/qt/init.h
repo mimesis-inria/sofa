@@ -23,6 +23,8 @@
 
 #include <sofa/gui/qt/config.h>
 
+#define SOFA_GUI_QT_API
+
 namespace sofa::gui::qt
 {
 
