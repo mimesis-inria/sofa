@@ -74,12 +74,12 @@ QGLFormat QtGLViewer::setupGLFormat(const unsigned int nbMSAASamples)
         f.setSamples(nbMSAASamples);
     }
 
-    if(!SOFAGUI_ENABLE_NATIVE_MENU)
-    {
+//    if(!SOFAGUI_ENABLE_NATIVE_MENU)
+//    {
         QSurfaceFormat format;
         format.setSwapInterval(0);
         QSurfaceFormat::setDefaultFormat(format);
-    }
+//    }
 
     return f;
 }
