@@ -30,6 +30,7 @@
 #include <sofa/simulation/fwd.h>
 #include <sofa/simulation/MutationListener.h>
 
+#define SOFA_GUI_QT_API
 
 namespace sofa::gui::qt
 {
