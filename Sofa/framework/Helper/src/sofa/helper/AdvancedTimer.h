@@ -289,6 +289,8 @@ public:
 
 	struct BaseTimerMethodWrapper
 	{
+        virtual ~BaseTimerMethodWrapper() {}
+
 		virtual void stepBegin(IdStep id) = 0;
 		virtual void stepBegin(IdStep id, IdObj obj) = 0;
 		virtual void stepEnd  (IdStep id) = 0;
