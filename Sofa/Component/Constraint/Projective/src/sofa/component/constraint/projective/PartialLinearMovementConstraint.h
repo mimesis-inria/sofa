@@ -144,7 +144,8 @@ public:
 
 protected:
     template <class DataDeriv>
-    void projectResponseT(const core::MechanicalParams* mparams, DataDeriv& dx);
+    void projectResponseT(DataDeriv& dx,
+        const std::function<void(DataDeriv&, const unsigned int, const VecBool&)>& clear);
 
     template <class MyCoord>
     void interpolatePosition(Real cT, typename std::enable_if<!std::is_same<MyCoord, sofa::defaulttype::RigidCoord<3, Real> >::value, VecCoord>::type& x);
@@ -164,7 +165,7 @@ private:
 };
 
 
-#if  !defined(SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_PARTIALLINEARMOVEMENTCONSTRAINT_CPP)
+#if !defined(SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_PARTIALLINEARMOVEMENTCONSTRAINT_CPP)
 extern template class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API PartialLinearMovementConstraint<defaulttype::Vec3Types>;
 extern template class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API PartialLinearMovementConstraint<defaulttype::Vec2Types>;
 extern template class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API PartialLinearMovementConstraint<defaulttype::Vec1Types>;

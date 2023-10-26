@@ -48,9 +48,13 @@ public:
     void solve (Matrix& M, Vector& x, Vector& b) override;
     void invert(Matrix& M) override;
 
+    void parse(core::objectmodel::BaseObjectDescription *arg) override;
+
 protected:
 
+    SOFA_ATTRIBUTE_DEPRECATED__SOLVER_DIRECT_VERBOSEDATA()
     Data<bool> f_verbose; ///< Dump system state at each iteration
+
     cs A;
     cs* permuted_A;
     css *S;
@@ -69,7 +73,7 @@ protected:
     css* symbolic_Chol(cs *A);
 };
 
-#if  !defined(SOFA_COMPONENT_LINEARSOLVER_SPARSECHOLESKYSOLVER_CPP)
+#if !defined(SOFA_COMPONENT_LINEARSOLVER_SPARSECHOLESKYSOLVER_CPP)
 extern template class SOFA_COMPONENT_LINEARSOLVER_DIRECT_API SparseCholeskySolver< sofa::linearalgebra::CompressedRowSparseMatrix<SReal>, sofa::linearalgebra::FullVector<SReal> >;
 #endif
 

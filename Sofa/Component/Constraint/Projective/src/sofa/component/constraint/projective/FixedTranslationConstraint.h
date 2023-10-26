@@ -91,11 +91,12 @@ public:
 
 protected:
     template <class DataDeriv>
-    void projectResponseT(const core::MechanicalParams* mparams, DataDeriv& dx);
+    void projectResponseT(DataDeriv& dx,
+        const std::function<void(DataDeriv&, const unsigned int)>& clear);
 
 };
 
-#if  !defined(SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_FIXEDTRANSLATIONCONSTRAINT_CPP)
+#if !defined(SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_FIXEDTRANSLATIONCONSTRAINT_CPP)
 extern template class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API FixedTranslationConstraint<defaulttype::Rigid3Types>;
 extern template class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API FixedTranslationConstraint<defaulttype::Rigid2Types>;
 extern template class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API FixedTranslationConstraint<defaulttype::Vec6Types>;

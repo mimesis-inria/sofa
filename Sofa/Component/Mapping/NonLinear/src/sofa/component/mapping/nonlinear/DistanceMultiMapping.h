@@ -198,7 +198,7 @@ private:
         if (n!=baseMatrices.size())
         {
             release(n); // will only do something if n<oldsize
-            size_t oldsize = baseMatrices.size();
+            const size_t oldsize = baseMatrices.size();
             baseMatrices.resize(n);
             for (unsigned i = oldsize; i<n; ++i) // will only do something if n>oldsize
                 baseMatrices[i] = new SparseMatrixEigen;
@@ -218,7 +218,7 @@ private:
 
 };
 
-#if  !defined(SOFA_COMPONENT_MAPPING_DistanceMultiMapping_CPP)
+#if !defined(SOFA_COMPONENT_MAPPING_DistanceMultiMapping_CPP)
 extern template class SOFA_COMPONENT_MAPPING_NONLINEAR_API DistanceMultiMapping< defaulttype::Vec3Types, defaulttype::Vec1Types >;
 extern template class SOFA_COMPONENT_MAPPING_NONLINEAR_API DistanceMultiMapping< defaulttype::Rigid3Types, defaulttype::Vec1Types >;
 #endif

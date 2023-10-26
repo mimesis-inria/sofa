@@ -75,7 +75,7 @@ public:
 
     virtual void configure(sofa::component::setting::MouseButtonSetting * setting)
     {
-        if (auto* s = dynamic_cast<sofa::gui::component::ConstraintAttachBodyButtonSetting*>(setting))
+        if (const auto* s = dynamic_cast<sofa::gui::component::ConstraintAttachBodyButtonSetting*>(setting))
         {
             setStiffness((double)s->stiffness.getValue());
             setArrowSize((float)s->arrowSize.getValue());
@@ -98,7 +98,7 @@ protected:
     sofa::core::behavior::MechanicalState<DataTypes> *mstate1, *mstate2;
 };
 
-#if  !defined(SOFA_COMPONENT_COLLISION_CONSTRAINTATTACHBODYPERFORMER_CPP)
+#if !defined(SOFA_COMPONENT_COLLISION_CONSTRAINTATTACHBODYPERFORMER_CPP)
 extern template class SOFA_GUI_COMPONENT_API ConstraintAttachBodyPerformer<defaulttype::Vec3Types>;
 #endif
 

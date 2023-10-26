@@ -123,6 +123,11 @@ void UncoupledConstraintCorrection<DataTypes>::init()
 {
     Inherit::init();
 
+    if( !defaultCompliance.isSet() && !compliance.isSet() )
+    {
+        msg_warning() << "Neither the \'defaultCompliance\' nor the \'compliance\' data is set, please set one to define your compliance matrix";
+    }
+
     const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
 
     if (compliance.getValue().size() == 1 && defaultCompliance.isSet() && defaultCompliance.getValue() == compliance.getValue()[0])
@@ -132,20 +137,33 @@ void UncoupledConstraintCorrection<DataTypes>::init()
     }
 
     const VecReal& comp = compliance.getValue();
+
     if (x.size() != comp.size() && !comp.empty())
     {
-        if (!defaultCompliance.isSet() && !comp.empty())
-            defaultCompliance.setValue(comp[0]); // set default compliance to first one in case it was given in the compliance vector
+        // case where the size of the state vector does not match the size of the compliance vector data
         if (comp.size() > 1)
-            msg_warning() << "Compliance size ( " << comp.size() << " is not equal to the size of the mstate (" << x.size() << ")";
-        Real comp0 = (!comp.empty()) ? comp[0] : defaultCompliance.getValue();
-        msg_warning() << "Using " << comp0 << " as initial compliance";
+        {
+            msg_warning() << "Compliance size (" << comp.size() << ") is not equal to the size of the mstate (" << x.size() << ")";
+        }
+
+        if (!defaultCompliance.isSet() && !comp.empty())
+        {
+            defaultCompliance.setValue(comp[0]);
+            msg_warning() <<"Instead a default compliance is used, set to the first value of the given vector \'compliance\'";
+        }
+        else
+        {
+            msg_warning() <<"Instead a default compliance is used";
+        }
+
+        Real comp0 = defaultCompliance.getValue();
 
         VecReal UsedComp;
         for (unsigned int i=0; i<x.size(); i++)
         {
             UsedComp.push_back(comp0);
         }
+
         // Keeps user specified compliance even if the initial MState size is null.
         if (!UsedComp.empty())
         {
@@ -168,6 +186,15 @@ void UncoupledConstraintCorrection<DataTypes>::init()
         }
     }
    
+    if(!comp.empty())
+    {
+        msg_info() << "\'compliance\' data is used: " << compliance.getValue();
+    }
+    else
+    {
+        msg_info() << "\'defaultCompliance\' data is used: " << defaultCompliance.getValue();
+    }
+
     this->getContext()->get(m_pOdeSolver);
     if (!m_pOdeSolver)
     {
@@ -196,12 +223,12 @@ void UncoupledConstraintCorrection<DataTypes>::getComplianceWithConstraintMerge(
 
     msg_info() << "******\n Constraint before Merge  \n *******" ;
 
-    MatrixDerivRowIterator rowIt = constraints.begin();
-    MatrixDerivRowIterator rowItEnd = constraints.end();
+    auto rowIt = constraints.begin();
+    auto rowItEnd = constraints.end();
 
     while (rowIt != rowItEnd)
     {
-        constraintCopy.writeLine(rowIt.index(), rowIt.row());
+        constraintCopy.setLine(rowIt.index(), rowIt.row());
         ++rowIt;
     }
 
@@ -210,7 +237,7 @@ void UncoupledConstraintCorrection<DataTypes>::getComplianceWithConstraintMerge(
 
     // look for the number of group;
     unsigned int numGroup = 0;
-    for (int cm : constraint_merge)
+    for (const int cm : constraint_merge)
     {
         if (cm > (int) numGroup)
             numGroup = (unsigned int) cm;
@@ -223,8 +250,8 @@ void UncoupledConstraintCorrection<DataTypes>::getComplianceWithConstraintMerge(
     {
         msg_info() << "constraint[" << group << "] : " ;
 
-        MatrixDerivRowIterator rowCopyIt = constraintCopy.begin();
-        MatrixDerivRowIterator rowCopyItEnd = constraintCopy.end();
+        auto rowCopyIt = constraintCopy.begin();
+        auto rowCopyItEnd = constraintCopy.end();
 
         while (rowCopyIt != rowCopyItEnd)
         {
@@ -250,7 +277,7 @@ void UncoupledConstraintCorrection<DataTypes>::getComplianceWithConstraintMerge(
 
     while (rowIt != rowItEnd)
     {
-        constraints.writeLine(rowIt.index(), rowIt.row());
+        constraints.setLine(rowIt.index(), rowIt.row());
         ++rowIt;
     }
 }
@@ -268,13 +295,13 @@ void UncoupledConstraintCorrection<DataTypes>::addComplianceInConstraintSpace(co
     SReal factor = 1.0;
     switch (cparams->constOrder())
     {
-    case core::ConstraintParams::POS_AND_VEL :
-    case core::ConstraintParams::POS :
+    case core::ConstraintOrder::POS_AND_VEL :
+    case core::ConstraintOrder::POS :
         factor = useOdeIntegrationFactors ? m_pOdeSolver->getPositionIntegrationFactor() : 1.0;
         break;
 
-    case core::ConstraintParams::ACC :
-    case core::ConstraintParams::VEL :
+    case core::ConstraintOrder::ACC :
+    case core::ConstraintOrder::VEL :
         factor = useOdeIntegrationFactors ? m_pOdeSolver->getVelocityIntegrationFactor() : 1.0;
         break;
 
@@ -328,7 +355,7 @@ void UncoupledConstraintCorrection<DataTypes>::addComplianceInConstraintSpace(co
         ++rowIt2;
         for (; rowIt2 != rowItEnd; ++rowIt2)
         {
-            int indexCurColConst = rowIt2.index();
+            const int indexCurColConst = rowIt2.index();
             if (rowIt2.row().empty()) continue; // ignore constraints with empty Jacobians
 
             // To efficiently compute the compliance between rowIt and rowIt2, we can rely on the
@@ -600,7 +627,7 @@ void UncoupledConstraintCorrection<DataTypes>::resetForUnbuiltResolution(SReal *
 
     for (MatrixDerivRowConstIterator rowIt = constraints.begin(); rowIt != constraints.end(); ++rowIt)
     {
-        int indexC = rowIt.index();
+        const int indexC = rowIt.index();
 
         // buf the value of force applied on concerned dof : constraint_force
         // buf a table of indice of involved dof : constraint_dofs

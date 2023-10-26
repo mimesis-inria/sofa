@@ -5,6 +5,8 @@ set(SRC_ROOT "src/sofa/core")
 
 set(HEADER_FILES
     ${SRC_ROOT}/config.h.in
+    ${SRC_ROOT}/AccumulationVecId.h
+    ${SRC_ROOT}/AccumulationVecId.inl
     ${SRC_ROOT}/BaseMatrixAccumulatorComponent.h
     ${SRC_ROOT}/BaseLocalMappingMatrix.h
     ${SRC_ROOT}/BaseMapping.h
@@ -15,6 +17,7 @@ set(HEADER_FILES
     ${SRC_ROOT}/CollisionModel.h
     ${SRC_ROOT}/ComponentLibrary.h
     ${SRC_ROOT}/ComponentNameHelper.h
+    ${SRC_ROOT}/ConstraintOrder.h
     ${SRC_ROOT}/ConstraintParams.h
     ${SRC_ROOT}/DataEngine.h
     ${SRC_ROOT}/DataTracker.h
@@ -143,6 +146,8 @@ set(HEADER_FILES
     ${SRC_ROOT}/objectmodel/DataFileName.h
     ${SRC_ROOT}/objectmodel/DataFileNameVector.h
     ${SRC_ROOT}/objectmodel/DataLink.h
+    ${SRC_ROOT}/objectmodel/DeprecatedData.h
+    ${SRC_ROOT}/objectmodel/RemovedData.h
     ${SRC_ROOT}/objectmodel/DetachNodeEvent.h
     ${SRC_ROOT}/objectmodel/Event.h
     ${SRC_ROOT}/objectmodel/GUIEvent.h
@@ -190,6 +195,7 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+    ${SRC_ROOT}/AccumulationVecId.cpp
     ${SRC_ROOT}/BaseMatrixAccumulatorComponent.cpp
     ${SRC_ROOT}/BaseMapping.cpp
     ${SRC_ROOT}/BaseState.cpp
@@ -281,6 +287,7 @@ set(SOURCE_FILES
     ${SRC_ROOT}/objectmodel/DataFileNameVector.cpp
     ${SRC_ROOT}/objectmodel/DataLink.cpp
     ${SRC_ROOT}/objectmodel/DetachNodeEvent.cpp
+    ${SRC_ROOT}/objectmodel/DeprecatedData.cpp
     ${SRC_ROOT}/objectmodel/Event.cpp
     ${SRC_ROOT}/objectmodel/GUIEvent.cpp
     ${SRC_ROOT}/objectmodel/HapticDeviceEvent.cpp

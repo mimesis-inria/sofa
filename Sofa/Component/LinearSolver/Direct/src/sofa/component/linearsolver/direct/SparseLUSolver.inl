@@ -38,8 +38,7 @@ using std::endl;
 
 template<class TMatrix, class TVector,class TThreadManager>
 SparseLUSolver<TMatrix,TVector,TThreadManager>::SparseLUSolver()
-    : f_verbose( initData(&f_verbose,false,"verbose","Dump system state at each iteration") )
-    , f_tol( initData(&f_tol,0.001,"tolerance","tolerance of factorization") )
+    : f_tol( initData(&f_tol,0.001,"tolerance","tolerance of factorization") )
     , d_typePermutation(initData(&d_typePermutation , "permutation", "Type of fill reducing permutation"))
     , d_L_nnz(initData(&d_L_nnz, 0, "L_nnz", "Number of non-zero values in the lower triangular matrix of the factorization. The lower, the faster the system is solved.", true, true))
 {
@@ -48,15 +47,28 @@ SparseLUSolver<TMatrix,TVector,TThreadManager>::SparseLUSolver()
     d_typePermutation.setValue(d_typePermutationOptions);
 }
 
+template <class TMatrix, class TVector, class TThreadManager>
+void SparseLUSolver<TMatrix, TVector, TThreadManager>::parse(
+    core::objectmodel::BaseObjectDescription* arg)
+{
+    if (arg->getAttribute("verbose"))
+    {
+        msg_warning() << "Attribute 'verbose' has no use in this component. "
+                         "To disable this warning, remove the attribute from the scene.";
+    }
+
+    Inherit::parse(arg);
+}
+
 
 template<class TMatrix, class TVector,class TThreadManager>
 void SparseLUSolver<TMatrix,TVector,TThreadManager>::solve (Matrix& M, Vector& x, Vector& b)
 {
     SparseLUInvertData<Real> * invertData = (SparseLUInvertData<Real>*) this->getMatrixInvertData(&M);
-    int n = invertData->A.n;
+    const int n = invertData->A.n;
 
     {
-        sofa::helper::ScopedAdvancedTimer solveTimer("solve");
+        SCOPED_TIMER_VARNAME(solveTimer, "solve");
         switch( d_typePermutation.getValue().getSelectedId() )
         {
             
@@ -139,7 +151,7 @@ void SparseLUSolver<TMatrix,TVector,TThreadManager>::invert(Matrix& M)
     invertData->tmp = (Real *) cs_malloc (invertData->A.n, sizeof (Real)) ;
 
     {
-        sofa::helper::ScopedAdvancedTimer factorizationTimer("factorization");
+        SCOPED_TIMER_VARNAME(factorizationTimer, "factorization");
         switch( d_typePermutation.getValue().getSelectedId() )
         {
             case 0://None->Identity

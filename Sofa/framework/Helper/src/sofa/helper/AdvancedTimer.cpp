@@ -40,10 +40,7 @@
 using json = sofa::helper::json;
 
 
-namespace sofa
-{
-
-namespace helper
+namespace sofa::helper
 {
 typedef sofa::helper::system::thread::ctime_t ctime_t;
 typedef sofa::helper::system::thread::CTime CTime;
@@ -93,7 +90,7 @@ public:
     void init(AdvancedTimer::IdTimer id)
     {
         this->id = id;
-        std::string envvar = std::string("SOFA_TIMER_") + (std::string)id;
+        const std::string envvar = std::string("SOFA_TIMER_") + (std::string)id;
         const char* val = getenv(envvar.c_str());
         if (!val || !*val)
             val = getenv("SOFA_TIMER_ALL");
@@ -138,7 +135,7 @@ type::vector<Record>* getCurRecords()
 
 void setCurRecords(type::vector<Record>* ptr)
 {
-    type::vector<Record>* prev = curRecordsThread;
+    const type::vector<Record>* prev = curRecordsThread;
     curRecordsThread = ptr;
     if (ptr && !prev) ++activeTimers;
     else if (!ptr && prev) --activeTimers;
@@ -335,7 +332,7 @@ void AdvancedTimer::end(IdTimer id)
 
 std::string AdvancedTimer::end(IdTimer id, double time, double dt)
 {
-    TimerData& data = timers[id];
+    const TimerData& data = timers[id];
     if(!data.id)
     {
         return std::string("");
@@ -355,7 +352,7 @@ std::string AdvancedTimer::end(IdTimer id, double time, double dt)
 
 bool AdvancedTimer::isActive()
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return false;
     return true;
 }
@@ -538,84 +535,84 @@ void AdvancedTimer::end(const char* idStr)
 
 void AdvancedTimer::stepBegin(const char* idStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     stepBegin(IdStep(idStr));
 }
 
 void AdvancedTimer::stepBegin(const char* idStr, const char* objStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     stepBegin(IdStep(idStr), IdObj(objStr));
 }
 
 void AdvancedTimer::stepBegin(const char* idStr, const std::string& objStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     stepBegin(IdStep(idStr), IdObj(objStr));
 }
 
 void AdvancedTimer::stepEnd  (const char* idStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     stepEnd  (IdStep(idStr));
 }
 
 void AdvancedTimer::stepEnd  (const char* idStr, const char* objStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     stepEnd  (IdStep(idStr), IdObj(objStr));
 }
 
 void AdvancedTimer::stepEnd  (const char* idStr, const std::string& objStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     stepEnd  (IdStep(idStr), IdObj(objStr));
 }
 
 void AdvancedTimer::stepNext (const char* prevIdStr, const char* nextIdStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     stepNext (IdStep(prevIdStr), IdStep(nextIdStr));
 }
 
 void AdvancedTimer::step     (const char* idStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     step     (IdStep(idStr));
 }
 
 void AdvancedTimer::step     (const char* idStr, const char* objStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     step     (IdStep(idStr), IdObj(objStr));
 }
 
 void AdvancedTimer::step     (const char* idStr, const std::string& objStr)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     step     (IdStep(idStr), IdObj(objStr));
 }
 
 void AdvancedTimer::valSet(const char* idStr, double val)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     valSet(IdVal(idStr),val);
 }
 
 void AdvancedTimer::valAdd(const char* idStr, double val)
 {
-    type::vector<Record>* curRecords = getCurRecords();
+    const type::vector<Record>* curRecords = getCurRecords();
     if (!curRecords) return;
     valAdd(IdVal(idStr),val);
 }
@@ -635,13 +632,13 @@ void TimerData::process()
     ++nbIter;
     if (nbIter == 0) return; // do not keep stats on very first iteration
 
-    ctime_t t0 = records[0].time;
+    const ctime_t t0 = records[0].time;
     //ctime_t last_t = 0;
     int level = 0;
     for (unsigned int ri = 0; ri < records.size(); ++ri)
     {
         const Record& r = records[ri];
-        ctime_t t = r.time - t0;
+        const ctime_t t = r.time - t0;
         //last_t = r.time;
         if (r.type == Record::REND || r.type == Record::RSTEP_END) --level;
         switch (r.type)
@@ -677,7 +674,7 @@ void TimerData::process()
             StepData& data = stepData[id];
             if (data.lastIt == nbIter)
             {
-                ctime_t dur = t - data.lastTime;
+                const ctime_t dur = t - data.lastTime;
                 data.ttotal += dur;
                 data.ttotal2 += dur*dur;
                 data.label = std::string(id);
@@ -760,7 +757,7 @@ void printVal(std::ostream& out, double v)
         {
             v += 0.045;
             i = (long long)floor(v);
-            int dec = (int)floor((v-i)*10);
+            const int dec = (int)floor((v-i)*10);
             out << '-' << i;
             if (dec == 0)
                 out << "  ";
@@ -769,7 +766,7 @@ void printVal(std::ostream& out, double v)
         }
         else
         {
-            int dec = (int)floor((v-i)*100);
+            const int dec = (int)floor((v-i)*100);
             long long m = 100;
             while (i < m && m > 1)
             {
@@ -801,7 +798,7 @@ void printVal(std::ostream& out, double v)
         {
             v += 0.045;
             i = (long long)floor(v);
-            int dec = (int)floor((v-i)*10);
+            const int dec = (int)floor((v-i)*10);
             out << i;
             if (dec == 0)
                 out << "  ";
@@ -810,7 +807,7 @@ void printVal(std::ostream& out, double v)
         }
         else
         {
-            int dec = (int)floor((v-i)*100);
+            const int dec = (int)floor((v-i)*100);
             long long m = 1000;
             while (i < m && m > 1)
             {
@@ -855,7 +852,7 @@ void TimerData::print()
     if (!records.empty())
     {
         out << "Trace of last iteration :\n";
-        ctime_t t0 = records[0].time;
+        const ctime_t t0 = records[0].time;
         ctime_t last_t = 0;
         int level = 0;
         for (unsigned int ri = 1; ri < records.size(); ++ri)
@@ -919,10 +916,10 @@ void TimerData::print()
     {
         out << "\nSteps Duration Statistics (in ms) :\n";
         out << " LEVEL\t START\t  NUM\t   MIN\t   MAX\t MEAN\t  DEV\t TOTAL\tPERCENT\tID\n";
-        ctime_t ttotal = stepData[AdvancedTimer::IdStep()].ttotal;
+        const ctime_t ttotal = stepData[AdvancedTimer::IdStep()].ttotal;
         for (unsigned int s=0; s<steps.size(); ++s)
         {
-            StepData& data = stepData[steps[s]];
+            const StepData& data = stepData[steps[s]];
             printVal(out, data.level);
             out << '\t';
             printTime(out, data.tstart, data.numIt);
@@ -933,7 +930,7 @@ void TimerData::print()
             out << '\t';
             printTime(out, data.tmax);
             out << '\t';
-            double mean = (double)data.ttotal / data.num;
+            const double mean = (double)data.ttotal / data.num;
             printTime(out, (ctime_t)mean);
             out << '\t';
             printTime(out, (ctime_t)(sqrt((double)data.ttotal2/data.num - mean*mean)));
@@ -958,14 +955,14 @@ void TimerData::print()
         out << " NUM\t  MIN\t  MAX\t MEAN\t  DEV\t TOTAL\tID\n";
         for (unsigned int s=0; s<vals.size(); ++s)
         {
-            ValData& data = valData[vals[s]];
+            const ValData& data = valData[vals[s]];
             printVal(out, data.num, nbIter);
             out << '\t';
             printVal(out, data.vmin);
             out << '\t';
             printVal(out, data.vmax);
             out << '\t';
-            double mean = data.vtotal / data.num;
+            const double mean = data.vtotal / data.num;
             printVal(out, mean);
             out << '\t';
             printVal(out, sqrt(data.vtotal2/data.num - mean*mean) );
@@ -1015,7 +1012,7 @@ void AdvancedTimer::setOutputType(IdTimer id, const std::string& type)
 
 AdvancedTimer::outputType AdvancedTimer::getOutputType(IdTimer id)
 {
-	TimerData& data = timers[id];
+    const TimerData& data = timers[id];
 	return data.timerOutputType;
 }
 
@@ -1042,7 +1039,7 @@ std::string getVal(double v)
         {
             v += 0.045;
             i = (long long)floor(v);
-            int dec = (int)floor((v-i)*10);
+            const int dec = (int)floor((v-i)*10);
             outputStringStream << '-' << i;
             if (dec == 0)
                 outputStringStream << "  ";
@@ -1050,7 +1047,7 @@ std::string getVal(double v)
                 outputStringStream << '.' << dec;
         }        else
         {
-            int dec = (int)floor((v-i)*100);
+            const int dec = (int)floor((v-i)*100);
             long long m = 100;
             while (i < m && m > 1)
             {
@@ -1082,7 +1079,7 @@ std::string getVal(double v)
         {
             v += 0.045;
             i = (long long)floor(v);
-            int dec = (int)floor((v-i)*10);
+            const int dec = (int)floor((v-i)*10);
             outputStringStream << i;
             if (dec == 0)
                 outputStringStream << "  ";
@@ -1091,7 +1088,7 @@ std::string getVal(double v)
         }
         else
         {
-            int dec = (int)floor((v-i)*100);
+            const int dec = (int)floor((v-i)*100);
             long long m = 1000;
             while (i < m && m > 1)
             {
@@ -1156,10 +1153,10 @@ void TimerData::print(std::ostream& result)
     {
         //out << "\nSteps Duration Statistics (in ms) :\n";
         out << " LEVEL      START       NUM         MIN        MAX       MEAN       DEV        TOTAL     PERCENT     ID\n";
-        ctime_t ttotal = stepData[AdvancedTimer::IdStep()].ttotal;
+        const ctime_t ttotal = stepData[AdvancedTimer::IdStep()].ttotal;
         for (unsigned int s=0; s<steps.size(); ++s)
         {
-            StepData& data = stepData[steps[s]];
+            const StepData& data = stepData[steps[s]];
             printVal(out, data.level);
             out << "    ";
             printTime(out, data.tstart, data.numIt);
@@ -1170,7 +1167,7 @@ void TimerData::print(std::ostream& result)
             out << "    ";
             printTime(out, data.tmax);
             out << "    ";
-            double mean = (double)data.ttotal / data.num;
+            const double mean = (double)data.ttotal / data.num;
             printTime(out, (ctime_t)mean);
             out << "    ";
             printTime(out, (ctime_t)(sqrt((double)data.ttotal2/data.num - mean*mean)));
@@ -1195,14 +1192,14 @@ void TimerData::print(std::ostream& result)
         out << " NUM\t  MIN\t  MAX\t MEAN\t  DEV\t TOTAL\tID\n";
         for (unsigned int s=0; s<vals.size(); ++s)
         {
-            ValData& data = valData[vals[s]];
+            const ValData& data = valData[vals[s]];
             printVal(out, data.num, nbIter);
             out << '\t';
             printVal(out, data.vmin);
             out << '\t';
             printVal(out, data.vmax);
             out << '\t';
-            double mean = data.vtotal / data.num;
+            const double mean = data.vtotal / data.num;
             printVal(out, mean);
             out << '\t';
             printVal(out, sqrt(data.vtotal2/data.num - mean*mean) );
@@ -1222,7 +1219,7 @@ void TimerData::print(std::ostream& result)
 json TimerData::createJSONArray(int s,json jsonObject, StepData& data)
 {
     double value = 0;
-    ctime_t ttotal = stepData[AdvancedTimer::IdStep()].ttotal;
+    const ctime_t ttotal = stepData[AdvancedTimer::IdStep()].ttotal;
 
 
     // Level :
@@ -1246,7 +1243,7 @@ json TimerData::createJSONArray(int s,json jsonObject, StepData& data)
     jsonObject["Max"] = value;
 
     // Mean
-    double mean = (double)data.ttotal / data.num;
+    const double mean = (double)data.ttotal / data.num;
     value = strToDouble(getTime((ctime_t)mean), 4);
     jsonObject["Mean"] = value;
 
@@ -1364,7 +1361,7 @@ json TimerData::getLightJson(std::string stepNumber)
 {
     json jsonOutput;
     std::vector<std::string> deepthTree;
-    std::string jsonObjectName = stepNumber;
+    const std::string jsonObjectName = stepNumber;
     std::string father;
     int componantLevel = 0;
     int subComponantLevel = 0;
@@ -1569,8 +1566,6 @@ std::string AdvancedTimer::getTimeAnalysis(IdTimer id, double time, double delta
     }
 
     return outputStr;
-}
-
 }
 
 }

@@ -61,7 +61,7 @@ public:
     {
         resetFlag = true;
         if(forces.empty()) return 0;
-        SReal f = forces.front();
+        const SReal f = forces.front();
         forces.pop_front();
         return f;
     }
@@ -181,6 +181,17 @@ public:
 
     unsigned int constraintId;
 protected:
+
+     virtual type::vector<std::string> getUnilateralInteractionIdentifiers() {return {};}
+
+     virtual type::vector<std::string> getPairInteractionIdentifiers() override final
+     {
+            type::vector<std::string> ids = getUnilateralInteractionIdentifiers();
+            ids.push_back("Unilateral");
+            return ids;
+     }
+
+
     UnilateralInteractionConstraint(MechanicalState* object1=nullptr, MechanicalState* object2=nullptr);
     virtual ~UnilateralInteractionConstraint();
 
@@ -210,7 +221,7 @@ public:
 };
 
 
-#if  !defined(SOFA_COMPONENT_CONSTRAINTSET_UNILATERALINTERACTIONCONSTRAINT_CPP)
+#if !defined(SOFA_COMPONENT_CONSTRAINTSET_UNILATERALINTERACTIONCONSTRAINT_CPP)
 extern template class SOFA_COMPONENT_CONSTRAINT_LAGRANGIAN_MODEL_API UnilateralInteractionConstraint<defaulttype::Vec3Types>;
 
 #endif

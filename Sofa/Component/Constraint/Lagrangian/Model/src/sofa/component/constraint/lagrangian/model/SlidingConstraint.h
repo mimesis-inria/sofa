@@ -69,6 +69,18 @@ protected:
 
     virtual ~SlidingConstraint(){}
 
+
+
+    virtual type::vector<std::string> getSlidingIdentifiers() { return {}; }
+
+    virtual type::vector<std::string> getPairInteractionIdentifiers() override final
+    {
+        type::vector<std::string> ids = getSlidingIdentifiers();
+        ids.push_back("Sliding");
+        return ids;
+    }
+
+
 public:
     void init() override;
 
@@ -93,7 +105,7 @@ private:
 
 };
 
-#if  !defined(SOFA_COMPONENT_CONSTRAINTSET_SLIDINGCONSTRAINT_CPP)
+#if !defined(SOFA_COMPONENT_CONSTRAINTSET_SLIDINGCONSTRAINT_CPP)
 extern template class SOFA_COMPONENT_CONSTRAINT_LAGRANGIAN_MODEL_API SlidingConstraint< defaulttype::Vec3Types >;
 
 #endif

@@ -137,9 +137,8 @@ public:
      void draw(const core::visual::VisualParams* vparams) override;
 
 protected:
-    
-    template <class DataDeriv>
-    void projectResponseT(const core::MechanicalParams* mparams, DataDeriv& dx);
+
+    void projectResponseImpl(VecDeriv& dx);
 
 private:
 
@@ -157,7 +156,7 @@ private:
 };
 
 
-#if  !defined(SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_PATCHTESTMOVEMENTCONSTRAINT_CPP)
+#if !defined(SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_PATCHTESTMOVEMENTCONSTRAINT_CPP)
 extern template class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API PatchTestMovementConstraint<defaulttype::Vec3Types>;
 extern template class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API PatchTestMovementConstraint<defaulttype::Rigid3Types>;
 

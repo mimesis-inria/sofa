@@ -113,11 +113,12 @@ public:
 
 protected:
     template <class DataDeriv>
-    void projectResponseT(const core::MechanicalParams* mparams, DataDeriv& dx);
+    void projectResponseT(DataDeriv& dx,
+        const std::function<void(DataDeriv&, const unsigned int)>& clear);
 };
 
 
-#if  !defined(SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_PARABOLICCONSTRAINT_CPP)
+#if !defined(SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_PARABOLICCONSTRAINT_CPP)
 extern template class ParabolicConstraint<defaulttype::Rigid3Types>;
 extern template class ParabolicConstraint<defaulttype::Vec3Types>;
 
