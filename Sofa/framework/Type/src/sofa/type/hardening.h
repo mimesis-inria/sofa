@@ -20,25 +20,21 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
-#include <sofa/gui/component/performer/MouseInteractor.h>
-#include <sofa/core/visual/VisualParams.h>
 
-#include <map>
-namespace sofa::gui::component::performer
+#include <limits>
+#include <type_traits>
+
+
+// This file should contain useful function to harden (i.e make safer) the code
+
+namespace sofa::type::hardening
 {
 
-template <class DataTypes>
-void MouseInteractor<DataTypes>::init()
+template<typename IndexType> requires std::is_integral_v<IndexType>
+constexpr bool checkOverflow(IndexType a, IndexType b)
 {
-    BaseMouseInteractor::init();
-    mouseInSofa = dynamic_cast< MouseContainer*>(this->getContext()->getMechanicalState());
-    if (!mouseInSofa)
-    {
-        msg_error() << "MouseInteractor requires a MechanicalState of the correct type (" << DataTypes::Name() << ") in its context";
-        this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
-        
-        return;
-    }
+    if (a <= 0) return false;
+    return a > std::numeric_limits<IndexType>::max() / b;
 }
 
-} // namespace sofa::gui::component::performer
+} //namespace sofa::type::hardening
