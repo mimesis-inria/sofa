@@ -19,42 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-/*****************************************************************************
-* User of this library should read the documentation
-* in the messaging.h file.
-******************************************************************************/
-#ifndef FILEMESSAGEHANDLER_H
-#define FILEMESSAGEHANDLER_H
+#include <sofa/config.h>
 
-#include <sofa/helper/logging/MessageHandler.h>
-#include <fstream>
-
-
-namespace sofa::helper::logging
-{
-
-class MessageFormatter;
-
-/// A message handle that saves the content message passing by in a file.
-/// The formatting can be customize by passing a different MessageFormatter in the constructor.
-/// Example of use:
-///     MessageDispatcher::addHandler(new FileMessageHandler("myfile.log"));
-class SOFA_HELPER_API FileMessageHandler : public MessageHandler
-{
-public:
-    FileMessageHandler(const char* filename,MessageFormatter* formatter = nullptr);
-
-    ~FileMessageHandler() override;
-    void process(Message& m) override ;
-    std::string getName() const override { return "FileMessageHandler"; }
-
-    bool isValid(); // is output file ok ?
-
-private:
-    std::ofstream       m_outFile;
-    MessageFormatter    *m_formatter;
-};
-
-}
-
-#endif // FILEMESSAGEHANDLER_H
+SOFA_EXPORT_DYNAMIC_LIBRARY void init(){}
