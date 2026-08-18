@@ -46,6 +46,7 @@ extern void registerPlaneProjectiveConstraint(sofa::core::ObjectFactory* factory
 extern void registerPointProjectiveConstraint(sofa::core::ObjectFactory* factory);
 extern void registerPositionBasedDynamicsProjectiveConstraint(sofa::core::ObjectFactory* factory);
 extern void registerSkeletalMotionProjectiveConstraint(sofa::core::ObjectFactory* factory);
+extern void registerMobileFixedProjectiveConstraint(sofa::core::ObjectFactory* factory);
 
 extern "C" {
     SOFA_EXPORT_DYNAMIC_LIBRARY void initExternalModule();
@@ -91,6 +92,7 @@ void registerObjects(sofa::core::ObjectFactory* factory)
     registerPointProjectiveConstraint(factory);
     registerPositionBasedDynamicsProjectiveConstraint(factory);
     registerSkeletalMotionProjectiveConstraint(factory);
+    registerMobileFixedProjectiveConstraint(factory);
 }
 
 void init()

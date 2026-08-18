@@ -148,20 +148,20 @@ void BeamFEMForceField<DataTypes>::reinitBeam(Index i)
     const auto& [a, b] = (*m_indexedElements)[i].array();
 
     const VecCoord& x0 = this->mstate->read(core::vec_id::read_access::restPosition)->getValue();
-    stiffness =  this->getYoungModulusInElement(i);
-
-    length = (x0[a].getCenter()-x0[b].getCenter()).norm() ;
-
-    radius = d_radius.getValue() ;
+    stiffness = this->getYoungModulusInElement(i);
+    length = (x0[a].getCenter() - x0[b].getCenter()).norm();
+    radius = d_radius.getValue();
     radiusInner = d_radiusInner.getValue();
-    poisson = this->getPoissonRatioInElement(i) ;
-
+    poisson = this->getPoissonRatioInElement(i);
 
     setBeam(i, stiffness, length, poisson, radius, radiusInner);
+    computeStiffness(i, a, b);
 
-    computeStiffness(i,a,b);
+    // K0 is constant between reinit calls. Consumers can therefore cache and
+    // factor the assembled reference metric until this version changes.
+    ++m_referenceElasticMetricVersion;
 
-    initLarge(i,a,b);
+    initLarge(i, a, b);
 }
 
 template< class DataTypes>
@@ -179,6 +179,76 @@ Quat<SReal>& BeamFEMForceField<DataTypes>::beamQuat(int i)
 {
     helper::WriteAccessor<Data<type::vector<BeamInfo> > > bd = d_beamsData;
     return bd[i].quat;
+}
+
+template<class DataTypes>
+sofa::Size BeamFEMForceField<DataTypes>::getReferenceElasticMetricElementCount() const
+{
+    if (!m_indexedElements)
+        return 0;
+
+    return m_partialListSegment
+        ? static_cast<sofa::Size>(d_listSegment.getValue().size())
+        : static_cast<sofa::Size>(m_indexedElements->size());
+}
+
+template<class DataTypes>
+bool BeamFEMForceField<DataTypes>::getReferenceElasticMetricElement(
+    sofa::Size metricElementIndex, Index& a, Index& b, StiffnessMatrix& K) const
+{
+    if (!m_indexedElements)
+        return false;
+
+    Index elementIndex = static_cast<Index>(metricElementIndex);
+
+    if (m_partialListSegment)
+    {
+        const auto& segments = d_listSegment.getValue();
+        if (metricElementIndex >= segments.size())
+            return false;
+
+        elementIndex = segments[metricElementIndex];
+    }
+    else if (metricElementIndex >= m_indexedElements->size())
+    {
+        return false;
+    }
+
+    if (elementIndex >= m_indexedElements->size() || elementIndex >= d_beamsData.getValue().size())
+        return false;
+
+    const auto& edge = (*m_indexedElements)[elementIndex];
+    a = edge[0];
+    b = edge[1];
+
+    const VecCoord& x0 = this->mstate->read(core::vec_id::read_access::restPosition)->getValue();
+    if (a >= x0.size() || b >= x0.size())
+        return false;
+
+    Quat<SReal> q0 = x0[a].getOrientation();
+    q0.normalize();
+
+    Transformation R0, R0t;
+    q0.toMatrix(R0);
+    R0t.transpose(R0);
+
+    const StiffnessMatrix& K0 = d_beamsData.getValue()[elementIndex]._k_loc;
+
+    K.clear();
+
+    // Kp_e = T0 K0 T0^T with T0 = diag(R0,R0,R0,R0).
+    for (int row = 0; row < 12; row += 3)
+    {
+        for (int col = 0; col < 12; col += 3)
+        {
+            type::Mat<3, 3, Real> block;
+            K0.getsub(row, col, block);
+            block = R0 * block * R0t;
+            K.setsub(row, col, block);
+        }
+    }
+
+    return true;
 }
 
 template<class DataTypes>
@@ -583,96 +653,509 @@ void BeamFEMForceField<DataTypes>::buildStiffnessMatrix(core::behavior::Stiffnes
     auto dfdx = matrix->getForceDerivativeIn(this->mstate)
                        .withRespectToPositionsIn(this->mstate);
 
+    const VecCoord& x = this->mstate->read(core::vec_id::read_access::position)->getValue();
+    const VecCoord& x0 = this->mstate->read(core::vec_id::read_access::restPosition)->getValue();
+
+    auto skew = [](const type::Vec<3, Real>& v)
+    {
+        type::Mat<3, 3, Real> S;
+
+        S(0,0) = Real(0);  S(0,1) = -v[2];   S(0,2) =  v[1];
+        S(1,0) =  v[2];    S(1,1) = Real(0); S(1,2) = -v[0];
+        S(2,0) = -v[1];    S(2,1) =  v[0];   S(2,2) = Real(0);
+
+        return S;
+    };
+
+    auto assembleElement = [&](unsigned int i, Index a, Index b)
+    {
+        // ================================================================
+        // Current output frame R_a
+        // ================================================================
+
+        type::Quat<SReal> qa = x[a].getOrientation();
+        qa.normalize();
+
+        Transformation R, Rt;
+        qa.toMatrix(R);
+        Rt.transpose(R);
+
+        const StiffnessMatrix& K0 = d_beamsData.getValue()[i]._k_loc;
+
+        int index[12];
+
+        for (int j = 0; j < 6; ++j)
+            index[j] = a * 6 + j;
+
+        for (int j = 0; j < 6; ++j)
+            index[6 + j] = b * 6 + j;
+
+
+        // ================================================================
+        // 1. CURRENT TRANSLATIONAL DEFORMATION
+        //
+        // u_t = R_a^T (x_b - x_a)
+        //     - R_a0^T (x_b0 - x_a0)
+        // ================================================================
+
+        const type::Vec<3, Real> restEdgeGlobal =
+            x0[b].getCenter() - x0[a].getCenter();
+
+        const type::Vec<3, Real> currentEdgeGlobal =
+            x[b].getCenter() - x[a].getCenter();
+
+        const type::Vec<3, Real> restEdgeLocal =
+            x0[a].getOrientation().inverseRotate(restEdgeGlobal);
+
+        const type::Vec<3, Real> currentEdgeLocal =
+            x[a].getOrientation().inverseRotate(currentEdgeGlobal);
+
+        const type::Vec<3, Real> uTranslation =
+            currentEdgeLocal - restEdgeLocal;
+
+
+        // ================================================================
+        // 2. CURRENT ROTATIONAL DEFORMATION
+        //
+        // D0   = R_a0^T R_b0
+        // D    = R_a ^T R_b
+        //
+        // tmpQ represents
+        //
+        //      Q = D0^T D
+        //
+        // and
+        //
+        //      u_r = RotVec(Q).
+        //
+        // Use exactly the same quaternion construction as addForce().
+        // ================================================================
+
+        type::Quat<SReal> dQ0 =
+            qDiff(x0[b].getOrientation(), x0[a].getOrientation());
+
+        type::Quat<SReal> dQ =
+            qDiff(x[b].getOrientation(), x[a].getOrientation());
+
+        dQ0.normalize();
+        dQ.normalize();
+
+        type::Quat<SReal> tmpQ = qDiff(dQ, dQ0);
+        tmpQ.normalize();
+
+        const type::Vec<3, Real> uRotation =
+            tmpQ.quatToRotationVector();
+
+
+        // ================================================================
+        // 3. CURRENT DEFORMATION VECTOR
+        //
+        // Same vector used by accumulateForceLarge():
+        //
+        // d =
+        //
+        // [ 0 ]
+        // [ 0 ]
+        // [ uTranslation ]
+        // [ uRotation    ]
+        //
+        // ================================================================
+
+        Displacement depl;
+
+        for (int j = 0; j < 12; ++j)
+            depl[j] = Real(0);
+
+        depl[6]  = uTranslation[0];
+        depl[7]  = uTranslation[1];
+        depl[8]  = uTranslation[2];
+
+        depl[9]  = uRotation[0];
+        depl[10] = uRotation[1];
+        depl[11] = uRotation[2];
+
+
+        // ================================================================
+        // 4. CURRENT LOCAL FORCE
+        //
+        //      f_local = K0 d
+        //
+        // Needed for the derivative of the final rotation T(R_a).
+        // ================================================================
+
+        const Displacement localForce = K0 * depl;
+
+
+        // ================================================================
+        // 5. EXACT TRANSLATIONAL KINEMATIC DERIVATIVE
+        //
+        // e = R_a^T (x_b - x_a)
+        //
+        // delta u_t =
+        //
+        //      -R_a^T delta x_a
+        //      +R_a^T delta x_b
+        //      +[e]_x R_a^T delta theta_a
+        //
+        //
+        // Therefore:
+        //
+        // du/dx_a       = -R_a^T
+        // du/dtheta_a   = [e]_x R_a^T
+        // du/dx_b       = +R_a^T
+        // du/dtheta_b   = 0
+        //
+        // ================================================================
+
+        const Transformation BTranslationThetaA =
+            skew(currentEdgeLocal) * Rt;
+
+
+        // ================================================================
+        // 6. EXACT ROTATIONAL KINEMATIC DERIVATIVE
+        //
+        // D0 = R_a0^T R_b0
+        //
+        // For SOFA spatial angular increments:
+        //
+        //      delta u_r =
+        //
+        //      J_l^{-1}(u_r)
+        //      D0^T
+        //      R_a^T
+        //      (delta theta_b - delta theta_a)
+        //
+        // Define:
+        //
+        //      M = J_l^{-1}(u_r) D0^T R_a^T
+        //
+        // Then:
+        //
+        //      du_r/dtheta_a = -M
+        //      du_r/dtheta_b = +M
+        //
+        // ================================================================
+
+        Transformation D0, D0t;
+        dQ0.toMatrix(D0);
+        D0t.transpose(D0);
+
+
+        // ------------------------------------------------
+        // Inverse SO(3) LEFT Jacobian
+        //
+        // J_l^{-1}(phi)
+        //
+        //   = I
+        //     - 1/2 [phi]_x
+        //     + gamma [phi]_x^2
+        //
+        //
+        // gamma =
+        //
+        //   1/theta^2
+        //   - (1+cos(theta))/(2 theta sin(theta))
+        //
+        // Numerically equivalent stable form:
+        //
+        //   gamma =
+        //   (1 - theta/(2 tan(theta/2))) / theta^2
+        //
+        // ------------------------------------------------
+
+        const Transformation Phi = skew(uRotation);
+        const Transformation Phi2 = Phi * Phi;
+
+        const Real theta = uRotation.norm();
+        const Real theta2 = theta * theta;
+
+        Real gamma;
+
+        if (theta < Real(1e-6))
+        {
+            // Series:
+            //
+            // 1/12 + theta^2/720 + theta^4/30240 + ...
+            gamma =
+                Real(1.0 / 12.0)
+                + theta2 * Real(1.0 / 720.0)
+                + theta2 * theta2 * Real(1.0 / 30240.0);
+        }
+        else
+        {
+            gamma =
+                (Real(1)
+                 - Real(0.5) * theta / std::tan(Real(0.5) * theta))
+                / theta2;
+        }
+
+
+        Transformation JlInv;
+        JlInv.identity();
+
+        for (int r = 0; r < 3; ++r)
+        {
+            for (int c = 0; c < 3; ++c)
+            {
+                JlInv(r, c) +=
+                    -Real(0.5) * Phi(r, c)
+                    + gamma * Phi2(r, c);
+            }
+        }
+
+
+        Transformation tmpM = JlInv * D0t;
+        const Transformation M = tmpM * Rt;
+
+
+        // ================================================================
+        // 7. EXACT JACOBIAN
+        //
+        // Build one column at a time.
+        //
+        // Element columns:
+        //
+        //   0  1  2     x_a
+        //   3  4  5     theta_a
+        //   6  7  8     x_b
+        //   9 10 11     theta_b
+        //
+        //
+        // For each unit perturbation dz_j:
+        //
+        //      delta d
+        //
+        //          =
+        //
+        //      [ 0            ]
+        //      [ 0            ]
+        //      [ delta u_t    ]
+        //      [ delta u_r    ]
+        //
+        //
+        //      delta f_local = K0 delta d
+        //
+        //
+        // Global force:
+        //
+        //      f = -T(R_a) f_local
+        //
+        // therefore
+        //
+        //      delta f
+        //
+        //          =
+        //
+        //      -T delta f_local
+        //
+        //      +
+        //
+        //      [R f_local]_x delta theta_a
+        //
+        // ================================================================
+
+        for (int column = 0; column < 12; ++column)
+        {
+            type::Vec<3, Real> deltaTranslation;
+            type::Vec<3, Real> deltaRotation;
+
+            deltaTranslation.clear();
+            deltaRotation.clear();
+
+
+            // ------------------------------------------------------------
+            // x_a columns
+            //
+            // du/dx_a = -R^T
+            // ------------------------------------------------------------
+
+            if (column >= 0 && column < 3)
+            {
+                const int c = column;
+
+                for (int r = 0; r < 3; ++r)
+                    deltaTranslation[r] = -Rt(r, c);
+            }
+
+
+            // ------------------------------------------------------------
+            // theta_a columns
+            //
+            // du/dtheta_a   = [e]_x R^T
+            //
+            // dur/dtheta_a  = -M
+            // ------------------------------------------------------------
+
+            else if (column >= 3 && column < 6)
+            {
+                const int c = column - 3;
+
+                for (int r = 0; r < 3; ++r)
+                {
+                    deltaTranslation[r] =
+                        BTranslationThetaA(r, c);
+
+                    deltaRotation[r] =
+                        -M(r, c);
+                }
+            }
+
+
+            // ------------------------------------------------------------
+            // x_b columns
+            //
+            // du/dx_b = +R^T
+            // ------------------------------------------------------------
+
+            else if (column >= 6 && column < 9)
+            {
+                const int c = column - 6;
+
+                for (int r = 0; r < 3; ++r)
+                    deltaTranslation[r] = Rt(r, c);
+            }
+
+
+            // ------------------------------------------------------------
+            // theta_b columns
+            //
+            // dur/dtheta_b = +M
+            // ------------------------------------------------------------
+
+            else
+            {
+                const int c = column - 9;
+
+                for (int r = 0; r < 3; ++r)
+                    deltaRotation[r] = M(r, c);
+            }
+
+
+            // ============================================================
+            // Exact deformation derivative for this column
+            // ============================================================
+
+            Displacement deltaDepl;
+
+            for (int j = 0; j < 12; ++j)
+                deltaDepl[j] = Real(0);
+
+            deltaDepl[6] = deltaTranslation[0];
+            deltaDepl[7] = deltaTranslation[1];
+            deltaDepl[8] = deltaTranslation[2];
+
+            deltaDepl[9]  = deltaRotation[0];
+            deltaDepl[10] = deltaRotation[1];
+            deltaDepl[11] = deltaRotation[2];
+
+
+            // ============================================================
+            // Constitutive derivative
+            //
+            //      delta f_local = K0 delta d
+            // ============================================================
+
+            const Displacement deltaLocalForce =
+                K0 * deltaDepl;
+
+
+            // ============================================================
+            // Transform derivative into global coordinates.
+            //
+            //      delta f =
+            //
+            //          -R delta f_local
+            //
+            //          +
+            //
+            //          [R f_local]_x delta theta_a
+            //
+            // The second contribution exists only for theta_a columns.
+            // ============================================================
+
+            for (int block = 0; block < 4; ++block)
+            {
+                const int localRow = 3 * block;
+
+
+                // --------------------------------------------------------
+                // -R delta f_local
+                // --------------------------------------------------------
+
+                const type::Vec<3, Real> deltaFLocal(
+                    deltaLocalForce[localRow],
+                    deltaLocalForce[localRow + 1],
+                    deltaLocalForce[localRow + 2]);
+
+                type::Vec<3, Real> deltaFGlobal =
+                    -(R * deltaFLocal);
+
+
+                // --------------------------------------------------------
+                // Output-frame derivative:
+                //
+                //      [R f_local]_x delta theta_a
+                //
+                // Only for columns 3,4,5.
+                // --------------------------------------------------------
+
+                if (column >= 3 && column < 6)
+                {
+                    const int c = column - 3;
+
+                    const type::Vec<3, Real> fLocal(
+                        localForce[localRow],
+                        localForce[localRow + 1],
+                        localForce[localRow + 2]);
+
+                    const type::Vec<3, Real> fRotated =
+                        R * fLocal;
+
+                    const type::Mat<3, 3, Real> frameDerivative =
+                        skew(fRotated);
+
+                    for (int r = 0; r < 3; ++r)
+                        deltaFGlobal[r] += frameDerivative(r, c);
+                }
+
+
+                // --------------------------------------------------------
+                // Assemble exact df/dx
+                // --------------------------------------------------------
+
+                for (int r = 0; r < 3; ++r)
+                {
+                    dfdx(
+                        index[localRow + r],
+                        index[column]) += deltaFGlobal[r];
+                }
+            }
+        }
+    };
+
+
+    // ================================================================
+    // Elements
+    // ================================================================
+
     if (m_partialListSegment)
     {
         for (unsigned int i : d_listSegment.getValue())
         {
             const auto& [a, b] = (*m_indexedElements)[i].array();
-
-            type::Quat<SReal>& q = beamQuat(i);
-            q.normalize();
-            Transformation R,Rt;
-            q.toMatrix(R);
-            Rt.transpose(R);
-            const StiffnessMatrix& K0 = d_beamsData.getValue()[i]._k_loc;
-            StiffnessMatrix K;
-            for (int x1=0; x1<12; x1+=3)
-                for (int y1=0; y1<12; y1+=3)
-                {
-                    type::Mat<3,3,Real> m;
-                    K0.getsub(x1,y1, m);
-                    m = R*m*Rt;
-                    K.setsub(x1,y1, m);
-                }
-            int index[12];
-            for (int x1=0; x1<6; x1++)
-                index[x1] = a*6+x1;
-            for (int x1=0; x1<6; x1++)
-                index[6+x1] = b*6+x1;
-            for (int x1=0; x1<12; ++x1)
-                for (int y1=0; y1<12; ++y1)
-                    dfdx(index[x1], index[y1]) += - K(x1,y1);
-
+            assembleElement(i, a, b);
         }
-
     }
     else
     {
-        unsigned int i {};
-        for(auto it = m_indexedElements->begin() ; it != m_indexedElements->end() ; ++it, ++i)
+        unsigned int i = 0;
+
+        for (auto it = m_indexedElements->begin();
+             it != m_indexedElements->end();
+             ++it, ++i)
         {
             const auto& [a, b] = it->array();
-
-            type::Quat<SReal>& q = beamQuat(i);
-            q.normalize();
-            Transformation R,Rt;
-            q.toMatrix(R);
-            Rt.transpose(R);
-            const StiffnessMatrix& K0 = d_beamsData.getValue()[i]._k_loc;
-            StiffnessMatrix K;
-            const bool exploitSymmetry = d_useSymmetricAssembly.getValue();
-
-            if (exploitSymmetry) {
-                for (int x1=0; x1<12; x1+=3) {
-                    for (int y1=x1; y1<12; y1+=3)
-                    {
-                        type::Mat<3,3,Real> m;
-                        K0.getsub(x1,y1, m);
-                        m = R*m*Rt;
-
-                        for (int i=0; i<3; i++)
-                            for (int j=0; j<3; j++) {
-                                K(i+x1,j+y1) += m(i,j);
-                                K(j+y1,i+x1) += m(i,j);
-                            }
-                        if (x1 == y1)
-                            for (int i=0; i<3; i++)
-                                for (int j=0; j<3; j++)
-                                    K(i+x1,j+y1) *= SReal(0.5);
-
-                    }
-                }
-            } else  {
-                for (int x1=0; x1<12; x1+=3) {
-                    for (int y1=0; y1<12; y1+=3)
-                    {
-                        type::Mat<3,3,Real> m;
-                        K0.getsub(x1,y1, m);
-                        m = R*m*Rt;
-                        K.setsub(x1,y1, m);
-                    }
-                }
-            }
-
-            int index[12];
-            for (int x1=0; x1<6; x1++)
-                index[x1] = a*6+x1;
-            for (int x1=0; x1<6; x1++)
-                index[6+x1] = b*6+x1;
-            for (int x1=0; x1<12; ++x1)
-                for (int y1=0; y1<12; ++y1)
-                    dfdx(index[x1], index[y1]) += - K(x1,y1);
-
+            assembleElement(i, a, b);
         }
     }
 }
@@ -693,35 +1176,114 @@ SReal BeamFEMForceField<DataTypes>::getPotentialEnergy(const core::MechanicalPar
 }
 
 
+// template<class DataTypes>
+// void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparams)
+// {
+//     if (!vparams->displayFlags().getShowForceFields()) return;
+//     if (!this->mstate) return;
+//     if (!m_indexedElements)
+//         return;
+
+//     const auto stateLifeCycle = vparams->drawTool()->makeStateLifeCycle();
+
+//     const VecCoord& x = this->mstate->read(core::vec_id::read_access::position)->getValue();
+
+//     std::vector< type::Vec3 > points[3];
+
+//     if (m_partialListSegment)
+//     {
+//         for (unsigned int j=0; j<d_listSegment.getValue().size(); j++)
+//             drawElement(d_listSegment.getValue()[j], points, x);
+//     }
+//     else
+//     {
+//         for (unsigned int i=0; i<m_indexedElements->size(); ++i)
+//             drawElement(i, points, x);
+//     }
+//     vparams->drawTool()->drawLines(points[0], 1, sofa::type::RGBAColor::red());
+//     vparams->drawTool()->drawLines(points[1], 1, sofa::type::RGBAColor::green());
+//     vparams->drawTool()->drawLines(points[2], 1, sofa::type::RGBAColor::blue());
+
+
+// }
+
 template<class DataTypes>
 void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparams)
 {
-    if (!vparams->displayFlags().getShowForceFields()) return;
-    if (!this->mstate) return;
-    if (!m_indexedElements)
+    if (!vparams->displayFlags().getShowForceFields() || !this->mstate || !m_indexedElements)
         return;
 
     const auto stateLifeCycle = vparams->drawTool()->makeStateLifeCycle();
-
     const VecCoord& x = this->mstate->read(core::vec_id::read_access::position)->getValue();
 
-    std::vector< type::Vec3 > points[3];
+    std::vector<type::Vec3> points[3];
+    constexpr unsigned int subdivisions = 8;
+
+    auto drawSmoothElement = [&](unsigned int i)
+    {
+        const auto& [a, b] = (*m_indexedElements)[i].array();
+
+        const type::Vec3 p0 = x[a].getCenter();
+        const type::Vec3 p1 = x[b].getCenter();
+        const type::Vec3 localX(1.0, 0.0, 0.0);
+
+        const SReal length = (p1 - p0).norm();
+
+        if (length <= std::numeric_limits<SReal>::epsilon())
+            return;
+
+        const type::Vec3 m0 = x[a].getOrientation().rotate(localX) * length;
+        const type::Vec3 m1 = x[b].getOrientation().rotate(localX) * length;
+
+        auto hermite = [&](SReal u)
+        {
+            const SReal u2 = u * u;
+            const SReal u3 = u2 * u;
+
+            const SReal h00 = 2.0 * u3 - 3.0 * u2 + 1.0;
+            const SReal h10 = u3 - 2.0 * u2 + u;
+            const SReal h01 = -2.0 * u3 + 3.0 * u2;
+            const SReal h11 = u3 - u2;
+
+            return p0 * h00 + m0 * h10 + p1 * h01 + m1 * h11;
+        };
+
+        type::Vec3 previous = p0;
+
+        for (unsigned int sample = 1; sample <= subdivisions; ++sample)
+        {
+            const SReal u = static_cast<SReal>(sample) / static_cast<SReal>(subdivisions);
+            const type::Vec3 current = hermite(u);
+
+            points[0].push_back(previous);
+            points[0].push_back(current);
+
+            previous = current;
+        }
+
+        // Preserve the existing green and blue local-axis drawings,
+        // but discard the original straight red segment.
+        std::vector<type::Vec3> elementAxes[3];
+        drawElement(i, elementAxes, x);
+
+        points[1].insert(points[1].end(), elementAxes[1].begin(), elementAxes[1].end());
+        points[2].insert(points[2].end(), elementAxes[2].begin(), elementAxes[2].end());
+    };
 
     if (m_partialListSegment)
     {
-        for (unsigned int j=0; j<d_listSegment.getValue().size(); j++)
-            drawElement(d_listSegment.getValue()[j], points, x);
+        for (const auto elementIndex : d_listSegment.getValue())
+            drawSmoothElement(elementIndex);
     }
     else
     {
-        for (unsigned int i=0; i<m_indexedElements->size(); ++i)
-            drawElement(i, points, x);
+        for (unsigned int i = 0; i < m_indexedElements->size(); ++i)
+            drawSmoothElement(i);
     }
-    vparams->drawTool()->drawLines(points[0], 1, sofa::type::RGBAColor::red());
-    vparams->drawTool()->drawLines(points[1], 1, sofa::type::RGBAColor::green());
-    vparams->drawTool()->drawLines(points[2], 1, sofa::type::RGBAColor::blue());
 
-
+    vparams->drawTool()->drawLines(points[0], 2.0f, sofa::type::RGBAColor::red());
+    vparams->drawTool()->drawLines(points[1], 1.0f, sofa::type::RGBAColor::green());
+    vparams->drawTool()->drawLines(points[2], 1.0f, sofa::type::RGBAColor::blue());
 }
 
 template<class DataTypes>

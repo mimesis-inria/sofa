@@ -413,6 +413,7 @@ void DataDisplay::doDrawVisual(const core::visual::VisualParams* vparams)
                         : eval(ptData[t[j]]);
                 color[j][3] = transparency;
             }
+
             glNormalT(m_normals[t[0]]);
             glMaterialfv(GL_FRONT,GL_DIFFUSE,color[0].data());
             sofa::gl::glVertexNv<3>(x[t[0]].ptr());

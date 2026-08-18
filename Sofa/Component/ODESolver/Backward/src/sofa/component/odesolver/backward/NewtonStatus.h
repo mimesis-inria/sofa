@@ -35,5 +35,7 @@ MAKE_SELECTABLE_ITEMS(NewtonStatus,
     sofa::helper::Item{"ConvergedResidualInitialRatio", "Converged: Residual initial ratio is smaller than the threshold"},
     sofa::helper::Item{"ConvergedAbsoluteResidual", "Converged: Absolute residual is smaller than the threshold"},
     sofa::helper::Item{"ConvergedRelativeEstimateDifference", "Converged: Relative estimate difference is smaller than the threshold"},
-    sofa::helper::Item{"ConvergedAbsoluteEstimateDifference", "Converged: Absolute estimate difference is smaller than the threshold"});
+    sofa::helper::Item{"ConvergedAbsoluteEstimateDifference", "Converged: Absolute estimate difference is smaller than the threshold"},
+    sofa::helper::Item{"DivergedInvalidResidual", "Diverged: the residual is not a finite number"},
+    sofa::helper::Item{"DivergedContinuation", "Diverged: the continuation strategy failed to reach the full problem"});
 }

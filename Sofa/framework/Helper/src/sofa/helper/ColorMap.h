@@ -28,6 +28,9 @@
 #include <sofa/type/RGBAColor.h>
 #include <sofa/helper/rmath.h>
 #include <sofa/type/Vec.h>
+#include <algorithm>
+#include <cmath>
+#include <limits>
 #include <string>
 //#include <sofa/helper/OptionsGroup.h>
 
@@ -52,7 +55,25 @@ public:
         {}
 
         evaluator(const ColorMap* map, Real vmin, Real vmax)
-            : map(map), vmin(vmin), vmax(vmax), vscale((vmax == vmin) ? (Real)0 : (map->entries.size()-1)/(vmax-vmin)) {}
+            : map(map), vmin(vmin), vmax(vmax),
+              // An exact vmax == vmin test is fragile: two values meant to
+              // represent "no variation" (e.g. a field that is uniformly
+              // zero) routinely differ by more than a couple of ULPs once
+              // they've gone through independent floating-point paths (e.g.
+              // mapping between two meshes that represent the same geometry
+              // but aren't bit-identical -- observed noise on one real case
+              // was ~4 ULPs, i.e. a tight few-epsilon tolerance isn't safe
+              // margin), leaving a near-zero but nonzero vmax-vmin. That
+              // produces a huge vscale, which amplifies that noise across
+              // the whole palette instead of the flat color a genuinely-
+              // uniform field should get. Tolerate a relative (scaled by
+              // the larger endpoint magnitude, floored at 1 so near-zero
+              // ranges aren't over-sensitive) difference of up to 1e4
+              // epsilons as "equal" instead.
+              vscale((std::abs(vmax - vmin) <= Real(1e4) * std::numeric_limits<Real>::epsilon()
+                          * std::max({Real(1), std::abs(vmax), std::abs(vmin)}))
+                         ? (Real)0
+                         : (map->entries.size()-1)/(vmax-vmin)) {}
 
         auto operator()(Real r) const
         {

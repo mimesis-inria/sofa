@@ -48,6 +48,15 @@ struct ZeroDirichletCondition
      * intersection of the row and the column is set to 1.
      */
     virtual void discardRowCol(sofa::Index /*row*/, sofa::Index /*col*/) {}
+
+    virtual bool copyColumnBeforeDiscard(
+        sofa::Index /*col*/,
+        sofa::type::vector<SReal>& /*out*/,
+        sofa::Index /*localRowBegin*/ = 0,
+        sofa::Size /*localRowCount*/ = 0) const
+    {
+        return false;
+    }
 };
 
 /**

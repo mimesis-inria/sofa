@@ -153,6 +153,9 @@ public:
     bool m_updateStiffnessMatrix;
     SReal m_lastUpdatedStep;
 
+    // Incremented whenever an element local stiffness K0 is rebuilt.
+    sofa::Size m_referenceElasticMetricVersion { 0 };
+
     Quat<SReal>& beamQuat(int i);
 
     BeamFEMForceField();
@@ -176,6 +179,24 @@ public:
     void setUpdateStiffnessMatrix(bool val);
     void setBeam(Index i, SReal E, SReal L, SReal nu, SReal r, SReal rInner);
     void initBeams(std::size_t size);
+
+    /**
+     * Reference elastic metric used by external preconditioners.
+     *
+     * Each returned element is
+     *
+     *     Kp_e = T0 K0 T0^T
+     *
+     * in global coordinates, with the positive stiffness sign. T0 is built
+     * from the rest orientation of the first node of the element. The metric
+     * contains only the legacy elastic stiffness; it does not contain the
+     * exact nonlinear tangent/frame terms assembled by buildStiffnessMatrix().
+     *
+     * The metric is constant until the beam data/topology are reinitialized.
+     */
+    sofa::Size getReferenceElasticMetricElementCount() const;
+    bool getReferenceElasticMetricElement(sofa::Size metricElementIndex, Index& a, Index& b, StiffnessMatrix& K) const;
+    sofa::Size getReferenceElasticMetricVersion() const { return m_referenceElasticMetricVersion; }
 
 protected:
     void drawElement(int i, std::vector< type::Vec3 >* points, const VecCoord& x);

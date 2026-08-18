@@ -1,0 +1,2355 @@
+diff --git a/Sofa/Component/Constraint/Projective/CMakeLists.txt b/Sofa/Component/Constraint/Projective/CMakeLists.txt
+index 3768e249d9..98bd131f09 100644
+--- a/Sofa/Component/Constraint/Projective/CMakeLists.txt
++++ b/Sofa/Component/Constraint/Projective/CMakeLists.txt
+@@ -45,7 +45,7 @@ set(HEADER_FILES
+     ${SOFACOMPONENTCONSTRAINTPROJECTIVE_SOURCE_DIR}/PointProjectiveConstraint.inl
+     ${SOFACOMPONENTCONSTRAINTPROJECTIVE_SOURCE_DIR}/DirectionProjectiveConstraint.h
+     ${SOFACOMPONENTCONSTRAINTPROJECTIVE_SOURCE_DIR}/DirectionProjectiveConstraint.inl
+-
++    ${SOFACOMPONENTCONSTRAINTPROJECTIVE_SOURCE_DIR}/MobileFixedProjectiveConstraint.h
+ )
+ 
+ set(SOURCE_FILES
+@@ -70,6 +70,7 @@ set(SOURCE_FILES
+     ${SOFACOMPONENTCONSTRAINTPROJECTIVE_SOURCE_DIR}/PlaneProjectiveConstraint.cpp
+     ${SOFACOMPONENTCONSTRAINTPROJECTIVE_SOURCE_DIR}/PointProjectiveConstraint.cpp
+     ${SOFACOMPONENTCONSTRAINTPROJECTIVE_SOURCE_DIR}/DirectionProjectiveConstraint.cpp
++    ${SOFACOMPONENTCONSTRAINTPROJECTIVE_SOURCE_DIR}/MobileFixedProjectiveConstraint.cpp
+ )
+ 
+ sofa_find_package(Sofa.Simulation.Core REQUIRED)
+diff --git a/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/MobileFixedProjectiveConstraint.cpp b/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/MobileFixedProjectiveConstraint.cpp
+new file mode 100644
+index 0000000000..a96a96934d
+--- /dev/null
++++ b/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/MobileFixedProjectiveConstraint.cpp
+@@ -0,0 +1,624 @@
++/******************************************************************************
++*                 SOFA, Simulation Open-Framework Architecture                *
++*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
++*                                                                             *
++* This program is free software; you can redistribute it and/or modify it     *
++* under the terms of the GNU Lesser General Public License as published by    *
++* the Free Software Foundation; either version 2.1 of the License, or at      *
++* your option) any later version.                                             *
++*                                                                             *
++* This program is distributed in the hope that it will be useful, but WITHOUT *
++* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
++* FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
++* for more details.                                                           *
++*                                                                             *
++* You should have received a copy of the GNU Lesser General Public License    *
++* along with this program. If not, see <http://www.gnu.org/licenses/>.        *
++*******************************************************************************
++* Authors: The SOFA Team and external contributors (see Authors.txt)          *
++*                                                                             *
++* Contact information: contact@sofa-framework.org                             *
++******************************************************************************/
++#define SOFA_COMPONENT_PROJECTIVECONSTRAINTSET_MOBILEFIXEDPROJECTIVECONSTRAINT_CPP
++
++#include <sofa/component/constraint/projective/MobileFixedProjectiveConstraint.h>
++
++#include <sofa/core/behavior/MultiMatrixAccessor.h>
++#include <sofa/helper/AdvancedTimer.h>
++#include <sofa/helper/accessor.h>
++#include <sofa/type/vector_algorithm.h>
++
++#include <algorithm>
++#include <cmath>
++#include <limits>
++
++namespace sofa::component::constraint::projective
++{
++
++using sofa::core::objectmodel::ComponentState;
++using sofa::defaulttype::Rigid3Types;
++
++MobileFixedProjectiveConstraint::MobileFixedProjectiveConstraint()
++    : sofa::core::behavior::ProjectiveConstraintSet<Rigid3Types>(nullptr)
++    , d_indices(initData(&d_indices, "indices", "Indices of constrained rigid DoFs"))
++    , d_fixAll(initData(&d_fixAll, false, "fixAll", "If true, constrain all rigid DoFs"))
++    , d_projectVelocity(initData(&d_projectVelocity, true, "projectVelocity", "If true, zero constrained velocities"))
++    , d_relativeMovement(initData(&d_relativeMovement, true, "relativeMovement", "If true, motion is applied relative to initial pose"))
++    , d_showObject(initData(&d_showObject, true, "showObject", "Show constrained rigid points"))
++    , d_drawSize(initData(&d_drawSize, (SReal)0.0, "drawSize", "Drawing size"))
++    , d_linearVelocity(initData(&d_linearVelocity, Vec3(0, 0, 0), "linearVelocity", "Prescribed translational velocity [vx vy vz]"))
++    , d_angularVelocity(initData(&d_angularVelocity, Vec3(0, 0, 0), "angularVelocity", "Prescribed angular velocity [wx wy wz] in rad/s"))
++    , d_startTime(initData(&d_startTime, (Real)0, "startTime", "Motion start time"))
++    , d_useRHSForce(initData(&d_useRHSForce, false, "useRHSForce", "If true, selected rigid DoFs are force-driven instead of projectively fixed"))
++    , d_rhsForce(initData(&d_rhsForce, Deriv(), "rhsForce", "Generalized RHS force [Fx Fy Fz Mx My Mz] added to selected rigid DoFs when useRHSForce is true"))
++    , d_constrainedDofMask(initData(&d_constrainedDofMask, BoolVector{true, true, true, true, true, true},
++                                    "constrainedDofMask", "Mask [tx ty tz rx ry rz]"))
++    , l_topology(initLink("topology", "Link to the topology container"))
++{
++    this->addUpdateCallback("updateIndices", {&d_indices}, [this](const core::DataTracker&)
++    {
++        checkIndices();
++        return ComponentState::Valid;
++    }, {});
++
++    this->addUpdateCallback("updateMask", {&d_constrainedDofMask}, [this](const core::DataTracker&)
++    {
++        checkMask();
++        return ComponentState::Valid;
++    }, {});
++}
++
++void MobileFixedProjectiveConstraint::init()
++{
++    this->d_componentState.setValue(ComponentState::Invalid);
++    this->core::behavior::ProjectiveConstraintSet<Rigid3Types>::init();
++
++    if (!this->mstate.get())
++    {
++        msg_warning() << "Missing MechanicalState.";
++        return;
++    }
++
++    if (l_topology.empty())
++    {
++        l_topology.set(this->getContext()->getMeshTopologyLink());
++    }
++
++    if (auto* topology = l_topology.get())
++    {
++        d_indices.createTopologyHandler(topology);
++    }
++
++    checkIndices();
++    checkMask();
++    captureInitialCoordinates();
++
++    this->d_componentState.setValue(ComponentState::Valid);
++}
++
++void MobileFixedProjectiveConstraint::reinit()
++{
++    checkIndices();
++    checkMask();
++    captureInitialCoordinates();
++}
++
++void MobileFixedProjectiveConstraint::clearConstraints()
++{
++    auto* indices = d_indices.beginEdit();
++    indices->clear();
++    d_indices.endEdit();
++}
++
++void MobileFixedProjectiveConstraint::addConstraint(Index index)
++{
++    auto* indices = d_indices.beginEdit();
++    indices->push_back(index);
++    d_indices.endEdit();
++}
++
++void MobileFixedProjectiveConstraint::removeConstraint(Index index)
++{
++    auto* indices = d_indices.beginEdit();
++    sofa::type::removeValue(*indices, index);
++    d_indices.endEdit();
++}
++
++void MobileFixedProjectiveConstraint::checkIndices()
++{
++    if (!this->mstate.get())
++        return;
++
++    const Index maxIndex = this->mstate->getSize();
++    const auto& indices = d_indices.getValue();
++
++    SetIndexArray invalid;
++    for (Index idx : indices)
++    {
++        if (idx >= maxIndex)
++            invalid.push_back(idx);
++    }
++
++    for (Index idx : invalid)
++    {
++        msg_warning() << "Removing invalid index " << idx << ", valid range is [0," << maxIndex << ").";
++        removeConstraint(idx);
++    }
++}
++
++void MobileFixedProjectiveConstraint::checkMask()
++{
++    auto mask = d_constrainedDofMask.getValue();
++    if (mask.size() != 6)
++    {
++        msg_warning() << "constrainedDofMask must have 6 entries [tx ty tz rx ry rz]. Resetting to all true.";
++        d_constrainedDofMask.setValue(BoolVector{true, true, true, true, true, true});
++    }
++}
++
++void MobileFixedProjectiveConstraint::captureInitialCoordinates()
++{
++    if (!this->mstate.get())
++        return;
++
++    m_initialCoordinates = this->mstate->read(core::vec_id::read_access::position)->getValue();
++}
++
++bool MobileFixedProjectiveConstraint::isDofConstrained(unsigned int localDof) const
++{
++    const auto& mask = d_constrainedDofMask.getValue();
++    return (localDof < mask.size()) ? mask[localDof] : true;
++}
++
++bool MobileFixedProjectiveConstraint::hasRHSForce() const
++{
++    return d_useRHSForce.getValue();
++}
++
++unsigned int MobileFixedProjectiveConstraint::getIterationFromTime() const
++{
++    const SReal dt = this->getContext()->getDt();
++    if (dt <= std::numeric_limits<SReal>::epsilon())
++        return 0u;
++
++    const SReal time = this->getContext()->getTime();
++    return static_cast<unsigned int>(std::floor(time / dt + (SReal)1e-9));
++}
++
++MobileFixedProjectiveConstraint::Real MobileFixedProjectiveConstraint::getElapsedTime() const
++{
++    const Real time = static_cast<Real>(this->getContext()->getTime());
++    const Real t0   = d_startTime.getValue();
++    return std::max((Real)0, time - t0);
++}
++
++MobileFixedProjectiveConstraint::Coord
++MobileFixedProjectiveConstraint::computeTargetCoord(const Coord& initialCoord) const
++{
++    Coord target = initialCoord;
++
++    const Real t = getElapsedTime();
++    const Vec3 translation = d_linearVelocity.getValue() * t;
++    const Vec3 angles = d_angularVelocity.getValue() * t;
++
++    Quat qDelta = Quat::createQuaterFromEuler(angles);
++    qDelta.normalize();
++
++    if (d_relativeMovement.getValue())
++    {
++        target.getCenter() = initialCoord.getCenter() + translation;
++        target.getOrientation() = initialCoord.getOrientation() * qDelta;
++        target.getOrientation().normalize();
++    }
++    else
++    {
++        target.getCenter() = translation;
++        target.getOrientation() = qDelta;
++        target.getOrientation().normalize();
++    }
++
++    return target;
++}
++
++void MobileFixedProjectiveConstraint::projectResponse(const core::MechanicalParams* mparams, DataVecDeriv& resData)
++{
++    SOFA_UNUSED(mparams);
++    helper::WriteAccessor<DataVecDeriv> response(resData);
++
++    msg_info() << "Called ProjectResponse.";
++
++    auto clearConstrained = [this](Deriv& d)
++    {
++        for (unsigned int i = 0; i < Deriv::size(); ++i)
++        {
++            if (isDofConstrained(i))
++                d[i] = (Real)0;
++        }
++    };
++
++
++    if (hasRHSForce())
++    {
++        const Deriv& rhsForce = d_rhsForce.getValue();
++
++        auto applyRHSForce = [this, &rhsForce, &clearConstrained](Deriv& d)
++        {
++            // First recover the normal projective behavior.
++            clearConstrained(d);
++
++            // Then prescribe a nonzero RHS value on the constrained entries.
++            // If rhsForce = 0, this is exactly the original constrained behavior.
++            for (unsigned int i = 0; i < Deriv::size(); ++i)
++            {
++                if (isDofConstrained(i))
++                    d[i] += rhsForce[i];
++            }
++        };
++
++        if (d_fixAll.getValue())
++        {
++            for (auto& r : *response)
++                applyRHSForce(r);
++        }
++        else
++        {
++            for (Index idx : d_indices.getValue())
++            {
++                if (idx < response.size())
++                    applyRHSForce((*response)[idx]);
++                else
++                    msg_warning() << "Ignoring rhsForce for invalid index " << idx << ".";
++            }
++        }
++
++        return;
++    }
++
++    if (d_fixAll.getValue())
++    {
++        for (auto& r : *response)
++            clearConstrained(r);
++    }
++    else
++    {
++        for (Index idx : d_indices.getValue())
++        {
++            if (idx < response.size())
++                clearConstrained((*response)[idx]);
++            else
++                msg_warning() << "Ignoring projectResponse for invalid index " << idx << ".";
++        }
++    }
++}
++
++void MobileFixedProjectiveConstraint::projectVelocity(const core::MechanicalParams* mparams, DataVecDeriv& vData)
++{
++    SOFA_UNUSED(mparams);
++
++    msg_info() << "Called projectVelocity.";
++
++    if (hasRHSForce())
++        return;
++
++    if (!d_projectVelocity.getValue())
++        return;
++
++    helper::WriteAccessor<DataVecDeriv> velocity(vData);
++
++    auto clearConstrained = [this](Deriv& d)
++    {
++        for (unsigned int i = 0; i < Deriv::size(); ++i)
++        {
++            if (isDofConstrained(i))
++                d[i] = (Real)0;
++        }
++    };
++
++    if (d_fixAll.getValue())
++    {
++        for (auto& v : *velocity)
++            clearConstrained(v);
++    }
++    else
++    {
++        for (Index idx : d_indices.getValue())
++        {
++            if (idx < velocity.size())
++                clearConstrained((*velocity)[idx]);
++            else
++                msg_warning() << "Ignoring projectVelocity for invalid index " << idx << ".";
++        }
++    }
++}
++
++void MobileFixedProjectiveConstraint::projectPosition(const core::MechanicalParams* mparams, DataVecCoord& xData)
++{
++    SOFA_UNUSED(mparams);
++
++    msg_info() << "Called projectPosition.";
++
++    if (hasRHSForce())
++        return;
++
++    helper::WriteAccessor<DataVecCoord> position(xData);
++
++    auto projectOne = [this](Coord& current, const Coord& initial)
++    {
++        const Coord target = computeTargetCoord(initial);
++
++        const bool lockT = isDofConstrained(0) && isDofConstrained(1) && isDofConstrained(2);
++        const bool lockR = isDofConstrained(3) && isDofConstrained(4) && isDofConstrained(5);
++
++        if (lockT)
++            current.getCenter() = target.getCenter();
++
++        if (lockR)
++            current.getOrientation() = target.getOrientation();
++    };
++
++    if (d_fixAll.getValue())
++    {
++        const Size n = std::min(position.size(), m_initialCoordinates.size());
++        for (Size i = 0; i < n; ++i)
++            projectOne((*position)[i], m_initialCoordinates[i]);
++    }
++    else
++    {
++        for (Index idx : d_indices.getValue())
++        {
++            if (idx < position.size() && idx < m_initialCoordinates.size())
++                projectOne((*position)[idx], m_initialCoordinates[idx]);
++            else
++                msg_warning() << "Ignoring projectPosition for invalid index " << idx << ".";
++        }
++    }
++}
++
++void MobileFixedProjectiveConstraint::projectJacobianMatrix(const core::MechanicalParams* mparams, DataMatrixDeriv& cData)
++{
++    SOFA_UNUSED(mparams);
++    helper::WriteAccessor<DataMatrixDeriv> jacobian(cData);
++
++    msg_info() << "Called projectJacobianMatrix.";
++
++    // if (hasRHSForce())
++    //     return;
++
++    if (d_fixAll.getValue())
++    {
++        jacobian->clear();
++        return;
++    }
++
++    for (Index idx : d_indices.getValue())
++        jacobian->clearColBlock(idx);
++}
++
++void MobileFixedProjectiveConstraint::setConstraintOnMatrixRowCol(sofa::linearalgebra::BaseMatrix* matrix,
++                                                                  unsigned int globalDofIndex) const
++{
++    matrix->clearRowCol(globalDofIndex);
++    matrix->set(globalDofIndex, globalDofIndex, 1.0);
++}
++
++void MobileFixedProjectiveConstraint::applyConstraint(const core::MechanicalParams* mparams,
++                                                      const core::behavior::MultiMatrixAccessor* matrix)
++{
++    SOFA_UNUSED(mparams);
++
++    msg_info() << "Called applyConstraint wo linear algebra.";
++
++    // if (hasRHSForce())
++    //     return;
++
++    if (const auto r = matrix->getMatrix(this->mstate.get()))
++    {
++        static constexpr unsigned int blockSize = Deriv::size();
++
++        auto constrainRigid = [this, &r](unsigned int rigidIndex)
++        {
++            for (unsigned int c = 0; c < blockSize; ++c)
++            {
++                if (isDofConstrained(c))
++                    setConstraintOnMatrixRowCol(r.matrix, r.offset + blockSize * rigidIndex + c);
++            }
++        };
++
++        if (d_fixAll.getValue())
++        {
++            const unsigned int n = static_cast<unsigned int>(this->mstate->getSize());
++            for (unsigned int i = 0; i < n; ++i)
++                constrainRigid(i);
++        }
++        else
++        {
++            for (Index idx : d_indices.getValue())
++                constrainRigid(static_cast<unsigned int>(idx));
++        }
++    }
++}
++
++void MobileFixedProjectiveConstraint::applyConstraint(const core::MechanicalParams* mparams,
++                                                      sofa::linearalgebra::BaseVector* vect,
++                                                      const core::behavior::MultiMatrixAccessor* matrix)
++{
++    msg_info() << "Called applyConstraint.";
++
++    SOFA_UNUSED(mparams);
++
++    // if (hasRHSForce())
++    //     return;
++
++    const int globalOffset = matrix->getGlobalOffset(this->mstate.get());
++    if (globalOffset < 0)
++        return;
++
++    static constexpr unsigned int blockSize = Deriv::size();
++    const unsigned int offset = static_cast<unsigned int>(globalOffset);
++
++    auto clearRigid = [this, vect, offset](unsigned int rigidIndex)
++    {
++        for (unsigned int c = 0; c < blockSize; ++c)
++        {
++            if (isDofConstrained(c))
++                vect->clear(offset + blockSize * rigidIndex + c);
++        }
++    };
++
++    if (d_fixAll.getValue())
++    {
++        const unsigned int n = static_cast<unsigned int>(this->mstate->getSize());
++        for (unsigned int i = 0; i < n; ++i)
++            clearRigid(i);
++    }
++    else
++    {
++        for (Index idx : d_indices.getValue())
++            clearRigid(static_cast<unsigned int>(idx));
++    }
++}
++
++void MobileFixedProjectiveConstraint::applyConstraint(sofa::core::behavior::ZeroDirichletCondition* matrix)
++{
++    static constexpr unsigned int blockSize = Deriv::size();
++
++    msg_info() << "Called applyConstraint zero drilecht.";
++
++    // if (hasRHSForce())
++    //     return;
++
++    auto discardRigid = [this, matrix](unsigned int rigidIndex)
++    {
++        for (unsigned int c = 0; c < blockSize; ++c)
++        {
++            if (isDofConstrained(c))
++                matrix->discardRowCol(blockSize * rigidIndex + c, blockSize * rigidIndex + c);
++        }
++    };
++
++    if (d_fixAll.getValue())
++    {
++        const unsigned int n = static_cast<unsigned int>(this->mstate->getSize());
++        for (unsigned int i = 0; i < n; ++i)
++            discardRigid(i);
++    }
++    else
++    {
++        for (Index idx : d_indices.getValue())
++            discardRigid(static_cast<unsigned int>(idx));
++    }
++}
++
++void MobileFixedProjectiveConstraint::projectMatrix(sofa::linearalgebra::BaseMatrix* M, unsigned offset)
++{
++    msg_info() << "Called projectMatrix.";
++
++    // if (hasRHSForce())
++    //     return;
++
++    static constexpr unsigned int blockSize = Deriv::size();
++
++    auto clearRigid = [this, M, offset](unsigned int rigidIndex)
++    {
++        for (unsigned int c = 0; c < blockSize; ++c)
++        {
++            if (isDofConstrained(c))
++                M->clearRowsCols(offset + rigidIndex * blockSize + c,
++                                 offset + rigidIndex * blockSize + c + 1);
++        }
++    };
++
++    if (d_fixAll.getValue())
++    {
++        const unsigned int n = static_cast<unsigned int>(this->mstate->getSize());
++        for (unsigned int i = 0; i < n; ++i)
++            clearRigid(i);
++    }
++    else
++    {
++        for (Index idx : d_indices.getValue())
++            clearRigid(static_cast<unsigned int>(idx));
++    }
++}
++
++void MobileFixedProjectiveConstraint::computeBBoxFromIndices(const SetIndexArray& indices)
++{
++    const auto drawSize = static_cast<Real>(d_drawSize.getValue());
++    const VecCoord& x = this->mstate->read(core::vec_id::read_access::position)->getValue();
++
++    sofa::type::BoundingBox bbox;
++    for (Index idx : indices)
++    {
++        const auto p = DataTypes::getCPos(x[idx]);
++        for (unsigned int i = 0; i < 3; ++i)
++        {
++            bbox.maxBBox()[i] = std::max(static_cast<SReal>(p[i] + drawSize), bbox.maxBBox()[i]);
++            bbox.minBBox()[i] = std::min(static_cast<SReal>(p[i] - drawSize), bbox.minBBox()[i]);
++        }
++    }
++    this->f_bbox.setValue(bbox);
++}
++
++void MobileFixedProjectiveConstraint::computeBBox(const core::ExecParams* params, bool onlyVisible)
++{
++    SOFA_UNUSED(params);
++
++    if (onlyVisible && !d_showObject.getValue())
++        return;
++    if (this->d_componentState.getValue() == ComponentState::Invalid)
++        return;
++
++    if (d_fixAll.getValue())
++    {
++        this->f_bbox.setValue(this->mstate->computeBBox());
++    }
++    else if (!d_indices.getValue().empty())
++    {
++        computeBBoxFromIndices(d_indices.getValue());
++    }
++}
++
++void MobileFixedProjectiveConstraint::draw(const core::visual::VisualParams* vparams)
++{
++    if (this->d_componentState.getValue() != ComponentState::Valid) return;
++    if (!vparams->displayFlags().getShowBehaviorModels()) return;
++    if (!d_showObject.getValue()) return;
++    if (!this->isActive()) return;
++
++    const auto stateLifeCycle = vparams->drawTool()->makeStateLifeCycle();
++    SOFA_UNUSED(stateLifeCycle);
++
++    const VecCoord& x = this->mstate->read(core::vec_id::read_access::position)->getValue();
++
++    std::vector<sofa::type::Vec3> points;
++    if (d_fixAll.getValue())
++    {
++        for (unsigned int i = 0; i < x.size(); ++i)
++            points.push_back(sofa::type::toVec3(DataTypes::getCPos(x[i])));
++    }
++    else
++    {
++        for (Index idx : d_indices.getValue())
++            points.push_back(sofa::type::toVec3(DataTypes::getCPos(x[idx])));
++    }
++
++    if (d_drawSize.getValue() == 0)
++    {
++        vparams->drawTool()->drawPoints(points, 10.0f, sofa::type::RGBAColor(1, 0.5f, 0.5f, 1));
++    }
++    else
++    {
++        vparams->drawTool()->setLightingEnabled(true);
++        vparams->drawTool()->drawSpheres(points, (float)d_drawSize.getValue(),
++                                         sofa::type::RGBAColor(1.0f, 0.35f, 0.35f, 1.0f));
++    }
++}
++
++void registerMobileFixedProjectiveConstraint(sofa::core::ObjectFactory* factory)
++{
++    factory->registerObjects(core::ObjectRegistrationData(
++    "Dynamic rigid prescribed-motion projective constraint without keyTimes/finished state.")
++    .add<MobileFixedProjectiveConstraint>());
++}
++
++} // namespace sofa::component::constraint::projective
+\ No newline at end of file
+diff --git a/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/MobileFixedProjectiveConstraint.h b/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/MobileFixedProjectiveConstraint.h
+new file mode 100644
+index 0000000000..88dcefa51d
+--- /dev/null
++++ b/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/MobileFixedProjectiveConstraint.h
+@@ -0,0 +1,148 @@
++/******************************************************************************
++*                 SOFA, Simulation Open-Framework Architecture                *
++*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
++*                                                                             *
++* This program is free software; you can redistribute it and/or modify it     *
++* under the terms of the GNU Lesser General Public License as published by    *
++* the Free Software Foundation; either version 2.1 of the License, or at      *
++* your option) any later version.                                             *
++*                                                                             *
++* This program is distributed in the hope that it will be useful, but WITHOUT *
++* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
++* FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
++* for more details.                                                           *
++*                                                                             *
++* You should have received a copy of the GNU Lesser General Public License    *
++* along with this program. If not, see <http://www.gnu.org/licenses/>.        *
++*******************************************************************************
++* Authors: The SOFA Team and external contributors (see Authors.txt)          *
++*                                                                             *
++* Contact information: contact@sofa-framework.org                             *
++******************************************************************************/
++
++#pragma once
++
++#include <sofa/component/constraint/projective/config.h>
++
++#include <sofa/core/behavior/ProjectiveConstraintSet.h>
++#include <sofa/core/behavior/MechanicalState.h>
++#include <sofa/core/topology/BaseMeshTopology.h>
++#include <sofa/core/topology/TopologySubsetIndices.h>
++#include <sofa/core/visual/VisualParams.h>
++#include <sofa/core/ObjectFactory.h>
++
++#include <sofa/defaulttype/RigidTypes.h>
++#include <sofa/linearalgebra/BaseMatrix.h>
++#include <sofa/linearalgebra/BaseVector.h>
++
++#include <sofa/type/Quat.h>
++#include <sofa/type/Vec.h>
++#include <sofa/type/vector.h>
++#include <sofa/type/BoundingBox.h>
++
++namespace sofa::component::constraint::projective
++{
++
++class SOFA_COMPONENT_CONSTRAINT_PROJECTIVE_API MobileFixedProjectiveConstraint
++    : public sofa::core::behavior::ProjectiveConstraintSet<sofa::defaulttype::Rigid3Types>
++{
++public:
++    SOFA_CLASS(MobileFixedProjectiveConstraint,
++               SOFA_TEMPLATE(sofa::core::behavior::ProjectiveConstraintSet, sofa::defaulttype::Rigid3Types));
++
++    using DataTypes       = sofa::defaulttype::Rigid3Types;
++    using Real            = DataTypes::Real;
++    using Coord           = DataTypes::Coord;
++    using Deriv           = DataTypes::Deriv;
++    using VecCoord        = DataTypes::VecCoord;
++    using VecDeriv        = DataTypes::VecDeriv;
++    using MatrixDeriv     = DataTypes::MatrixDeriv;
++    using Index           = sofa::Index;
++
++    using DataVecCoord    = Data<VecCoord>;
++    using DataVecDeriv    = Data<VecDeriv>;
++    using DataMatrixDeriv = Data<MatrixDeriv>;
++
++    using SetIndexArray   = sofa::type::vector<Index>;
++    using SetIndex        = sofa::core::topology::TopologySubsetIndices;
++
++    using Vec3            = sofa::type::Vec<3, Real>;
++    using Quat            = sofa::type::Quat<Real>;
++    using BoolVector      = sofa::type::vector<bool>;
++
++public:
++    MobileFixedProjectiveConstraint();
++    ~MobileFixedProjectiveConstraint() override = default;
++
++    void init() override;
++    void reinit() override;
++
++    void projectResponse(const sofa::core::MechanicalParams* mparams, DataVecDeriv& resData) override;
++    void projectVelocity(const sofa::core::MechanicalParams* mparams, DataVecDeriv& vData) override;
++    void projectPosition(const sofa::core::MechanicalParams* mparams, DataVecCoord& xData) override;
++    void projectJacobianMatrix(const sofa::core::MechanicalParams* mparams, DataMatrixDeriv& cData) override;
++
++    void applyConstraint(const sofa::core::MechanicalParams* mparams,
++                         const sofa::core::behavior::MultiMatrixAccessor* matrix) override;
++
++    void applyConstraint(const sofa::core::MechanicalParams* mparams,
++                         sofa::linearalgebra::BaseVector* vect,
++                         const sofa::core::behavior::MultiMatrixAccessor* matrix) override;
++
++    void applyConstraint(sofa::core::behavior::ZeroDirichletCondition* matrix) override;
++    void projectMatrix(sofa::linearalgebra::BaseMatrix* M, unsigned offset) override;
++
++    void computeBBox(const sofa::core::ExecParams* params, bool onlyVisible) override;
++    void draw(const sofa::core::visual::VisualParams* vparams) override;
++
++    void clearConstraints();
++    void addConstraint(Index index);
++    void removeConstraint(Index index);
++
++protected:
++    void checkIndices();
++    void checkMask();
++    void captureInitialCoordinates();
++
++    bool isDofConstrained(unsigned int localDof) const;
++    bool hasRHSForce() const;
++
++    unsigned int getIterationFromTime() const;
++    Real getElapsedTime() const;
++
++    Coord computeTargetCoord(const Coord& initialCoord) const;
++    void setConstraintOnMatrixRowCol(sofa::linearalgebra::BaseMatrix* matrix, unsigned int globalDofIndex) const;
++    void computeBBoxFromIndices(const SetIndexArray& indices);
++
++protected:
++    SetIndex d_indices;
++
++    Data<bool>  d_fixAll;
++    Data<bool>  d_projectVelocity;
++    Data<bool>  d_relativeMovement;
++    Data<bool>  d_showObject;
++    Data<SReal> d_drawSize;
++
++    // Dynamic prescribed motion
++    Data<Vec3> d_linearVelocity;     // translation velocity [vx vy vz]
++    Data<Vec3> d_angularVelocity;    // angular velocity [wx wy wz] in rad/s
++    Data<Real> d_startTime;
++
++    // Optional RHS-force mode.
++    // When useRHSForce=false, the component behaves as a usual projective constraint.
++    // When useRHSForce=true, the selected rigid DoFs are not projected out of the matrix;
++    // rhsForce is added to their response/RHS vector instead.
++    Data<bool>  d_useRHSForce;
++    Data<Deriv> d_rhsForce;          // generalized force [Fx Fy Fz Mx My Mz]
++
++    // Optional per-rigid-DoF mask [tx ty tz rx ry rz]
++    Data<BoolVector> d_constrainedDofMask;
++
++    SingleLink<MobileFixedProjectiveConstraint,
++               sofa::core::topology::BaseMeshTopology,
++               BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK> l_topology;
++
++    VecCoord m_initialCoordinates;
++};
++
++} // namespace sofa::component::constraint::projective
+\ No newline at end of file
+diff --git a/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/init.cpp b/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/init.cpp
+index 22a3adeb35..3b00e471c4 100644
+--- a/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/init.cpp
++++ b/Sofa/Component/Constraint/Projective/src/sofa/component/constraint/projective/init.cpp
+@@ -46,6 +46,7 @@ extern void registerPlaneProjectiveConstraint(sofa::core::ObjectFactory* factory
+ extern void registerPointProjectiveConstraint(sofa::core::ObjectFactory* factory);
+ extern void registerPositionBasedDynamicsProjectiveConstraint(sofa::core::ObjectFactory* factory);
+ extern void registerSkeletalMotionProjectiveConstraint(sofa::core::ObjectFactory* factory);
++extern void registerMobileFixedProjectiveConstraint(sofa::core::ObjectFactory* factory);
+ 
+ extern "C" {
+     SOFA_EXPORT_DYNAMIC_LIBRARY void initExternalModule();
+@@ -91,6 +92,7 @@ void registerObjects(sofa::core::ObjectFactory* factory)
+     registerPointProjectiveConstraint(factory);
+     registerPositionBasedDynamicsProjectiveConstraint(factory);
+     registerSkeletalMotionProjectiveConstraint(factory);
++    registerMobileFixedProjectiveConstraint(factory);
+ }
+ 
+ void init()
+diff --git a/Sofa/Component/LinearSystem/src/sofa/component/linearsystem/MatrixLinearSystem.h b/Sofa/Component/LinearSystem/src/sofa/component/linearsystem/MatrixLinearSystem.h
+index 2d05d8d8a8..70d7ec7055 100644
+--- a/Sofa/Component/LinearSystem/src/sofa/component/linearsystem/MatrixLinearSystem.h
++++ b/Sofa/Component/LinearSystem/src/sofa/component/linearsystem/MatrixLinearSystem.h
+@@ -224,6 +224,12 @@ protected:
+     {
+         ~Dirichlet() override = default;
+         void discardRowCol(sofa::Index row, sofa::Index col) override;
++        
++        bool copyColumnBeforeDiscard(
++            sofa::Index col,
++            sofa::type::vector<SReal>& out,
++            sofa::Index localRowBegin = 0,
++            sofa::Size localRowCount = 0) const override;
+ 
+         sofa::type::Vec2u m_offset;
+ 
+diff --git a/Sofa/Component/LinearSystem/src/sofa/component/linearsystem/MatrixLinearSystem.inl b/Sofa/Component/LinearSystem/src/sofa/component/linearsystem/MatrixLinearSystem.inl
+index 8787d5a8a4..2154361d11 100644
+--- a/Sofa/Component/LinearSystem/src/sofa/component/linearsystem/MatrixLinearSystem.inl
++++ b/Sofa/Component/LinearSystem/src/sofa/component/linearsystem/MatrixLinearSystem.inl
+@@ -1188,4 +1188,38 @@ void MatrixLinearSystem<TMatrix, TVector>::Dirichlet::discardRowCol(sofa::Index
+     m_globalMatrix->set(row + m_offset[0], col  + m_offset[1], 1.);
+ }
+ 
++template<class TMatrix, class TVector>
++bool MatrixLinearSystem<TMatrix, TVector>::Dirichlet::copyColumnBeforeDiscard(
++    sofa::Index col,
++    sofa::type::vector<SReal>& out,
++    sofa::Index localRowBegin,
++    sofa::Size localRowCount) const
++    {
++        out.clear();
++
++        if (m_globalMatrix == nullptr)
++        {
++            return false;
++        }
++
++        const sofa::Index globalCol = col + m_offset[1];
++
++        const sofa::Index globalRowBegin = localRowBegin + m_offset[0];
++        const sofa::Size rowCount =
++            localRowCount > 0 ? localRowCount : static_cast<sofa::Size>(m_globalMatrix->rowSize());
++
++        out.resize(rowCount);
++
++        for (sofa::Index r = 0; r < rowCount; ++r)
++        {
++            out[r] = static_cast<SReal>(m_globalMatrix->element(globalRowBegin + r, globalCol));
++        }
++
++        return true;
++    }
++    
+ }
++
++
++
++
+diff --git a/Sofa/Component/ODESolver/Backward/src/sofa/component/odesolver/backward/NewtonStatus.h b/Sofa/Component/ODESolver/Backward/src/sofa/component/odesolver/backward/NewtonStatus.h
+index a21d813186..518b03b254 100644
+--- a/Sofa/Component/ODESolver/Backward/src/sofa/component/odesolver/backward/NewtonStatus.h
++++ b/Sofa/Component/ODESolver/Backward/src/sofa/component/odesolver/backward/NewtonStatus.h
+@@ -35,5 +35,7 @@ MAKE_SELECTABLE_ITEMS(NewtonStatus,
+     sofa::helper::Item{"ConvergedResidualInitialRatio", "Converged: Residual initial ratio is smaller than the threshold"},
+     sofa::helper::Item{"ConvergedAbsoluteResidual", "Converged: Absolute residual is smaller than the threshold"},
+     sofa::helper::Item{"ConvergedRelativeEstimateDifference", "Converged: Relative estimate difference is smaller than the threshold"},
+-    sofa::helper::Item{"ConvergedAbsoluteEstimateDifference", "Converged: Absolute estimate difference is smaller than the threshold"});
++    sofa::helper::Item{"ConvergedAbsoluteEstimateDifference", "Converged: Absolute estimate difference is smaller than the threshold"},
++    sofa::helper::Item{"DivergedInvalidResidual", "Diverged: the residual is not a finite number"},
++    sofa::helper::Item{"DivergedContinuation", "Diverged: the continuation strategy failed to reach the full problem"});
+ }
+diff --git a/Sofa/Component/SolidMechanics/FEM/Elastic/CMakeLists.txt b/Sofa/Component/SolidMechanics/FEM/Elastic/CMakeLists.txt
+index fddd6033a0..d7b0c062ce 100644
+--- a/Sofa/Component/SolidMechanics/FEM/Elastic/CMakeLists.txt
++++ b/Sofa/Component/SolidMechanics/FEM/Elastic/CMakeLists.txt
+@@ -13,6 +13,8 @@ set(HEADER_FILES
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/BaseLinearElasticityFEMForceField.inl
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/BeamFEMForceField.h
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/BeamFEMForceField.inl
++    ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/HeterogeneousBeamFEMForceField.h
++    ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/HeterogeneousBeamFEMForceField.inl
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/CorotationalFEMForceField.h
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/CorotationalFEMForceField.inl
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/LinearSmallStrainFEMForceField.h
+@@ -68,6 +70,7 @@ set(SOURCE_FILES
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/BaseElementLinearFEMForceField.cpp
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/BaseLinearElasticityFEMForceField.cpp
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/BeamFEMForceField.cpp
++    ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/HeterogeneousBeamFEMForceField.cpp
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/CorotationalFEMForceField.cpp
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/LinearSmallStrainFEMForceField.cpp
+     ${SOFACOMPONENTSOLIDMECHANICSFEMELASTIC_SOURCE_DIR}/FastTetrahedralCorotationalForceField.cpp
+diff --git a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.h b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.h
+index 24cd94323d..c483b97e08 100644
+--- a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.h
++++ b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.h
+@@ -153,6 +153,9 @@ public:
+     bool m_updateStiffnessMatrix;
+     SReal m_lastUpdatedStep;
+ 
++    // Incremented whenever an element local stiffness K0 is rebuilt.
++    sofa::Size m_referenceElasticMetricVersion { 0 };
++
+     Quat<SReal>& beamQuat(int i);
+ 
+     BeamFEMForceField();
+@@ -177,6 +180,24 @@ public:
+     void setBeam(Index i, SReal E, SReal L, SReal nu, SReal r, SReal rInner);
+     void initBeams(std::size_t size);
+ 
++    /**
++     * Reference elastic metric used by external preconditioners.
++     *
++     * Each returned element is
++     *
++     *     Kp_e = T0 K0 T0^T
++     *
++     * in global coordinates, with the positive stiffness sign. T0 is built
++     * from the rest orientation of the first node of the element. The metric
++     * contains only the legacy elastic stiffness; it does not contain the
++     * exact nonlinear tangent/frame terms assembled by buildStiffnessMatrix().
++     *
++     * The metric is constant until the beam data/topology are reinitialized.
++     */
++    sofa::Size getReferenceElasticMetricElementCount() const;
++    bool getReferenceElasticMetricElement(sofa::Size metricElementIndex, Index& a, Index& b, StiffnessMatrix& K) const;
++    sofa::Size getReferenceElasticMetricVersion() const { return m_referenceElasticMetricVersion; }
++
+ protected:
+     void drawElement(int i, std::vector< type::Vec3 >* points, const VecCoord& x);
+     Real pseudoDeterminantForCoef ( const Mat<2, 3, Real>&  M );
+@@ -197,4 +218,4 @@ extern template class SOFA_COMPONENT_SOLIDMECHANICS_FEM_ELASTIC_API BeamFEMForce
+ 
+ using _beamfemforcefield_::BeamFEMForceField;
+ 
+-} // namespace sofa::component::solidmechanics::fem::elastic
++} // namespace sofa::component::solidmechanics::fem::elastic
+\ No newline at end of file
+diff --git a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.inl b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.inl
+index 80ff006169..ebf50e1cba 100644
+--- a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.inl
++++ b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.inl
+@@ -148,20 +148,20 @@ void BeamFEMForceField<DataTypes>::reinitBeam(Index i)
+     const auto& [a, b] = (*m_indexedElements)[i].array();
+ 
+     const VecCoord& x0 = this->mstate->read(core::vec_id::read_access::restPosition)->getValue();
+-    stiffness =  this->getYoungModulusInElement(i);
+-
+-    length = (x0[a].getCenter()-x0[b].getCenter()).norm() ;
+-
+-    radius = d_radius.getValue() ;
++    stiffness = this->getYoungModulusInElement(i);
++    length = (x0[a].getCenter() - x0[b].getCenter()).norm();
++    radius = d_radius.getValue();
+     radiusInner = d_radiusInner.getValue();
+-    poisson = this->getPoissonRatioInElement(i) ;
+-
++    poisson = this->getPoissonRatioInElement(i);
+ 
+     setBeam(i, stiffness, length, poisson, radius, radiusInner);
++    computeStiffness(i, a, b);
+ 
+-    computeStiffness(i,a,b);
++    // K0 is constant between reinit calls. Consumers can therefore cache and
++    // factor the assembled reference metric until this version changes.
++    ++m_referenceElasticMetricVersion;
+ 
+-    initLarge(i,a,b);
++    initLarge(i, a, b);
+ }
+ 
+ template< class DataTypes>
+@@ -181,6 +181,76 @@ Quat<SReal>& BeamFEMForceField<DataTypes>::beamQuat(int i)
+     return bd[i].quat;
+ }
+ 
++template<class DataTypes>
++sofa::Size BeamFEMForceField<DataTypes>::getReferenceElasticMetricElementCount() const
++{
++    if (!m_indexedElements)
++        return 0;
++
++    return m_partialListSegment
++        ? static_cast<sofa::Size>(d_listSegment.getValue().size())
++        : static_cast<sofa::Size>(m_indexedElements->size());
++}
++
++template<class DataTypes>
++bool BeamFEMForceField<DataTypes>::getReferenceElasticMetricElement(
++    sofa::Size metricElementIndex, Index& a, Index& b, StiffnessMatrix& K) const
++{
++    if (!m_indexedElements)
++        return false;
++
++    Index elementIndex = static_cast<Index>(metricElementIndex);
++
++    if (m_partialListSegment)
++    {
++        const auto& segments = d_listSegment.getValue();
++        if (metricElementIndex >= segments.size())
++            return false;
++
++        elementIndex = segments[metricElementIndex];
++    }
++    else if (metricElementIndex >= m_indexedElements->size())
++    {
++        return false;
++    }
++
++    if (elementIndex >= m_indexedElements->size() || elementIndex >= d_beamsData.getValue().size())
++        return false;
++
++    const auto& edge = (*m_indexedElements)[elementIndex];
++    a = edge[0];
++    b = edge[1];
++
++    const VecCoord& x0 = this->mstate->read(core::vec_id::read_access::restPosition)->getValue();
++    if (a >= x0.size() || b >= x0.size())
++        return false;
++
++    Quat<SReal> q0 = x0[a].getOrientation();
++    q0.normalize();
++
++    Transformation R0, R0t;
++    q0.toMatrix(R0);
++    R0t.transpose(R0);
++
++    const StiffnessMatrix& K0 = d_beamsData.getValue()[elementIndex]._k_loc;
++
++    K.clear();
++
++    // Kp_e = T0 K0 T0^T with T0 = diag(R0,R0,R0,R0).
++    for (int row = 0; row < 12; row += 3)
++    {
++        for (int col = 0; col < 12; col += 3)
++        {
++            type::Mat<3, 3, Real> block;
++            K0.getsub(row, col, block);
++            block = R0 * block * R0t;
++            K.setsub(row, col, block);
++        }
++    }
++
++    return true;
++}
++
+ template<class DataTypes>
+ void BeamFEMForceField<DataTypes>::addForce(const sofa::core::MechanicalParams* mparams,
+                                             DataVecDeriv &  dataF,
+@@ -583,96 +653,509 @@ void BeamFEMForceField<DataTypes>::buildStiffnessMatrix(core::behavior::Stiffnes
+     auto dfdx = matrix->getForceDerivativeIn(this->mstate)
+                        .withRespectToPositionsIn(this->mstate);
+ 
+-    if (m_partialListSegment)
++    const VecCoord& x = this->mstate->read(core::vec_id::read_access::position)->getValue();
++    const VecCoord& x0 = this->mstate->read(core::vec_id::read_access::restPosition)->getValue();
++
++    auto skew = [](const type::Vec<3, Real>& v)
+     {
+-        for (unsigned int i : d_listSegment.getValue())
++        type::Mat<3, 3, Real> S;
++
++        S(0,0) = Real(0);  S(0,1) = -v[2];   S(0,2) =  v[1];
++        S(1,0) =  v[2];    S(1,1) = Real(0); S(1,2) = -v[0];
++        S(2,0) = -v[1];    S(2,1) =  v[0];   S(2,2) = Real(0);
++
++        return S;
++    };
++
++    auto assembleElement = [&](unsigned int i, Index a, Index b)
++    {
++        // ================================================================
++        // Current output frame R_a
++        // ================================================================
++
++        type::Quat<SReal> qa = x[a].getOrientation();
++        qa.normalize();
++
++        Transformation R, Rt;
++        qa.toMatrix(R);
++        Rt.transpose(R);
++
++        const StiffnessMatrix& K0 = d_beamsData.getValue()[i]._k_loc;
++
++        int index[12];
++
++        for (int j = 0; j < 6; ++j)
++            index[j] = a * 6 + j;
++
++        for (int j = 0; j < 6; ++j)
++            index[6 + j] = b * 6 + j;
++
++
++        // ================================================================
++        // 1. CURRENT TRANSLATIONAL DEFORMATION
++        //
++        // u_t = R_a^T (x_b - x_a)
++        //     - R_a0^T (x_b0 - x_a0)
++        // ================================================================
++
++        const type::Vec<3, Real> restEdgeGlobal =
++            x0[b].getCenter() - x0[a].getCenter();
++
++        const type::Vec<3, Real> currentEdgeGlobal =
++            x[b].getCenter() - x[a].getCenter();
++
++        const type::Vec<3, Real> restEdgeLocal =
++            x0[a].getOrientation().inverseRotate(restEdgeGlobal);
++
++        const type::Vec<3, Real> currentEdgeLocal =
++            x[a].getOrientation().inverseRotate(currentEdgeGlobal);
++
++        const type::Vec<3, Real> uTranslation =
++            currentEdgeLocal - restEdgeLocal;
++
++
++        // ================================================================
++        // 2. CURRENT ROTATIONAL DEFORMATION
++        //
++        // D0   = R_a0^T R_b0
++        // D    = R_a ^T R_b
++        //
++        // tmpQ represents
++        //
++        //      Q = D0^T D
++        //
++        // and
++        //
++        //      u_r = RotVec(Q).
++        //
++        // Use exactly the same quaternion construction as addForce().
++        // ================================================================
++
++        type::Quat<SReal> dQ0 =
++            qDiff(x0[b].getOrientation(), x0[a].getOrientation());
++
++        type::Quat<SReal> dQ =
++            qDiff(x[b].getOrientation(), x[a].getOrientation());
++
++        dQ0.normalize();
++        dQ.normalize();
++
++        type::Quat<SReal> tmpQ = qDiff(dQ, dQ0);
++        tmpQ.normalize();
++
++        const type::Vec<3, Real> uRotation =
++            tmpQ.quatToRotationVector();
++
++
++        // ================================================================
++        // 3. CURRENT DEFORMATION VECTOR
++        //
++        // Same vector used by accumulateForceLarge():
++        //
++        // d =
++        //
++        // [ 0 ]
++        // [ 0 ]
++        // [ uTranslation ]
++        // [ uRotation    ]
++        //
++        // ================================================================
++
++        Displacement depl;
++
++        for (int j = 0; j < 12; ++j)
++            depl[j] = Real(0);
++
++        depl[6]  = uTranslation[0];
++        depl[7]  = uTranslation[1];
++        depl[8]  = uTranslation[2];
++
++        depl[9]  = uRotation[0];
++        depl[10] = uRotation[1];
++        depl[11] = uRotation[2];
++
++
++        // ================================================================
++        // 4. CURRENT LOCAL FORCE
++        //
++        //      f_local = K0 d
++        //
++        // Needed for the derivative of the final rotation T(R_a).
++        // ================================================================
++
++        const Displacement localForce = K0 * depl;
++
++
++        // ================================================================
++        // 5. EXACT TRANSLATIONAL KINEMATIC DERIVATIVE
++        //
++        // e = R_a^T (x_b - x_a)
++        //
++        // delta u_t =
++        //
++        //      -R_a^T delta x_a
++        //      +R_a^T delta x_b
++        //      +[e]_x R_a^T delta theta_a
++        //
++        //
++        // Therefore:
++        //
++        // du/dx_a       = -R_a^T
++        // du/dtheta_a   = [e]_x R_a^T
++        // du/dx_b       = +R_a^T
++        // du/dtheta_b   = 0
++        //
++        // ================================================================
++
++        const Transformation BTranslationThetaA =
++            skew(currentEdgeLocal) * Rt;
++
++
++        // ================================================================
++        // 6. EXACT ROTATIONAL KINEMATIC DERIVATIVE
++        //
++        // D0 = R_a0^T R_b0
++        //
++        // For SOFA spatial angular increments:
++        //
++        //      delta u_r =
++        //
++        //      J_l^{-1}(u_r)
++        //      D0^T
++        //      R_a^T
++        //      (delta theta_b - delta theta_a)
++        //
++        // Define:
++        //
++        //      M = J_l^{-1}(u_r) D0^T R_a^T
++        //
++        // Then:
++        //
++        //      du_r/dtheta_a = -M
++        //      du_r/dtheta_b = +M
++        //
++        // ================================================================
++
++        Transformation D0, D0t;
++        dQ0.toMatrix(D0);
++        D0t.transpose(D0);
++
++
++        // ------------------------------------------------
++        // Inverse SO(3) LEFT Jacobian
++        //
++        // J_l^{-1}(phi)
++        //
++        //   = I
++        //     - 1/2 [phi]_x
++        //     + gamma [phi]_x^2
++        //
++        //
++        // gamma =
++        //
++        //   1/theta^2
++        //   - (1+cos(theta))/(2 theta sin(theta))
++        //
++        // Numerically equivalent stable form:
++        //
++        //   gamma =
++        //   (1 - theta/(2 tan(theta/2))) / theta^2
++        //
++        // ------------------------------------------------
++
++        const Transformation Phi = skew(uRotation);
++        const Transformation Phi2 = Phi * Phi;
++
++        const Real theta = uRotation.norm();
++        const Real theta2 = theta * theta;
++
++        Real gamma;
++
++        if (theta < Real(1e-6))
+         {
+-            const auto& [a, b] = (*m_indexedElements)[i].array();
++            // Series:
++            //
++            // 1/12 + theta^2/720 + theta^4/30240 + ...
++            gamma =
++                Real(1.0 / 12.0)
++                + theta2 * Real(1.0 / 720.0)
++                + theta2 * theta2 * Real(1.0 / 30240.0);
++        }
++        else
++        {
++            gamma =
++                (Real(1)
++                 - Real(0.5) * theta / std::tan(Real(0.5) * theta))
++                / theta2;
++        }
+ 
+-            type::Quat<SReal>& q = beamQuat(i);
+-            q.normalize();
+-            Transformation R,Rt;
+-            q.toMatrix(R);
+-            Rt.transpose(R);
+-            const StiffnessMatrix& K0 = d_beamsData.getValue()[i]._k_loc;
+-            StiffnessMatrix K;
+-            for (int x1=0; x1<12; x1+=3)
+-                for (int y1=0; y1<12; y1+=3)
+-                {
+-                    type::Mat<3,3,Real> m;
+-                    K0.getsub(x1,y1, m);
+-                    m = R*m*Rt;
+-                    K.setsub(x1,y1, m);
+-                }
+-            int index[12];
+-            for (int x1=0; x1<6; x1++)
+-                index[x1] = a*6+x1;
+-            for (int x1=0; x1<6; x1++)
+-                index[6+x1] = b*6+x1;
+-            for (int x1=0; x1<12; ++x1)
+-                for (int y1=0; y1<12; ++y1)
+-                    dfdx(index[x1], index[y1]) += - K(x1,y1);
+ 
++        Transformation JlInv;
++        JlInv.identity();
++
++        for (int r = 0; r < 3; ++r)
++        {
++            for (int c = 0; c < 3; ++c)
++            {
++                JlInv(r, c) +=
++                    -Real(0.5) * Phi(r, c)
++                    + gamma * Phi2(r, c);
++            }
+         }
+ 
+-    }
+-    else
+-    {
+-        unsigned int i {};
+-        for(auto it = m_indexedElements->begin() ; it != m_indexedElements->end() ; ++it, ++i)
++
++        Transformation tmpM = JlInv * D0t;
++        const Transformation M = tmpM * Rt;
++
++
++        // ================================================================
++        // 7. EXACT JACOBIAN
++        //
++        // Build one column at a time.
++        //
++        // Element columns:
++        //
++        //   0  1  2     x_a
++        //   3  4  5     theta_a
++        //   6  7  8     x_b
++        //   9 10 11     theta_b
++        //
++        //
++        // For each unit perturbation dz_j:
++        //
++        //      delta d
++        //
++        //          =
++        //
++        //      [ 0            ]
++        //      [ 0            ]
++        //      [ delta u_t    ]
++        //      [ delta u_r    ]
++        //
++        //
++        //      delta f_local = K0 delta d
++        //
++        //
++        // Global force:
++        //
++        //      f = -T(R_a) f_local
++        //
++        // therefore
++        //
++        //      delta f
++        //
++        //          =
++        //
++        //      -T delta f_local
++        //
++        //      +
++        //
++        //      [R f_local]_x delta theta_a
++        //
++        // ================================================================
++
++        for (int column = 0; column < 12; ++column)
+         {
+-            const auto& [a, b] = it->array();
++            type::Vec<3, Real> deltaTranslation;
++            type::Vec<3, Real> deltaRotation;
+ 
+-            type::Quat<SReal>& q = beamQuat(i);
+-            q.normalize();
+-            Transformation R,Rt;
+-            q.toMatrix(R);
+-            Rt.transpose(R);
+-            const StiffnessMatrix& K0 = d_beamsData.getValue()[i]._k_loc;
+-            StiffnessMatrix K;
+-            const bool exploitSymmetry = d_useSymmetricAssembly.getValue();
++            deltaTranslation.clear();
++            deltaRotation.clear();
+ 
+-            if (exploitSymmetry) {
+-                for (int x1=0; x1<12; x1+=3) {
+-                    for (int y1=x1; y1<12; y1+=3)
+-                    {
+-                        type::Mat<3,3,Real> m;
+-                        K0.getsub(x1,y1, m);
+-                        m = R*m*Rt;
+ 
+-                        for (int i=0; i<3; i++)
+-                            for (int j=0; j<3; j++) {
+-                                K(i+x1,j+y1) += m(i,j);
+-                                K(j+y1,i+x1) += m(i,j);
+-                            }
+-                        if (x1 == y1)
+-                            for (int i=0; i<3; i++)
+-                                for (int j=0; j<3; j++)
+-                                    K(i+x1,j+y1) *= SReal(0.5);
++            // ------------------------------------------------------------
++            // x_a columns
++            //
++            // du/dx_a = -R^T
++            // ------------------------------------------------------------
+ 
+-                    }
++            if (column >= 0 && column < 3)
++            {
++                const int c = column;
++
++                for (int r = 0; r < 3; ++r)
++                    deltaTranslation[r] = -Rt(r, c);
++            }
++
++
++            // ------------------------------------------------------------
++            // theta_a columns
++            //
++            // du/dtheta_a   = [e]_x R^T
++            //
++            // dur/dtheta_a  = -M
++            // ------------------------------------------------------------
++
++            else if (column >= 3 && column < 6)
++            {
++                const int c = column - 3;
++
++                for (int r = 0; r < 3; ++r)
++                {
++                    deltaTranslation[r] =
++                        BTranslationThetaA(r, c);
++
++                    deltaRotation[r] =
++                        -M(r, c);
+                 }
+-            } else  {
+-                for (int x1=0; x1<12; x1+=3) {
+-                    for (int y1=0; y1<12; y1+=3)
+-                    {
+-                        type::Mat<3,3,Real> m;
+-                        K0.getsub(x1,y1, m);
+-                        m = R*m*Rt;
+-                        K.setsub(x1,y1, m);
+-                    }
++            }
++
++
++            // ------------------------------------------------------------
++            // x_b columns
++            //
++            // du/dx_b = +R^T
++            // ------------------------------------------------------------
++
++            else if (column >= 6 && column < 9)
++            {
++                const int c = column - 6;
++
++                for (int r = 0; r < 3; ++r)
++                    deltaTranslation[r] = Rt(r, c);
++            }
++
++
++            // ------------------------------------------------------------
++            // theta_b columns
++            //
++            // dur/dtheta_b = +M
++            // ------------------------------------------------------------
++
++            else
++            {
++                const int c = column - 9;
++
++                for (int r = 0; r < 3; ++r)
++                    deltaRotation[r] = M(r, c);
++            }
++
++
++            // ============================================================
++            // Exact deformation derivative for this column
++            // ============================================================
++
++            Displacement deltaDepl;
++
++            for (int j = 0; j < 12; ++j)
++                deltaDepl[j] = Real(0);
++
++            deltaDepl[6] = deltaTranslation[0];
++            deltaDepl[7] = deltaTranslation[1];
++            deltaDepl[8] = deltaTranslation[2];
++
++            deltaDepl[9]  = deltaRotation[0];
++            deltaDepl[10] = deltaRotation[1];
++            deltaDepl[11] = deltaRotation[2];
++
++
++            // ============================================================
++            // Constitutive derivative
++            //
++            //      delta f_local = K0 delta d
++            // ============================================================
++
++            const Displacement deltaLocalForce =
++                K0 * deltaDepl;
++
++
++            // ============================================================
++            // Transform derivative into global coordinates.
++            //
++            //      delta f =
++            //
++            //          -R delta f_local
++            //
++            //          +
++            //
++            //          [R f_local]_x delta theta_a
++            //
++            // The second contribution exists only for theta_a columns.
++            // ============================================================
++
++            for (int block = 0; block < 4; ++block)
++            {
++                const int localRow = 3 * block;
++
++
++                // --------------------------------------------------------
++                // -R delta f_local
++                // --------------------------------------------------------
++
++                const type::Vec<3, Real> deltaFLocal(
++                    deltaLocalForce[localRow],
++                    deltaLocalForce[localRow + 1],
++                    deltaLocalForce[localRow + 2]);
++
++                type::Vec<3, Real> deltaFGlobal =
++                    -(R * deltaFLocal);
++
++
++                // --------------------------------------------------------
++                // Output-frame derivative:
++                //
++                //      [R f_local]_x delta theta_a
++                //
++                // Only for columns 3,4,5.
++                // --------------------------------------------------------
++
++                if (column >= 3 && column < 6)
++                {
++                    const int c = column - 3;
++
++                    const type::Vec<3, Real> fLocal(
++                        localForce[localRow],
++                        localForce[localRow + 1],
++                        localForce[localRow + 2]);
++
++                    const type::Vec<3, Real> fRotated =
++                        R * fLocal;
++
++                    const type::Mat<3, 3, Real> frameDerivative =
++                        skew(fRotated);
++
++                    for (int r = 0; r < 3; ++r)
++                        deltaFGlobal[r] += frameDerivative(r, c);
++                }
++
++
++                // --------------------------------------------------------
++                // Assemble exact df/dx
++                // --------------------------------------------------------
++
++                for (int r = 0; r < 3; ++r)
++                {
++                    dfdx(
++                        index[localRow + r],
++                        index[column]) += deltaFGlobal[r];
+                 }
+             }
++        }
++    };
+ 
+-            int index[12];
+-            for (int x1=0; x1<6; x1++)
+-                index[x1] = a*6+x1;
+-            for (int x1=0; x1<6; x1++)
+-                index[6+x1] = b*6+x1;
+-            for (int x1=0; x1<12; ++x1)
+-                for (int y1=0; y1<12; ++y1)
+-                    dfdx(index[x1], index[y1]) += - K(x1,y1);
+ 
++    // ================================================================
++    // Elements
++    // ================================================================
++
++    if (m_partialListSegment)
++    {
++        for (unsigned int i : d_listSegment.getValue())
++        {
++            const auto& [a, b] = (*m_indexedElements)[i].array();
++            assembleElement(i, a, b);
++        }
++    }
++    else
++    {
++        unsigned int i = 0;
++
++        for (auto it = m_indexedElements->begin();
++             it != m_indexedElements->end();
++             ++it, ++i)
++        {
++            const auto& [a, b] = it->array();
++            assembleElement(i, a, b);
+         }
+     }
+ }
+@@ -693,35 +1176,114 @@ SReal BeamFEMForceField<DataTypes>::getPotentialEnergy(const core::MechanicalPar
+ }
+ 
+ 
++// template<class DataTypes>
++// void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparams)
++// {
++//     if (!vparams->displayFlags().getShowForceFields()) return;
++//     if (!this->mstate) return;
++//     if (!m_indexedElements)
++//         return;
++
++//     const auto stateLifeCycle = vparams->drawTool()->makeStateLifeCycle();
++
++//     const VecCoord& x = this->mstate->read(core::vec_id::read_access::position)->getValue();
++
++//     std::vector< type::Vec3 > points[3];
++
++//     if (m_partialListSegment)
++//     {
++//         for (unsigned int j=0; j<d_listSegment.getValue().size(); j++)
++//             drawElement(d_listSegment.getValue()[j], points, x);
++//     }
++//     else
++//     {
++//         for (unsigned int i=0; i<m_indexedElements->size(); ++i)
++//             drawElement(i, points, x);
++//     }
++//     vparams->drawTool()->drawLines(points[0], 1, sofa::type::RGBAColor::red());
++//     vparams->drawTool()->drawLines(points[1], 1, sofa::type::RGBAColor::green());
++//     vparams->drawTool()->drawLines(points[2], 1, sofa::type::RGBAColor::blue());
++
++
++// }
++
+ template<class DataTypes>
+ void BeamFEMForceField<DataTypes>::draw(const core::visual::VisualParams* vparams)
+ {
+-    if (!vparams->displayFlags().getShowForceFields()) return;
+-    if (!this->mstate) return;
+-    if (!m_indexedElements)
++    if (!vparams->displayFlags().getShowForceFields() || !this->mstate || !m_indexedElements)
+         return;
+ 
+     const auto stateLifeCycle = vparams->drawTool()->makeStateLifeCycle();
+-
+     const VecCoord& x = this->mstate->read(core::vec_id::read_access::position)->getValue();
+ 
+-    std::vector< type::Vec3 > points[3];
++    std::vector<type::Vec3> points[3];
++    constexpr unsigned int subdivisions = 8;
++
++    auto drawSmoothElement = [&](unsigned int i)
++    {
++        const auto& [a, b] = (*m_indexedElements)[i].array();
++
++        const type::Vec3 p0 = x[a].getCenter();
++        const type::Vec3 p1 = x[b].getCenter();
++        const type::Vec3 localX(1.0, 0.0, 0.0);
++
++        const SReal length = (p1 - p0).norm();
++
++        if (length <= std::numeric_limits<SReal>::epsilon())
++            return;
++
++        const type::Vec3 m0 = x[a].getOrientation().rotate(localX) * length;
++        const type::Vec3 m1 = x[b].getOrientation().rotate(localX) * length;
++
++        auto hermite = [&](SReal u)
++        {
++            const SReal u2 = u * u;
++            const SReal u3 = u2 * u;
++
++            const SReal h00 = 2.0 * u3 - 3.0 * u2 + 1.0;
++            const SReal h10 = u3 - 2.0 * u2 + u;
++            const SReal h01 = -2.0 * u3 + 3.0 * u2;
++            const SReal h11 = u3 - u2;
++
++            return p0 * h00 + m0 * h10 + p1 * h01 + m1 * h11;
++        };
++
++        type::Vec3 previous = p0;
++
++        for (unsigned int sample = 1; sample <= subdivisions; ++sample)
++        {
++            const SReal u = static_cast<SReal>(sample) / static_cast<SReal>(subdivisions);
++            const type::Vec3 current = hermite(u);
++
++            points[0].push_back(previous);
++            points[0].push_back(current);
++
++            previous = current;
++        }
++
++        // Preserve the existing green and blue local-axis drawings,
++        // but discard the original straight red segment.
++        std::vector<type::Vec3> elementAxes[3];
++        drawElement(i, elementAxes, x);
++
++        points[1].insert(points[1].end(), elementAxes[1].begin(), elementAxes[1].end());
++        points[2].insert(points[2].end(), elementAxes[2].begin(), elementAxes[2].end());
++    };
+ 
+     if (m_partialListSegment)
+     {
+-        for (unsigned int j=0; j<d_listSegment.getValue().size(); j++)
+-            drawElement(d_listSegment.getValue()[j], points, x);
++        for (const auto elementIndex : d_listSegment.getValue())
++            drawSmoothElement(elementIndex);
+     }
+     else
+     {
+-        for (unsigned int i=0; i<m_indexedElements->size(); ++i)
+-            drawElement(i, points, x);
++        for (unsigned int i = 0; i < m_indexedElements->size(); ++i)
++            drawSmoothElement(i);
+     }
+-    vparams->drawTool()->drawLines(points[0], 1, sofa::type::RGBAColor::red());
+-    vparams->drawTool()->drawLines(points[1], 1, sofa::type::RGBAColor::green());
+-    vparams->drawTool()->drawLines(points[2], 1, sofa::type::RGBAColor::blue());
+-
+ 
++    vparams->drawTool()->drawLines(points[0], 2.0f, sofa::type::RGBAColor::red());
++    vparams->drawTool()->drawLines(points[1], 1.0f, sofa::type::RGBAColor::green());
++    vparams->drawTool()->drawLines(points[2], 1.0f, sofa::type::RGBAColor::blue());
+ }
+ 
+ template<class DataTypes>
+@@ -810,4 +1372,4 @@ void BeamFEMForceField<DataTypes>::BeamInfo::init(SReal E, SReal L, SReal nu, SR
+     _Asz = 0.0;
+ }
+ 
+-} // namespace sofa::component::solidmechanics::fem::elastic::_beamfemforcefield_
++} // namespace sofa::component::solidmechanics::fem::elastic::_beamfemforcefield_
+\ No newline at end of file
+diff --git a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.cpp b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.cpp
+new file mode 100644
+index 0000000000..526df68d81
+--- /dev/null
++++ b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.cpp
+@@ -0,0 +1,43 @@
++/******************************************************************************
++*                 SOFA, Simulation Open-Framework Architecture                *
++*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
++*                                                                             *
++* This program is free software; you can redistribute it and/or modify it     *
++* under the terms of the GNU Lesser General Public License as published by    *
++* the Free Software Foundation; either version 2.1 of the License, or (at     *
++* your option) any later version.                                             *
++*                                                                             *
++* This program is distributed in the hope that it will be useful, but WITHOUT *
++* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
++* FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
++* for more details.                                                           *
++*                                                                             *
++* You should have received a copy of the GNU Lesser General Public License    *
++* along with this program. If not, see <http://www.gnu.org/licenses/>.        *
++*******************************************************************************
++* Authors: The SOFA Team and external contributors (see Authors.txt)          *
++*                                                                             *
++* Contact information: contact@sofa-framework.org                             *
++******************************************************************************/
++#define SOFA_COMPONENT_FORCEFIELD_HETEROGENEOUSBEAMFEMFORCEFIELD_CPP
++
++#include <sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.inl>
++#include <sofa/defaulttype/RigidTypes.h>
++#include <sofa/core/ObjectFactory.h>
++
++namespace sofa::component::solidmechanics::fem::elastic
++{
++using namespace sofa::defaulttype;
++
++void registerHeterogeneousBeamFEMForceField(sofa::core::ObjectFactory* factory)
++{
++    factory->registerObjects(core::ObjectRegistrationData("Beam finite elements (heterogeneous sections).")
++        .add< HeterogeneousBeamFEMForceField<Rigid3Types> >());
++}
++
++namespace _heterogeneousbeamfemforcefield_
++{
++    template class SOFA_COMPONENT_SOLIDMECHANICS_FEM_ELASTIC_API HeterogeneousBeamFEMForceField<Rigid3Types>;
++}
++
++} // namespace sofa::component::solidmechanics::fem::elastic
+\ No newline at end of file
+diff --git a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.h b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.h
+new file mode 100644
+index 0000000000..dd91e6ff6c
+--- /dev/null
++++ b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.h
+@@ -0,0 +1,88 @@
++/******************************************************************************
++*                 SOFA, Simulation Open-Framework Architecture                *
++*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
++*                                                                             *
++* This program is free software; you can redistribute it and/or modify it     *
++* under the terms of the GNU Lesser General Public License as published by    *
++* the Free Software Foundation; either version 2.1 of the License, or (at     *
++* your option) any later version.                                             *
++*                                                                             *
++* This program is distributed in the hope that it will be useful, but WITHOUT *
++* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
++* FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
++* for more details.                                                           *
++*                                                                             *
++* You should have received a copy of the GNU Lesser General Public License    *
++* along with this program. If not, see <http://www.gnu.org/licenses/>.        *
++*******************************************************************************
++* Authors: The SOFA Team and external contributors (see Authors.txt)          *
++*                                                                             *
++* Contact information: contact@sofa-framework.org                             *
++******************************************************************************/
++#pragma once
++#include <sofa/component/solidmechanics/fem/elastic/config.h>
++
++#include <sofa/component/solidmechanics/fem/elastic/BeamFEMForceField.h>
++#include <sofa/type/vector.h>
++
++namespace sofa::component::solidmechanics::fem::elastic
++{
++
++namespace _heterogeneousbeamfemforcefield_
++{
++
++using type::Vec3;
++
++template<class DataTypes>
++class HeterogeneousBeamFEMForceField
++    : public _beamfemforcefield_::BeamFEMForceField<DataTypes>
++{
++public:
++    SOFA_CLASS(SOFA_TEMPLATE(HeterogeneousBeamFEMForceField, DataTypes),
++               SOFA_TEMPLATE(_beamfemforcefield_::BeamFEMForceField, DataTypes));
++
++    using Inherit = _beamfemforcefield_::BeamFEMForceField<DataTypes>;
++    using typename Inherit::Real;
++    using typename Inherit::Index;
++    using typename Inherit::VecCoord;
++    using typename Inherit::Deriv;
++    using typename Inherit::Displacement;
++
++    HeterogeneousBeamFEMForceField();
++    ~HeterogeneousBeamFEMForceField() override = default;
++
++    void init() override;
++    void reinit() override;
++
++    // BeamFEMForceField has reinitBeam(Index). We override it to apply per-section params.
++    void reinitBeam(Index i) override;
++
++    int getSectionForEdge(Index edgeIndex) const { return sectionForEdge(edgeIndex); };
++
++    void LocalForceLarge(const VecCoord & x, int i, Index a, Index b, Deriv& fa, Deriv& fb);
++
++protected:
++    Data< sofa::type::vector<Index> > d_sectionStart;       ///< inclusive start edge index per section
++    Data< sofa::type::vector<Index> > d_sectionEnd;         ///< exclusive end edge index per section
++
++    Data< sofa::type::vector<SReal> > d_sectionYoung;       ///< E per section
++    Data< sofa::type::vector<SReal> > d_sectionPoisson;     ///< nu per section
++    Data< sofa::type::vector<SReal> > d_sectionRadius;      ///< radius per section
++    Data< sofa::type::vector<SReal> > d_sectionInnerRadius; ///< inner radius per section
++
++    sofa::core::objectmodel::MultiLink<HeterogeneousBeamFEMForceField<DataTypes>,sofa::core::objectmodel::BaseObject,sofa::core::objectmodel::BaseLink::FLAG_STRONGLINK> l_sectionYoungLinks;
++
++    sofa::type::vector<SReal> m_resolvedSectionYoung;
++    sofa::type::vector<int> m_edgeToSection; ///< cache: edgeIndex -> sectionId, -1 if none
++    Data< sofa::type::vector<int> > d_edgeToSection;
++    void buildEdgeToSectionMap();
++    int  sectionForEdge(Index edgeIndex) const;
++    bool validateSections(Index nbEdges) const;
++};
++
++} // namespace _heterogeneousbeamfemforcefield_
++
++// Export in the same way BeamFEMForceField does:
++using _heterogeneousbeamfemforcefield_::HeterogeneousBeamFEMForceField;
++
++} // namespace sofa::component::solidmechanics::fem::elastic
+\ No newline at end of file
+diff --git a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.inl b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.inl
+new file mode 100644
+index 0000000000..5061de7fe5
+--- /dev/null
++++ b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.inl
+@@ -0,0 +1,313 @@
++/******************************************************************************
++*                 SOFA, Simulation Open-Framework Architecture                *
++*                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
++*                                                                             *
++* This program is free software; you can redistribute it and/or modify it     *
++* under the terms of the GNU Lesser General Public License as published by    *
++* the Free Software Foundation; either version 2.1 of the License, or (at     *
++* your option) any later version.                                             *
++*                                                                             *
++* This program is distributed in the hope that it will be useful, but WITHOUT *
++* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
++* FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
++* for more details.                                                           *
++*                                                                             *
++* You should have received a copy of the GNU Lesser General Public License    *
++* along with this program. If not, see <http://www.gnu.org/licenses/>.        *
++*******************************************************************************
++* Authors: The SOFA Team and external contributors (see Authors.txt)          *
++*                                                                             *
++* Contact information: contact@sofa-framework.org                             *
++******************************************************************************/
++#pragma once
++#include <sofa/component/solidmechanics/fem/elastic/HeterogeneousBeamFEMForceField.h>
++#include <sofa/component/solidmechanics/fem/elastic/BaseLinearElasticityFEMForceField.inl>
++#include <sofa/core/topology/TopologyData.inl>
++#include <sofa/core/visual/VisualParams.h>
++#include <sofa/core/topology/BaseMeshTopology.h>
++#include <sofa/helper/rmath.h>
++#include <sofa/core/behavior/MechanicalState.h>
++#include <sofa/core/behavior/MultiMatrixAccessor.h>
++#include <sofa/defaulttype/VecTypes.h>
++#include <sofa/defaulttype/RigidTypes.h>
++#include <sofa/core/behavior/BaseLocalForceFieldMatrix.h>
++
++namespace sofa::component::solidmechanics::fem::elastic::_heterogeneousbeamfemforcefield_
++{
++
++template<class DataTypes>
++HeterogeneousBeamFEMForceField<DataTypes>::HeterogeneousBeamFEMForceField()
++    : Inherit()
++    , d_sectionStart(this->initData(&d_sectionStart, "sectionStart",
++        "Inclusive start edge index for each section."))
++    , d_sectionEnd(this->initData(&d_sectionEnd, "sectionEnd",
++        "Exclusive end edge index for each section."))
++    , d_sectionYoung(this->initData(&d_sectionYoung, "sectionYoung",
++        "Young modulus E for each section."))
++    , d_sectionPoisson(this->initData(&d_sectionPoisson, "sectionPoisson",
++        "Poisson ratio nu for each section."))
++    , d_sectionRadius(this->initData(&d_sectionRadius, "sectionRadius",
++        "Outer radius for each section."))
++    , d_sectionInnerRadius(this->initData(&d_sectionInnerRadius, "sectionInnerRadius",
++        "Inner radius for each section (0 for solid)."))
++    , d_edgeToSection(this->initData(&d_edgeToSection, "Edge to Section Map",
++        "Map between edges and sections (-1 if no section found)"))
++    , l_sectionYoungLinks(this->initLink(
++      "sectionYoungLinks",
++      "Optional list of linked parameter components, one per section, used instead of sectionYoung."))
++{
++    this->d_radius.setRequired(false);
++}
++
++template<class DataTypes>
++void HeterogeneousBeamFEMForceField<DataTypes>::init()
++{
++    Inherit::init();
++}
++
++template<class DataTypes>
++bool HeterogeneousBeamFEMForceField<DataTypes>::validateSections(Index nbEdges) const
++{
++    const auto& start = d_sectionStart.getValue();
++    const auto& end   = d_sectionEnd.getValue();
++
++    if (start.size() != end.size())
++        return false;
++
++    const size_t nSec = start.size();
++    if (nSec == 0)
++        return true;
++
++    auto okSize = [&](const auto& v) { return v.size() == nSec; };
++
++    const bool useLinkedYoung = !l_sectionYoungLinks.empty();
++
++    if (!useLinkedYoung)
++    {
++        if (!okSize(d_sectionYoung.getValue())) return false;
++    }
++    else
++    {
++        if (l_sectionYoungLinks.size() != nSec) return false;
++    }
++    if (!okSize(d_sectionPoisson.getValue()))     return false;
++    if (!okSize(d_sectionRadius.getValue()))      return false;
++    if (!okSize(d_sectionInnerRadius.getValue())) return false;
++
++    for (size_t s = 0; s < nSec; ++s)
++    {
++        if (start[s] > end[s]) return false;
++        if (end[s] > nbEdges)  return false;
++    }
++    return true;
++}
++
++template<class DataTypes>
++void HeterogeneousBeamFEMForceField<DataTypes>::buildEdgeToSectionMap()
++{
++    const Index nbEdges = static_cast<Index>(this->m_indexedElements->size());
++    m_edgeToSection.assign(nbEdges, -1);
++
++    const auto& start = d_sectionStart.getValue();
++    const auto& end   = d_sectionEnd.getValue();
++
++    for (size_t s = 0; s < start.size(); ++s)
++        for (Index e = start[s]; e < end[s]; ++e)
++            m_edgeToSection[e] = static_cast<int>(s);
++}
++
++template<class DataTypes>
++int HeterogeneousBeamFEMForceField<DataTypes>::sectionForEdge(Index edgeIndex) const
++{
++    if (edgeIndex >= m_edgeToSection.size())
++        return -1;
++    return m_edgeToSection[edgeIndex];
++}
++
++template<class DataTypes>
++void HeterogeneousBeamFEMForceField<DataTypes>::reinit()
++{
++    if (!this->m_indexedElements)
++    {
++        this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
++        return;
++    }
++
++    const Index nbEdges = static_cast<Index>(this->m_indexedElements->size());
++
++    if (!validateSections(nbEdges))
++    {
++        msg_error() << "Invalid section definition: check sectionStart/sectionEnd and parameter vector sizes.";
++        this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
++        return;
++    }
++    
++    buildEdgeToSectionMap();
++    d_edgeToSection.setValue(m_edgeToSection);
++    m_resolvedSectionYoung.clear();
++
++    if (!l_sectionYoungLinks.empty())
++    {
++        const size_t nSec = d_sectionStart.getValue().size();
++        m_resolvedSectionYoung.resize(nSec);
++
++        for (size_t s = 0; s < nSec; ++s)
++        {
++            auto* obj = l_sectionYoungLinks[s];
++            if (!obj)
++            {
++                msg_error() << "sectionYoungLinks[" << s << "] is null.";
++                this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
++                return;
++            }
++
++            // Replace this block with the actual type/data accessor of your parameter component.
++            // Example strategy: read its "value" Data and extract one scalar.
++            auto* valueData = obj->findData("value");
++            if (!valueData)
++            {
++                msg_error() << "Linked object '" << obj->getName()
++                            << "' has no Data named 'value'.";
++                this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
++                return;
++            }
++
++            std::stringstream ss(valueData->getValueString());
++            SReal E;
++            ss >> E;
++            if (ss.fail())
++            {
++                msg_error() << "Could not parse scalar Young modulus from linked object '"
++                            << obj->getName() << "'.";
++                this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
++                return;
++            }
++
++            m_resolvedSectionYoung[s] = E;
++        }
++    }
++    else
++    {
++        m_resolvedSectionYoung = d_sectionYoung.getValue();
++    }
++
++    Inherit::reinit();
++}
++
++template<class DataTypes>
++void HeterogeneousBeamFEMForceField<DataTypes>::reinitBeam(Index i)
++{
++    // If no sections or edge uncovered, fall back to base behavior
++    if (d_sectionStart.getValue().empty())
++    {
++        Inherit::reinitBeam(i);
++        return;
++    }
++
++    const int s = sectionForEdge(i);
++    if (s < 0)
++    {
++        Inherit::reinitBeam(i);
++        return;
++    }
++
++    // Edge nodes
++    const auto& [a, b] = (*this->m_indexedElements)[i].array();
++
++    // Rest positions -> length (same style as BeamFEMForceField)
++    const VecCoord& x0 = this->mstate->read(core::vec_id::read_access::restPosition)->getValue();
++    const SReal length = (x0[a].getCenter() - x0[b].getCenter()).norm();
++
++    const auto& R  = d_sectionRadius.getValue();
++    const auto& Ri = d_sectionInnerRadius.getValue();
++    const auto& Ey = m_resolvedSectionYoung.empty() ? d_sectionYoung.getValue()
++                                                : m_resolvedSectionYoung;
++    const auto& Poissony = d_sectionPoisson.getValue();
++
++    // assumes validateSections() ensured these sizes:
++    SReal E      = Ey[s];
++    SReal nu     = Poissony[s] ;
++
++    SReal radius = R[s];
++    SReal inner  = Ri[s];
++    // Same pipeline as base class
++    this->setBeam(i, E, length, nu, radius, inner);
++    this->computeStiffness(i, a, b);
++    this->initLarge(i, a, b);
++}
++
++inline sofa::type::Quat<SReal> qDiff(sofa::type::Quat<SReal> a, const sofa::type::Quat<SReal>& b)
++{
++    if (a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3] < 0)
++    {
++        a[0] = -a[0]; a[1] = -a[1]; a[2] = -a[2]; a[3] = -a[3];
++    }
++    const sofa::type::Quat<SReal> q = b.inverse() * a;
++    return q;
++}
++
++
++template<class DataTypes>
++void HeterogeneousBeamFEMForceField<DataTypes>::LocalForceLarge( const VecCoord & x, int i, Index a, Index b, Deriv& fa, Deriv& fb)
++{
++    const VecCoord& x0 = this->mstate->read(core::vec_id::read_access::restPosition)->getValue();
++
++    this->beamQuat(i)= x[a].getOrientation();
++    this->beamQuat(i).normalize();
++
++    type::Vec<3,Real> u, P1P2, P1P2_0;
++
++    // local displacement
++    Displacement depl;
++
++    // translations //
++    P1P2_0 = x0[b].getCenter() - x0[a].getCenter();
++    P1P2_0 = x0[a].getOrientation().inverseRotate(P1P2_0);
++    P1P2 = x[b].getCenter() - x[a].getCenter();
++    P1P2 = x[a].getOrientation().inverseRotate(P1P2);
++    u = P1P2 - P1P2_0;
++
++    depl[0] = 0.0; 	depl[1] = 0.0; 	depl[2] = 0.0;
++    depl[6] = u[0]; depl[7] = u[1]; depl[8] = u[2];
++
++    // rotations //
++    type::Quat<SReal> dQ0, dQ;
++
++    dQ0 = qDiff(x0[b].getOrientation(), x0[a].getOrientation());
++    dQ =  qDiff(x[b].getOrientation(), x[a].getOrientation());
++
++    dQ0.normalize();
++    dQ.normalize();
++
++    type::Quat<SReal> tmpQ = qDiff(dQ,dQ0);
++    tmpQ.normalize();
++
++    // TODO(e.coevoet) remove before v20.12
++    // Use of quatToRotationVector instead of toEulerVector: u = tmpQ.quatToRotationVector();
++    // this is done to keep the old behavior (before the
++    // correction of the toEulerVector  function). If the
++    // purpose was to obtain the Eulerian vector and not the
++    // rotation vector please use the following line instead
++    // u = tmpQ.toEulerVector();
++    u = tmpQ.quatToRotationVector();
++
++    depl[3] = 0.0; 	depl[4] = 0.0; 	depl[5] = 0.0;
++    depl[9] = u[0]; depl[10]= u[1]; depl[11]= u[2];
++
++    // this computation can be optimised: (we know that half of "depl" is null)
++    Displacement force = this->d_beamsData.getValue()[i]._k_loc * depl;
++
++
++    // Apply lambda transpose (we use the rotation value of point a for the beam)
++    const Vec3 fa1 = x[a].getOrientation().rotate(type::Vec3d(force[0],force[1],force[2]));
++    const Vec3 fa2 = x[a].getOrientation().rotate(type::Vec3d(force[3],force[4],force[5]));
++
++    const Vec3 fb1 = x[a].getOrientation().rotate(type::Vec3d(force[6],force[7],force[8]));
++    const Vec3 fb2 = x[a].getOrientation().rotate(type::Vec3d(force[9],force[10],force[11]));
++
++    fa = Deriv(-fa1, -fa2);
++    fb = Deriv(-fb1, -fb2);
++
++}
++
++} // namespace sofa::component::solidmechanics::fem::elastic::_heterogeneousbeamfemforcefield_
+\ No newline at end of file
+diff --git a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/init.cpp b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/init.cpp
+index 2c37e45f15..8e7d0c981a 100644
+--- a/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/init.cpp
++++ b/Sofa/Component/SolidMechanics/FEM/Elastic/src/sofa/component/solidmechanics/fem/elastic/init.cpp
+@@ -27,6 +27,7 @@ namespace sofa::component::solidmechanics::fem::elastic
+ {
+ 
+ extern void registerBeamFEMForceField(sofa::core::ObjectFactory* factory);
++extern void registerHeterogeneousBeamFEMForceField(sofa::core::ObjectFactory* factory);
+ extern void registerCorotationalFEMForceField(sofa::core::ObjectFactory* factory);
+ extern void registerFastTetrahedralCorotationalForceField(sofa::core::ObjectFactory* factory);
+ extern void registerHexahedralFEMForceField(sofa::core::ObjectFactory* factory);
+@@ -67,6 +68,7 @@ const char* getModuleVersion()
+ void registerObjects(sofa::core::ObjectFactory* factory)
+ {
+     registerBeamFEMForceField(factory);
++    registerHeterogeneousBeamFEMForceField(factory);
+     registerCorotationalFEMForceField(factory);
+     registerFastTetrahedralCorotationalForceField(factory);
+     registerHexahedralFEMForceField(factory);
+diff --git a/Sofa/GL/Component/Rendering3D/src/sofa/gl/component/rendering3d/DataDisplay.cpp b/Sofa/GL/Component/Rendering3D/src/sofa/gl/component/rendering3d/DataDisplay.cpp
+index 0fb8610761..53c7881aa8 100644
+--- a/Sofa/GL/Component/Rendering3D/src/sofa/gl/component/rendering3d/DataDisplay.cpp
++++ b/Sofa/GL/Component/Rendering3D/src/sofa/gl/component/rendering3d/DataDisplay.cpp
+@@ -413,6 +413,7 @@ void DataDisplay::doDrawVisual(const core::visual::VisualParams* vparams)
+                         : eval(ptData[t[j]]);
+                 color[j][3] = transparency;
+             }
++
+             glNormalT(m_normals[t[0]]);
+             glMaterialfv(GL_FRONT,GL_DIFFUSE,color[0].data());
+             sofa::gl::glVertexNv<3>(x[t[0]].ptr());
+diff --git a/Sofa/framework/Core/src/sofa/core/behavior/BaseProjectiveConstraintSet.h b/Sofa/framework/Core/src/sofa/core/behavior/BaseProjectiveConstraintSet.h
+index 3303bee4f0..d4cb961c06 100644
+--- a/Sofa/framework/Core/src/sofa/core/behavior/BaseProjectiveConstraintSet.h
++++ b/Sofa/framework/Core/src/sofa/core/behavior/BaseProjectiveConstraintSet.h
+@@ -48,6 +48,15 @@ struct ZeroDirichletCondition
+      * intersection of the row and the column is set to 1.
+      */
+     virtual void discardRowCol(sofa::Index /*row*/, sofa::Index /*col*/) {}
++
++    virtual bool copyColumnBeforeDiscard(
++        sofa::Index /*col*/,
++        sofa::type::vector<SReal>& /*out*/,
++        sofa::Index /*localRowBegin*/ = 0,
++        sofa::Size /*localRowCount*/ = 0) const
++    {
++        return false;
++    }
+ };
+ 
+ /**
+diff --git a/Sofa/framework/Helper/src/sofa/helper/ColorMap.h b/Sofa/framework/Helper/src/sofa/helper/ColorMap.h
+index 2dba0fce31..1bd7ab6635 100644
+--- a/Sofa/framework/Helper/src/sofa/helper/ColorMap.h
++++ b/Sofa/framework/Helper/src/sofa/helper/ColorMap.h
+@@ -28,6 +28,9 @@
+ #include <sofa/type/RGBAColor.h>
+ #include <sofa/helper/rmath.h>
+ #include <sofa/type/Vec.h>
++#include <algorithm>
++#include <cmath>
++#include <limits>
+ #include <string>
+ //#include <sofa/helper/OptionsGroup.h>
+ 
+@@ -52,7 +55,25 @@ public:
+         {}
+ 
+         evaluator(const ColorMap* map, Real vmin, Real vmax)
+-            : map(map), vmin(vmin), vmax(vmax), vscale((vmax == vmin) ? (Real)0 : (map->entries.size()-1)/(vmax-vmin)) {}
++            : map(map), vmin(vmin), vmax(vmax),
++              // An exact vmax == vmin test is fragile: two values meant to
++              // represent "no variation" (e.g. a field that is uniformly
++              // zero) routinely differ by more than a couple of ULPs once
++              // they've gone through independent floating-point paths (e.g.
++              // mapping between two meshes that represent the same geometry
++              // but aren't bit-identical -- observed noise on one real case
++              // was ~4 ULPs, i.e. a tight few-epsilon tolerance isn't safe
++              // margin), leaving a near-zero but nonzero vmax-vmin. That
++              // produces a huge vscale, which amplifies that noise across
++              // the whole palette instead of the flat color a genuinely-
++              // uniform field should get. Tolerate a relative (scaled by
++              // the larger endpoint magnitude, floored at 1 so near-zero
++              // ranges aren't over-sensitive) difference of up to 1e4
++              // epsilons as "equal" instead.
++              vscale((std::abs(vmax - vmin) <= Real(1e4) * std::numeric_limits<Real>::epsilon()
++                          * std::max({Real(1), std::abs(vmax), std::abs(vmin)}))
++                         ? (Real)0
++                         : (map->entries.size()-1)/(vmax-vmin)) {}
+ 
+         auto operator()(Real r) const
+         {

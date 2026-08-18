@@ -1188,4 +1188,38 @@ void MatrixLinearSystem<TMatrix, TVector>::Dirichlet::discardRowCol(sofa::Index 
     m_globalMatrix->set(row + m_offset[0], col  + m_offset[1], 1.);
 }
 
+template<class TMatrix, class TVector>
+bool MatrixLinearSystem<TMatrix, TVector>::Dirichlet::copyColumnBeforeDiscard(
+    sofa::Index col,
+    sofa::type::vector<SReal>& out,
+    sofa::Index localRowBegin,
+    sofa::Size localRowCount) const
+    {
+        out.clear();
+
+        if (m_globalMatrix == nullptr)
+        {
+            return false;
+        }
+
+        const sofa::Index globalCol = col + m_offset[1];
+
+        const sofa::Index globalRowBegin = localRowBegin + m_offset[0];
+        const sofa::Size rowCount =
+            localRowCount > 0 ? localRowCount : static_cast<sofa::Size>(m_globalMatrix->rowSize());
+
+        out.resize(rowCount);
+
+        for (sofa::Index r = 0; r < rowCount; ++r)
+        {
+            out[r] = static_cast<SReal>(m_globalMatrix->element(globalRowBegin + r, globalCol));
+        }
+
+        return true;
+    }
+    
 }
+
+
+
+

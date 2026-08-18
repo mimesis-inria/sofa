@@ -224,6 +224,12 @@ protected:
     {
         ~Dirichlet() override = default;
         void discardRowCol(sofa::Index row, sofa::Index col) override;
+        
+        bool copyColumnBeforeDiscard(
+            sofa::Index col,
+            sofa::type::vector<SReal>& out,
+            sofa::Index localRowBegin = 0,
+            sofa::Size localRowCount = 0) const override;
 
         sofa::type::Vec2u m_offset;
 
