@@ -74,6 +74,8 @@ protected:
     std::unique_ptr<BaseEigenSolverProxy> m_solver;
 
     [[nodiscard]] Eigen::ComputationInfo getSolverInfo() const;
+    [[nodiscard]] Eigen::Index getMatrixRank() const;
+    void setPivotThreshold(const SReal threshold);
     void updateSolverOderingMethod();
 
     sofa::linearalgebra::CompressedRowSparseMatrix<Real> Mfiltered;

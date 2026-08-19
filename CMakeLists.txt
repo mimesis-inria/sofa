@@ -205,8 +205,6 @@ sofa_add_subdirectory(plugin applications/plugins/SceneCreator SceneCreator OFF
 ## add SofaPython3, guis, plugins, projects
 add_subdirectory(applications)
 
-sofa_add_subdirectory(plugin applications/plugins/SofaNCP SofaNCP)
-
 ## SimpleAPI examples
 option(SOFA_BUILD_SIMPLEAPI_EXAMPLES "Build SOFA scenes based on SimpleAPI." OFF)
 if(SOFA_BUILD_SIMPLEAPI_EXAMPLES)

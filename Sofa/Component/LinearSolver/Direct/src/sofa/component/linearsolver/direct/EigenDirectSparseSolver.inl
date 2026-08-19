@@ -69,6 +69,8 @@ void EigenDirectSparseSolver<TBlockType, EigenSolver>
                                                    (typename EigenSparseMatrixMap::StorageIndex*)Mfiltered.colsIndex.data(),
                                                    Mfiltered.colsValue.data());
 
+    // m_solver->setPivotThreshold(1e-2_sreal);
+
     const bool analyzePattern = (MfilteredrowBegin != Mfiltered.rowBegin) || (MfilteredcolsIndex != Mfiltered.colsIndex);
 
     if (analyzePattern)
@@ -83,6 +85,9 @@ void EigenDirectSparseSolver<TBlockType, EigenSolver>
     {
         SCOPED_TIMER_VARNAME(factorizeTimer, "factorization");
         m_solver->factorize(*m_map);
+        
+        const SReal nullity = A.colSize() - getMatrixRank();
+        msg_info_when(getMatrixRank() >= 0) << "Nullity " << nullity;
     }
 
     msg_error_when(getSolverInfo() == Eigen::ComputationInfo::InvalidInput) << "Solver cannot factorize: invalid input";
@@ -95,6 +100,18 @@ Eigen::ComputationInfo EigenDirectSparseSolver<TBlockType, EigenSolver>
 ::getSolverInfo() const
 {
     return m_solver->info();
+}
+
+template<class TBlockType, class EigenSolver>
+Eigen::Index EigenDirectSparseSolver<TBlockType, EigenSolver>::getMatrixRank() const
+{
+    return m_solver->rank();
+}
+
+template<class TBlockType, class EigenSolver>
+void EigenDirectSparseSolver<TBlockType, EigenSolver>::setPivotThreshold(const SReal threshold)
+{
+    m_solver->setPivotThreshold(threshold);
 }
 
 template <class TBlockType, class EigenSolver>

@@ -224,7 +224,6 @@ protected:
     {
         ~Dirichlet() override = default;
         void discardRowCol(sofa::Index row, sofa::Index col) override;
-        
         bool copyColumnBeforeDiscard(
             sofa::Index col,
             sofa::type::vector<SReal>& out,
@@ -232,8 +231,6 @@ protected:
             sofa::Size localRowCount = 0) const override;
 
         sofa::type::Vec2u m_offset;
-
-        /// The matrix to apply a zero Dirichlet boundary condition
         TMatrix* m_globalMatrix { nullptr };
     } m_discarder;
 

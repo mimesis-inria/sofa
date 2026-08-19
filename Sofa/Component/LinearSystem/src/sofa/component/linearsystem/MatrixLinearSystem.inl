@@ -1217,9 +1217,5 @@ bool MatrixLinearSystem<TMatrix, TVector>::Dirichlet::copyColumnBeforeDiscard(
 
         return true;
     }
-    
+
 }
-
-
-
-

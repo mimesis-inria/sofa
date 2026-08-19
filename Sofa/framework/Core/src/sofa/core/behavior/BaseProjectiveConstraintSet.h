@@ -43,10 +43,7 @@ namespace sofa::core::behavior
 struct ZeroDirichletCondition
 {
     virtual ~ZeroDirichletCondition() = default;
-    /**
-     * Zero out a row and a column of a matrix. The element at the
-     * intersection of the row and the column is set to 1.
-     */
+
     virtual void discardRowCol(sofa::Index /*row*/, sofa::Index /*col*/) {}
 
     virtual bool copyColumnBeforeDiscard(

@@ -84,10 +84,11 @@ bool GlobalSystemMatrixExporter::write()
     {
         if (l_linearSystem->getSystemBaseMatrix())
         {
-            const std::string basename = getOrCreateTargetPath(d_filename.getValue(),
-                                                               d_exportEveryNbSteps.getValue());
+            // const std::string basename = getOrCreateTargetPath(d_filename.getValue(),
+            //                                                    d_exportEveryNbSteps.getValue());
+            const std::string basename = (d_filename.getValue());
 
-            const auto selectedExporter = d_fileFormat.getValue().getSelectedItem();
+            const auto selectedExporter = d_fileFormat.getValue().getSelectedItem();  
             const auto exporter = sofa::defaulttype::matrixExporterMap.find(selectedExporter);
             if (exporter != sofa::defaulttype::matrixExporterMap.end())
             {

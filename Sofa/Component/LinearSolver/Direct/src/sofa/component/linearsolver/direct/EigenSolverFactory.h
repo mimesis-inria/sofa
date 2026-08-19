@@ -62,6 +62,10 @@ struct SOFA_COMPONENT_LINEARSOLVER_DIRECT_API BaseEigenSolverProxy
 
     virtual void factorize(const EigenSparseMatrixMap<float>& a) = 0;
     virtual void factorize(const EigenSparseMatrixMap<double>& a) = 0;
+
+    [[nodiscard]] virtual Eigen::Index rank() const {return Eigen::Index(-1);}
+
+    virtual void setPivotThreshold(const SReal threshold) = 0;
 };
 
 
@@ -78,6 +82,25 @@ class EigenSolverWrapper : public BaseEigenSolverProxy
 {
 public:
     EigenSolverWrapper() : m_realObject() {}
+
+    [[nodiscard]] Eigen::Index rank() const override
+    {
+        if constexpr (requires(const RealObject& solver) { solver.rank(); })
+            return m_realObject.rank();
+        else
+            return Eigen::Index(-1);
+    }
+
+    void setPivotThreshold(const SReal threshold) override
+    {
+        if constexpr (requires(RealObject& solver, SReal value)
+        {
+            solver.setPivotThreshold(value);
+        })
+        {
+            m_realObject.setPivotThreshold(threshold);
+        }
+    }
 
     [[nodiscard]] Eigen::ComputationInfo info() const override
     {

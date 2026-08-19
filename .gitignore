@@ -47,6 +47,8 @@
 # Misc
 /applications/plugins/EmptyPlugin
 /applications-dev
+/out
+/.vscode
 
 # Files created by QtCreator
 CMakeLists.txt.user*
